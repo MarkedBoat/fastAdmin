@@ -1,0 +1,92 @@
+.container {
+    width: 100% !important;
+}
+
+.hide_btn_sort_asc > .btn_sort_asc {
+    display: none;
+}
+
+.hide_btn_sort_desc > .btn_sort_desc {
+    display: none;
+}
+
+.hide_btn_sort > .btn_sort_asc, .hide_btn_sort > .btn_sort_desc {
+    display: none;
+}
+
+input[class="hammer_input_option"] + span {
+    background: #FFF;
+    color: #000;
+}
+
+input[class="hammer_input_option"]:checked + span {
+    background: #000;
+    color: #FFF;
+}
+
+.table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
+    padding: 3px !important;
+}
+
+td > input[type="text"], td > input[type="number"], td > select {
+    min-width: 45px !important;
+    padding: 0 !important;
+}
+
+.menus_box li {
+    list-style: none;
+}
+
+.menus_box {
+    background: #101010;
+    color: #FFF !important;
+}
+
+.menus_box a {
+    color: #FFF !important;
+}
+
+.menus_root .menus_box {
+    display: none;
+}
+
+.menus_root:hover .menus_box {
+    display: block;
+}
+
+
+/* 数据结构的 */
+.bi_struct, .bi_struct * {
+    display: block;
+    float: left;
+}
+
+.bi_struct {
+    overflow-x: auto;
+}
+
+.bi_row {
+    width: 100%;
+    float: left;
+    margin-left: 20px;
+    border: 1px solid #000;
+}
+
+.bi_array_elements_div {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.bi_row_title {
+    width: 100%;
+}
+
+.bi_row_attrs {
+    width: 100%;
+}
+
+.bi_row_attrs {
+    width: 100%;
+}
+
+

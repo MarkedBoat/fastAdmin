@@ -1,0 +1,95 @@
+[
+  {
+    "key": "status",
+    "must": true,
+    "input_type": "bool",
+    "default": true,
+    "title": "是否整整体关闭",
+    "comment": "是否开启  true:是  false:否",
+    "vals": [
+      {
+        "val": true,
+        "text": "开启"
+      },
+      {
+        "val": false,
+        "text": "关闭"
+      }
+    ]
+  },
+  {
+    "key": "lev1",
+    "must": true,
+    "type": "struct",
+    "title": "一级邀请人",
+    "comment": "是否开启  true:是  false:否",
+    "struct": [
+      {
+        "key": "status",
+        "must": true,
+        "input_type": "bool",
+        "default": true,
+        "title": "是否整整体关闭",
+        "comment": "是否开启  true:是  false:否",
+        "vals": [
+          {
+            "val": true,
+            "text": "开启"
+          },
+          {
+            "val": false,
+            "text": "关闭"
+          }
+        ]
+      },
+      {
+        "key": "awrads",
+        "must": true,
+        "input_type": "array",
+        "max": 10,
+        "min": 1,
+        "default": true,
+        "title": "奖励",
+        "comment": "是否开启  true:是  false:否",
+        "vals": [
+          {
+            "val": true,
+            "text": "开启"
+          },
+          {
+            "val": false,
+            "text": "关闭"
+          }
+        ],
+        "element": [
+          {
+            "key": "number",
+            "must": true,
+            "type": "bi_number",
+            "max": 9999999999,
+            "min": {
+              "base": 1,
+              "type": "div",
+              "pow": 8
+            },
+            "pow": 8,
+            "default": 1,
+            "vals": false,
+            "title": "奖励分数",
+            "comment": "存储是分成 base 和 decimal_places  两个东西"
+          },
+          {
+            "key": "item_code",
+            "must": true,
+            "type": "bi_item_code",
+            "default": false,
+            "vals": false,
+            "title": "奖励物品",
+            "comment": "存储是分成 item_class 和 item_code  两个东西"
+          }
+        ]
+      }
+    ]
+  }
+]
+

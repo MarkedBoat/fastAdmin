@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>测试</title>
+    <link href="/static/file/admin/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/file/admin/css/site.css" rel="stylesheet">
+    <link href="/static/file/admin/css/bg.css" rel="stylesheet">
+
+<body>
+<div class="wrap">
+    <nav id="w0" class="navbar-inverse navbar-fixed-top navbar">
+        <div class="container">
+            <div class="navbar-header"></div>
+            <div id="bg_menus_div" class="navbar-brand menus_root"></div>
+            <div id="w0-collapse" class="collapse navbar-collapse">
+
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <script src="/static/file/admin/js/hammer/kl-hammer.js"></script>
+        <script src="/static/file/admin/js/string/string.js"></script>
+        <script src="/static/file/admin/js/string/jsencrypt.js"></script>
+        <script src="/static/file/admin/js/string/md5.js"></script>
+        <script src="/static/file/admin/js/bg.js"></script>
+        <script src="/static/file/struct/bi_input.js"></script>
+
+        <div class="site-index">
+
+            <div>
+
+            </div>
+
+
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="page-header" id="h1">登录</h3>
+                </div>
+                <div class="panel-body">
+                    <p id="subject_detail"></p>
+                </div>
+            </div>
+
+
+            <div class="body-content" id="content_div">
+
+
+            </div>
+
+        </div>
+        <script>
+
+            domLoaded(function () {
+                let struct_data = {
+                    "struct_code": "adWatchReward4Inviter",
+                    "struct": [
+                        {
+                            "key": "status",
+                            "must": true,
+                            "input_type": "bool",
+                            "default": true,
+                            "title": "是否整整体关闭",
+                            "comment": "是否开启  true:是  false:否",
+                            "vals": [
+                                {
+                                    "val": true,
+                                    "text": "开启"
+                                },
+                                {
+                                    "val": false,
+                                    "text": "关闭"
+                                }
+                            ]
+                        },
+                        {
+                            "key": "lev1",
+                            "must": true,
+                            "input_type": "object",
+                            "title": "一级邀请人",
+                            "comment": "是否开启  true:是  false:否",
+                            "attrs": [
+                                {
+                                    "key": "status",
+                                    "must": true,
+                                    "input_type": "bool",
+                                    "default": true,
+                                    "title": "是否关闭一级邀请人",
+                                    "comment": "是否开启  true:是  false:否",
+                                    "vals": [
+                                        {
+                                            "val": true,
+                                            "text": "开启"
+                                        },
+                                        {
+                                            "val": false,
+                                            "text": "关闭"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "key": "awards",
+                                    "must": true,
+                                    "input_type": "array",
+                                    "default": true,
+                                    "title": "奖励",
+                                    "comment": "是否开启  true:是  false:否",
+                                    "element_struct": {
+                                        "limit": [1, 10],
+                                        "input_type": "object",
+                                        "attrs": [
+                                            {
+                                                "key": "number",
+                                                "must": true,
+                                                "input_type": "bi_number",
+                                                "max": 9999999999,
+                                                "min": {
+                                                    "base": 1,
+                                                    "type": "div",
+                                                    "pow": 8
+                                                },
+                                                "pow": 8,
+                                                "default": [1, 0],
+                                                "vals": false,
+                                                "title": "奖励分数",
+                                                "comment": "存储是分成 base 和 decimal_places  两个东西"
+                                            },
+                                            {
+                                                "key": "item",
+                                                "must": true,
+                                                "input_type": "bi_item",
+                                                "default": false,
+                                                "vals": [{"val": "currency/gold_ingot", "text": "金元宝"}, {"val": "currency/gold_coin", "text": "金币"}],
+                                                "title": "奖励物品",
+                                                "comment": "存储是分成 item_class 和 item_code  两个东西"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "key": "lev2",
+                            "must": true,
+                            "input_type": "object",
+                            "title": "一级邀请人",
+                            "comment": "是否开启  true:是  false:否",
+                            "attrs": [
+                                {
+                                    "key": "status",
+                                    "must": true,
+                                    "input_type": "bool",
+                                    "default": true,
+                                    "title": "是否关闭一级邀请人",
+                                    "comment": "是否开启  true:是  false:否",
+                                    "vals": [
+                                        {
+                                            "val": true,
+                                            "text": "开启"
+                                        },
+                                        {
+                                            "val": false,
+                                            "text": "关闭"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "key": "awards",
+                                    "must": true,
+                                    "input_type": "array",
+                                    "default": true,
+                                    "title": "奖励",
+                                    "comment": "是否开启  true:是  false:否",
+                                    "element_struct": {
+                                        "limit": [1, 10],
+                                        "input_type": "object",
+                                        "attrs": [
+                                            {
+                                                "key": "number",
+                                                "must": true,
+                                                "input_type": "bi_number",
+                                                "max": 9999999999,
+                                                "min": {
+                                                    "base": 1,
+                                                    "type": "div",
+                                                    "pow": 8
+                                                },
+                                                "pow": 8,
+                                                "default": [1, 0],
+                                                "vals": false,
+                                                "title": "奖励分数",
+                                                "comment": "存储是分成 base 和 decimal_places  两个东西"
+                                            },
+                                            {
+                                                "key": "item",
+                                                "must": true,
+                                                "input_type": "bi_item",
+                                                "default": false,
+                                                "vals": [{"val": "currency/gold_ingot", "text": "金元宝"}, {"val": "currency/golden_coin", "text": "金币"}],
+                                                "title": "奖励物品",
+                                                "comment": "存储是分成 item_class 和 item_code  两个东西"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                };
+                let root_div = new Emt('div');
+                kl.id('content_div').append(root_div);
+                let db_data = {
+                    "struct_code": "adWatchReward4Inviter",
+                    "lev1": {"title": "一级邀请人(看广告用户的邀请人)", "status": false, "awards": [{"item": "currency/gold_ingot", "number": [1, -5]}]},
+                    "lev2": {"title": "二级邀请人(邀请人的邀请人)", "status": true, "awards": [{"item": "currency/gold_ingot", "number": [5, -6]}]},
+                    "status": true
+                };
+                root_div.addNode(new biStruct(struct_data, db_data));
+
+            });
+        </script>
+        <style>
+            #content_div, #content_div * {
+                display: block;
+                float: left;
+            }
+
+            .bi_row {
+                width: 100%;
+                float: left;
+                margin-left: 50px;
+                border: 1px solid #000;
+            }
+
+            .bi_array_elements_div {
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }
+
+            .bi_row_title {
+                width: 100%;
+            }
+
+            .bi_row_attrs {
+                width: 100%;
+            }
+
+            .bi_row_attrs {
+                width: 100%;
+            }
+
+        </style>
+        <script></script>
+    </div>
+</div>
+
+<script>
+
+</script>
+
+
+</body>
+</html>
+

@@ -1,0 +1,69 @@
+[
+  {
+    "id": 14,
+    "item_name": "贵族皮肤",
+    "item_code": "vip_0_skin",
+    "item_icon": "",
+    "item_detail": "积分等级获取",
+    "has_ui": 1,
+    "threshold": {},
+    "effect": {
+      "role": {
+        "atk": {
+          "duration": 0,
+          "type": "*",
+          "value": 1.6
+        },
+        "hp": {
+          "duration": 0,
+          "type": "*",
+          "value": 1.6
+        },
+        "perks": [
+          "skip_relife"
+        ]
+      }
+    }
+  },
+  {
+    "id": 14,
+    "item_name": "贵族皮肤",
+    "item_code": "vip_0_skin",
+    "item_icon": "",
+    "item_detail": "积分等级获取",
+    "has_ui": 1,
+    "threshold": {},
+    "effect": {
+      "role": {
+        "atk": {
+          "duration": 0,
+          "type": "*",
+          "value": 1.6
+        }
+      }
+    }
+  },
+  {
+    "id": 14,
+    "item_name": "贵族皮肤",
+    "item_code": "vip_0_skin",
+    "item_icon": "",
+    "item_detail": "积分等级获取",
+    "has_ui": 1,
+    "threshold": {},
+    "effect": {
+      "role": {
+        "atk": {
+          "duration": 0,
+          "type": "*",
+          "value": 1.6
+        },
+        "hp": {
+          "duration": 0,
+          "type": "*",
+          "value": 1.6
+        }
+      }
+    }
+  }
+]

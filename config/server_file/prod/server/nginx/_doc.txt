@@ -1,0 +1,11 @@
+## 部署到线上
+
+  docker run -td --name redis_bi -p 50260:6379   redis_xuyz:v2022.09.07
+   docker run --name mysql8_bi -e MYSQL_ROOT_PASSWORD=Mysql! -p 40260:3306 -td mysql8_xuyz:v2022.09.07
+    docker run -t --name phpfpm8_bi -v /data/codes:/var/www/html:rw --link mysql8_bi:mysql8_server --link redis_bi:redis_server  -d phpfpm8_xuyz:v2022.09.07
+
+mkdir -m 777 -p /data/log/bi/nginx
+useradd  www-data
+chown -R web-data:web-data /data/codes/bee-invasion-back-end
+
+ docker run --name nginx_bi -p 2020:80 -p 2021:443  -td   -v /data/codes/bee-invasion-back-end:/usr/share/nginx/html:rw     -v /data/codes/bee-invasion-back-end/config/server_file/prod/server/nginx/etc/nginx/conf.d:/etc/nginx/conf.d:ro    -v /data/codes/bee-invasion-back-end/config/server_file/prod/server/nginx/etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro -v /data/log/bi/nginx:/var/log/hammer:rw    --link phpfpm8_bi:phpfpm8     nginx:latest

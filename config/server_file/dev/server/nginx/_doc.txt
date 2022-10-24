@@ -1,0 +1,5 @@
+docker run --name nginx-bee-invasion-v1 -p 2026:80  -p 2027:443  -td   -v /data/codes/bee-invasion-back-end:/usr/share/nginx/html:rw     -v /data/codes/bee-invasion-back-end/config/server_file/dev/server/nginx/etc/nginx/conf.d:/etc/nginx/conf.d:ro    -v /data/codes/bee-invasion-back-end/config/server_file/dev/server/nginx/etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro -v /var/log/hammer/bee-invasion-back-end:/var/log/hammer:rw    --link phpfpm8:php     nginx-duck:2022.6.4
+
+
+ docker cp   nginx-hammer-v1:/etc/nginx/nginx.conf  /data/codes/hammer-for-lovenet/config/note/hammer/dev/server/nginx/etc/nginx/nginx.conf
+  docker cp    /data/codes/hammer-for-lovenet/config/note/hammer/dev/server/nginx/etc/nginx/nginx.conf  nginx-hammer-v1:/etc/nginx/nginx.conf|docker restart nginx-hammer-v1

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>测试</title>
+    <link href="/static/file/admin/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/file/admin/css/site.css" rel="stylesheet">
+    <link href="/static/file/admin/css/bg.css" rel="stylesheet">
+
+<body>
+<div class="wrap">
+    <nav id="w0" class="navbar-inverse navbar-fixed-top navbar">
+        <div class="container">
+            <div class="navbar-header"></div>
+            <div id="bg_menus_div" class="navbar-brand menus_root"></div>
+            <div id="w0-collapse" class="collapse navbar-collapse">
+
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <script src="/static/file/admin/js/hammer/kl-hammer.js"></script>
+        <script src="/static/file/admin/js/string/string.js"></script>
+        <script src="/static/file/admin/js/string/jsencrypt.js"></script>
+        <script src="/static/file/admin/js/string/md5.js"></script>
+        <script src="/static/file/admin/js/bg.js"></script>
+        <script src="/static/file/struct/bi_input.js"></script>
+
+        <div class="site-index">
+
+            <div>
+
+            </div>
+
+
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="page-header" id="h1">登录</h3>
+                </div>
+                <div class="panel-body">
+                    <p id="subject_detail"></p>
+                </div>
+            </div>
+
+
+            <div class="body-content" id="content_div">
+
+
+            </div>
+
+        </div>
+        <script>
+
+            domLoaded(function () {
+                let struct_data = {
+                    "struct_code": "channel_opts",
+                    "struct": [
+                        {
+                            "key": "rank",
+                            "must": true,
+                            "input_type": "array",
+                            "title": "排名区间",
+                            "comment": "是否开启  true:是  false:否",
+                            "element_struct": {
+                                "limit": [1, 10],
+                                "input_type": "object",
+                                "attrs": [
+                                    {
+                                        "key": "start_rank",
+                                        "must": true,
+                                        "input_type": "number",
+                                        "default": true,
+                                        "title": "排名区间起始(含)",
+                                        "comment": "是否开启  true:是  false:否",
+                                    },
+                                    {
+                                        "key": "end_rank",
+                                        "must": true,
+                                        "input_type": "number",
+                                        "default": true,
+                                        "title": "排名区间结束(含)",
+                                        "comment": "是否开启  true:是  false:否",
+                                    },
+                                    {
+                                        "key": "rank_detail",
+                                        "must": true,
+                                        "input_type": "text",
+                                        "default": '',
+                                        "title": "描述此排名区间",
+                                        "comment": "是否开启  true:是  false:否",
+                                    },
+
+                                    {
+                                        "key": "awards",
+                                        "must": true,
+                                        "input_type": "array",
+                                        "default": true,
+                                        "title": "奖励",
+                                        "comment": "是否开启  true:是  false:否",
+                                        "element_struct": {
+                                            "limit": [1, 10],
+                                            "input_type": "object",
+                                            "attrs": [
+                                                {
+                                                    "key": "amount",
+                                                    "must": true,
+                                                    "input_type": "bi_amount",
+                                                    "max": 9999999999,
+                                                    "min": {
+                                                        "base": 1,
+                                                        "type": "div",
+                                                        "pow": 8
+                                                    },
+                                                    "default": [1, 0],
+                                                    "vals": false,
+                                                    "title": "奖励数量",
+                                                    "comment": "存储是分成 base 和 decimal_places  两个东西"
+                                                },
+                                                {
+                                                    "key": "item",
+                                                    "must": true,
+                                                    "input_type": "bi_item",
+                                                    "default": false,
+                                                    "vals": [{"val": "currency/gold_ingot", "text": "通货-金元宝"}, {"val": "currency/golden_coin", "text": "通货-金币"}, {"val": "object/jiangdou1", "text": "实物-酱豆"}],
+                                                    "title": "奖励物品",
+                                                    "comment": "存储是分成 item_class 和 item_code  两个东西"
+                                                },
+                                                {
+                                                    "key": "award_detail",
+                                                    "must": true,
+                                                    "input_type": "text",
+                                                    "default": '',
+                                                    "title": "描述奖励",
+                                                    "comment": "是否开启  true:是  false:否",
+                                                },
+
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                };
+                let root_div = new Emt('div');
+                kl.id('content_div').append(root_div);
+                let db_data = {
+                    "rank": [
+                        {
+                            "awards": [
+                                {"item": "currency/gold_ingot", "amount": [8800000000, 8], "award_detail": "88元宝"},
+                                {"item": "object/jiangdou1", "amount": [100000000, 8], "award_detail": "酱豆1份"}
+                            ],
+                            "end_rank": 1,
+                            "start_rank": 1,
+                            "rank_detail": "第1名可以获取88元宝+安徽特产"
+                        },
+
+                        {
+                            "awards": [
+                                {"item": "currency/gold_ingot", "amount": [5000000000, 8], "award_detail": "50元宝"},
+                            ],
+                            "end_rank": 5,
+                            "start_rank": 2,
+                            "rank_detail": "前2~5名可以获取50元宝"
+                        },
+                        {
+                            "awards": [
+                                {"item": "object/jiangdou1", "amount": [100000000, 8], "award_detail": "酱豆1份"}
+                            ],
+                            "end_rank": 20,
+                            "start_rank": 6,
+                            "rank_detail": "前6~20名可以获得酱豆一份"
+                        }
+                    ]
+                };
+                root_div.addNode(new biStruct(struct_data, db_data));
+
+            });
+        </script>
+        <style>
+            #content_div, #content_div * {
+                display: block;
+                float: left;
+            }
+
+            .bi_row {
+                width: 100%;
+                float: left;
+                margin-left: 50px;
+                border: 1px solid #000;
+            }
+
+            .bi_array_elements_div {
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }
+
+            .bi_row_title {
+                width: 100%;
+            }
+
+            .bi_row_attrs {
+                width: 100%;
+            }
+
+            .bi_row_attrs {
+                width: 100%;
+            }
+
+        </style>
+        <script></script>
+    </div>
+</div>
+
+<script>
+
+</script>
+
+
+</body>
+</html>
+

@@ -1,0 +1,9 @@
+## 部署到线上
+
+
+
+mkdir -m 777 -p /data/log/bi/nginx_admin
+useradd  www-data
+chown -R web-data:web-data /data/codes/bees-invade-the-backstage
+
+docker run --name nginx_bi_admin -p 2024:80 -p 2025:443  -td   -v /data/codes/bees-invade-the-backstage:/usr/share/nginx/html:rw     -v /data/codes/bee-invasion-back-end/config/server_file/prod/admin/nginx/etc/nginx/conf.d:/etc/nginx/conf.d:ro    -v /data/codes/bee-invasion-back-end/config/server_file/prod/admin/nginx/etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro  -v /data/codes/bee-invasion-back-end/config/server_file/prod/ssl:/ssl:ro  -v /data/log/bi/nginx_admin:/var/log/hammer:rw     nginx:latest

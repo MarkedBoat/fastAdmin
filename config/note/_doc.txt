@@ -1,0 +1,68 @@
+ cat /var/log/hammer/deliver_finance_order/20220622/log|grep -A 10 -B 10 '__reportToFinance biz_order_id'
+ 
+ 
+ 
+ docker run --name nginx-bee-invasion-xuyz -p 2043:80   -td   -v /home/xuyz/codes/bee-invasion-back-end:/usr/share/nginx/html:rw     -v /home/xuyz/codes/bee-invasion-back-end/config/server_file/dev/server/nginx/etc/nginx/conf.d:/etc/nginx/conf.d:ro    -v /home/xuyz/codes/bee-invasion-back-end/config/server_file/dev/server/nginx/etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro -v /var/log/hammer/bee-invasion-back-end-xuyz:/var/log/hammer:rw    --link phpfpm8_xuyz:phpfpm8     nginx-duck:2022.6.4
+
+
+
+
+
+
+
+
+
+
+ adduser -g root -d /home/zhangsq zhangsq
+ mkdir -m 775 /home/xuyz/codes/
+ cp -r /data/codes/* /home/xuyz/codes/
+
+开发&测试环境  host:220.205.122.79 port:3389
+
+张苏晴，账号 zhangsq,密码 zhangsq
+徐亚洲，账号 xuyz,密码 xuyazhou
+
+ mysql 8.0.24,不对外开放，各项目通用，密码 Mysql!       代码中访问 host:mysql8_server,,端口:3306
+ 宿主机端口：40260  z,张苏晴
+ 宿主机端口：40250  y，杨金龙
+ 宿主机端口：40240  y,徐亚洲
+
+ redis,不对外开放，各项目通用,      代码中访问 host:redis_server,端口6379  宿主机中：
+ 宿主机端口：50260  z,张苏晴
+ 宿主机端口：50250  y，杨金龙
+ 宿主机端口：50240  y,徐亚洲
+
+
+
+ http端口(nginx)，对外开放
+ 2026，开发公用，蜜蜂入侵
+ 2041 杨金龙，蜜蜂入侵
+ 2042 张苏晴，蜜蜂入侵
+ 2043 徐亚洲，蜜蜂入侵
+
+
+ docker run -td --name redis_zhangsq -p 50260:6379   redis:latest
+ docker run -td --name redis_yangjl -p 50250:6379   redis:latest
+ docker run -td --name redis_xuyz -p 50240:6379   redis:latest
+
+
+ docker run --name mysql8_zhangsq -e MYSQL_ROOT_PASSWORD=Mysql! -p 40260:3306 -td mysql8-duck:2022.6.4
+ docker run --name mysql8_xuyz -e MYSQL_ROOT_PASSWORD=Mysql!  -p 40240:3306 -td mysql8-duck:2022.6.4
+ docker run --name mysql8_yangjl -e MYSQL_ROOT_PASSWORD=Mysql! -p 40250:3306 -td mysql8-duck:2022.6.4
+
+
+ docker run -t --name phpfpm8_zhangsq -v /home/zhangsq/codes:/var/www/html --link mysql8_zhangsq:mysql8_server --link redis_zhangsq:redis_server  -d phpfpm8-duck:2022.6.4
+ docker run -t --name phpfpm8_xuyz -v /home/xuyz/codes:/var/www/html  --link mysql8_xuyz:mysql8_server --link redis_xuyz:redis_server  -d phpfpm8-duck:2022.6.4
+ docker run -t --name phpfpm8_yangjl -v /home/yangjl/codes:/var/www/html  --link mysql8_yangjl:mysql8_server --link redis_yangjl:redis_server  -d phpfpm8-duck:2022.6.4
+
+
+
+ docker run --name nginx-bee-invasion-zhangsq -p 2042:80   -td   -v /home/zhangsq/codes/bee-invasion-back-end:/usr/share/nginx/html:rw     -v /home/zhangsq/codes/bee-invasion-back-end/config/server_file/dev/server/nginx/etc/nginx/conf.d:/etc/nginx/conf.d:ro    -v /home/zhangsq/codes/bee-invasion-back-end/config/server_file/dev/server/nginx/etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro -v /var/log/hammer/bee-invasion-back-end-zhangsq:/var/log/hammer:rw    --link phpfpm8_zhangsq:phpfpm8     nginx-duck:2022.6.4
+
+## 部署到线上
+
+  docker run -td --name redis_bi -p 50260:6379   redis_xuyz:v2022.09.07
+   docker run --name mysql8_bi -e MYSQL_ROOT_PASSWORD=Mysql! -p 40260:3306 -td mysql8_xuyz:v2022.09.07
+    docker run -t --name phpfpm8_bi -v /data/codes:/var/www/html:rw --link mysql8_bi:mysql8_server --link redis_bi:redis_server  -d phpfpm8_xuyz:v2022.09.07
+
+ docker run --name nginx_bi -p 2020:80 -p 2021:443  -td   -v /data/codes/bee-invasion-back-end:/usr/share/nginx/html:rw     -v /data/codes/bee-invasion-back-end/config/server_file/dev/server/nginx/etc/nginx/conf.d:/etc/nginx/conf.d:ro    -v /data/codes/bee-invasion-back-end/config/server_file/dev/server/nginx/etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro -v /data/log/bi:/var/log/hammer:rw    --link phpfpm8_bi:phpfpm8     nginx:latest

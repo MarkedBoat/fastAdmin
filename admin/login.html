@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>登录</title>
+    <link href="/static/file/admin/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/file/admin/css/site.css" rel="stylesheet">
+    <link href="/static/file/admin/css/bg.css" rel="stylesheet">
+
+<body>
+<div class="wrap">
+    <nav id="w0" class="navbar-inverse navbar-fixed-top navbar">
+        <div class="container">
+            <div class="navbar-header"></div>
+            <div id="bg_menus_div" class="navbar-brand menus_root"></div>
+            <div id="w0-collapse" class="collapse navbar-collapse">
+
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <script src="/static/file/admin/js/hammer/kl-hammer.js"></script>
+        <script src="/static/file/admin/js/string/string.js"></script>
+        <script src="/static/file/admin/js/string/jsencrypt.js"></script>
+        <script src="/static/file/admin/js/string/md5.js"></script>
+        <script src="/static/file/admin/js/bg.js"></script>
+
+        <div class="site-index">
+
+            <div>
+
+            </div>
+
+
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="page-header" id="h1">登录</h3>
+                </div>
+                <div class="panel-body">
+                    <p id="subject_detail"></p>
+                </div>
+            </div>
+
+
+            <div class="body-content" id="content_div">
+
+
+            </div>
+
+        </div>
+        <script>
+
+            domLoaded(function () {
+                localStorage.removeItem('utk');
+                let root_div = new Emt('div');
+                kl.id('content_div').append(root_div);
+
+                let pub_key = '';
+                let un_input = new Emt('input', 'type="text"');
+                let psw_input = new Emt('input', 'type="password');
+                let submit_btn = new Emt('button', 'type="button"', '登录');
+                root_div.addNodes([
+                    new Emt('from').addNodes([
+                        new Emt('p').addNodes([
+                            new Emt('label').setPros({textContent: '账号'}),
+                            un_input
+                        ]),
+                        new Emt('p').addNodes([
+                            new Emt('label').setPros({textContent: '密码'}),
+                            psw_input
+                        ]),
+                        new Emt('p').addNodes([
+                            new Emt('label').setPros({textContent: '#'}),
+                            submit_btn
+                        ]),
+                    ])
+                ]);
+
+
+                kl.ajax({
+                    url: '/static/file/admin/key/admin.pub',
+                    data: {},
+                    type: 'text',
+                    method: 'GET',
+                    success: function (res_request_data) {
+                        if (res_request_data.indexOf('-----BEGIN PUBLIC KEY-----') === 0) {
+                            pub_key = res_request_data;
+                        } else {
+                            alert('获取公钥 请求结果异常');
+                            throw '别看了，公钥 信息都拿不到，还想干啥?';
+                        }
+                    },
+                    error: function (res_request_data) {
+                        console.log(res_request_data);
+                        alert('获取公钥 网络异常');
+                        throw '别看了，连获取公钥 信息都拿不到，还想干啥?';
+
+                    }
+                });
+                submit_btn.addEventListener('click', function () {
+                    let encrypt = new JSEncrypt();
+                    encrypt.setPublicKey(pub_key);
+                    //https://github.com/openstack/xstatic-jsencrypt/blob/master/xstatic/pkg/jsencrypt/data/jsencrypt.js
+                    let md5_str = hex_md5(psw_input.value);
+                    let rsa_str = encrypt.encrypt(md5_str);
+
+                    console.log(md5_str);
+                    kl.ajax({
+                        url: '/bee_invasion/v1/admin/user/AdminLogin',
+                        data: {
+                            userName: un_input.value,
+                            password: rsa_str,
+                            type: 1,
+                        },
+                        type: 'json',
+                        success: function (res_login) {
+                            if (res_login.status) {
+                                if (res_login.status === 200) {
+                                    localStorage.setItem('utk', res_login.token);
+                                    document.location = '/admin/index.html?{}';
+                                } else {
+                                    alert(' 获取表信息 错误:' + (res_login.msg || '未知'));
+                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                                }
+                            } else {
+                                console.log(res_login.status);
+                                alert('获取表信息 请求结果异常');
+                                throw '别看了，连table info 信息都拿不到，还想干啥?';
+                            }
+                        },
+                        error: function (res_login) {
+                            console.log(res_login);
+                            alert('获取表信息 网络异常');
+                            throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                        }
+                    });
+                });
+
+
+            });
+        </script>
+        <style>
+
+
+        </style>
+        <script></script>
+    </div>
+</div>
+
+<script>
+
+</script>
+
+
+</body>
+</html>
+

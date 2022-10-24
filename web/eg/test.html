@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="cn">
+<head>
+    <meta charset="UTF-8">
+    <title>极差数据树</title>
+    <!-- http://dev.aiqingyinghang.com:2026/web/eg/test.html -->
+    <script src="/static/file/js/kl-hammer.js"></script>
+    <script src="/static/file/js/kl-hammer-dialog.js"></script>
+
+    <style>
+        .node_div {
+            float: left;
+            margin-left: 2px;
+            margin-top: 4px;
+            border: 1px solid #000;
+            margin-right: 2px;
+        }
+
+        .nodes_div {
+            float: left;
+            border-top: 1px dashed #F00;
+            width: 100%;
+
+        }
+
+        .node_div_inner {
+
+            width: 100%;
+            height: 100%;
+        }
+
+        .input_div {
+            float: left;
+
+        }
+
+        .input_div > label {
+            font-weight: 900;
+            padding-right: 10px;
+            display: block;
+            float: left;
+        }
+
+        .input_div > label:nth-child(1) {
+            color: #00F;
+        }
+
+        .input_div > label:nth-child(2) {
+            color: #F00;
+        }
+
+        .input_div > label:nth-child(3) {
+            color: #000;
+        }
+
+        .input_div > label:nth-child(4) {
+            color: #000;
+        }
+
+        .input_div > label:nth-child(5) {
+            color: #DDD;
+            cursor: pointer;
+        }
+
+        .order_sum {
+            width: 50px;
+        }
+
+        .team_order_sum {
+            -border: none;
+        }
+
+        .dom_more_op_div {
+            display: block;
+            float: left;
+        }
+
+        .dom_more_op_div input[type="checkbox"] {
+            display: none;
+        }
+
+        .dom_more_op_div input[type="checkbox"] + input {
+            display: none;
+        }
+
+        .dom_more_op_div input[type="checkbox"]:checked + input {
+            display: inline;
+        }
+
+        .dom_more_op_div > label {
+            margin-left: 15px;
+            margin-right: 15px;
+            border: 1px solid #F00;
+            background: #DDD;
+            padding: 1px;
+
+        }
+
+        @keyframes highligth {
+            0% {
+                background: #000;
+                color: #FFF
+            }
+            50% {
+                background: #FFF;
+                color: #000
+            }
+            100% {
+                background: #000;
+                color: #FFF
+            }
+        }
+
+        .highlight {
+            animation-name: highligth;
+            animation-duration: 1s;
+            animation-iteration-count: infinite;
+            animation-direction: alternate;
+            ---animation-play-state2: running;
+            animation-play-state: initial;
+
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .clear_highlight_btn {
+            display: block;
+            float: left;
+        }
+
+        .op_log {
+            display: block;
+            float: left;
+            margin-top: 50px;
+            width: 45%;
+            min-height: 600px;
+        }
+        .res_log {
+            display: block;
+            float: left;
+            margin-top: 50px;
+            width: 90%;
+            min-height: 600px;
+        }
+
+
+        .break_line {
+
+        }
+
+        .cfg_div {
+
+        }
+
+        .cfg_div input[attr="lev_num"] {
+            width: 50px;
+        }
+
+        .cfg_div input[attr="min_num"] {
+            width: 110px;
+        }
+
+        .cfg_div input[attr="max_num"] {
+            width: 110px;
+        }
+
+        .cfg_div input[attr="full_ratio"] {
+            width: 60px;
+        }
+
+    </style>
+</head>
+<body>
+
+</body>
+<script>
+    window.dbInited = false;
+    window.node_count = 1;
+    window.order_count = 1;
+    window.cfg_count = 1;
+    window.cfg_eles = [];
+    let data_tree1 = {
+        "nickname": "A",
+        "nodes": [
+            {
+                "nickname": "A-B1",
+                "nodes": [
+                    {
+                        "nickname": "A-B1-C1",
+                        "nodes": [
+                            {"nickname": "A-B1-C1-D1", "nodes": []},
+                            {
+                                "nickname": "A-B1-C1-D2",
+                                "nodes": [
+                                    {"nickname": "A-B1-C1-D2-E1", "nodes": []},
+                                    {"nickname": "A-B1-C1-D2-E2", "nodes": []},
+                                    {
+                                        "nickname": "A-B1-C1-D2-E3",
+                                        "nodes": [
+                                            {"nickname": "A-B1-C1-D2-E3-F1", "nodes": []},
+                                            {"nickname": "A-B1-C1-D2-E3-F2", "nodes": []},
+                                            {
+                                                "nickname": "A-B1-C1-D2-E3-F3",
+                                                "nodes": [
+                                                    {"nickname": "A-B1-C1-D2-E3-F3-G1", "nodes": []},
+                                                    {"nickname": "A-B1-C1-D2-E3-F3-G2", "nodes": []},
+                                                    {"nickname": "A-B1-C1-D2-E3-F3-G3", "nodes": []}
+                                                ]
+                                            }]
+                                    }
+                                ]
+                            }, {"nickname": "A-B1-C1-D3", "nodes": []}
+                        ]
+                    },
+                    {"nickname": "A-B1-C2", "nodes": []},
+                    {"nickname": "A-B1-C3", "nodes": []}
+                ]
+            },
+            {
+                "nickname": "B2", "nodes": [
+                    {"nickname": "B2-C4", "nodes": []},
+                    {"nickname": "B2-C5", "nodes": []},
+                    {"nickname": "B2-C6", "nodes": []}
+                ]
+            },
+            {
+                "nickname": "B3",
+                "nodes": [
+                    {"nickname": "B3-C7", "nodes": []},
+                    {"nickname": "B3-C8", "nodes": []},
+                    {"nickname": "B3-C9", "nodes": []}
+                ]
+            },
+            {
+                "nickname": "B4", "nodes": [
+                    {"nickname": "B4-C10", "nodes": []},
+                    {"nickname": "B4-C11", "nodes": []},
+                    {"nickname": "B4-C12", "nodes": []}
+                ]
+            },
+            {
+                "nickname": "B5",
+                "nodes": [
+                    {"nickname": "B5-C10", "nodes": []},
+                    {"nickname": "B5-C11", "nodes": []},
+                    {"nickname": "B5-C15", "nodes": []}
+                ]
+            }
+        ]
+    };
+    let data_tree2 = {
+        "nickname": "A",
+        "nodes": [
+            {
+                "nickname": "A-B1",
+                "nodes": [
+                    {
+                        "nickname": "A-B1-C1",
+                        "nodes": [
+                            {"nickname": "A-B1-C1-D1", "nodes": []},
+                            {
+                                "nickname": "A-B1-C1-D2",
+                                "nodes": [
+                                    // {"nickname": "A-B1-C1-D2-E1", "nodes": []},
+                                    // {"nickname": "A-B1-C1-D2-E2", "nodes": []}
+                                ]
+                            },
+                            {"nickname": "A-B1-C1-D3", "nodes": []}
+                        ]
+                    },
+                    {"nickname": "A-B1-C2", "nodes": []},
+                    {"nickname": "A-B1-C3", "nodes": []}
+                ]
+            },
+            {
+                "nickname": "B2", "nodes": [
+                    {"nickname": "B2-C4", "nodes": []},
+                    {"nickname": "B2-C5", "nodes": []},
+                    {"nickname": "B2-C6", "nodes": []}
+                ]
+            }
+
+        ]
+    };
+    let data_tree = {
+        "nickname": "A",
+        "nodes": [
+            {
+                "nickname": "B1",
+                "nodes": [
+                    {
+                        "nickname": "C1",
+                        "nodes": [
+                            {"nickname": "D1", "nodes": []},
+                            {
+                                "nickname": "D2",
+                                "nodes": [
+                                    {"nickname": "E1", "nodes": []},
+                                    {"nickname": "E2", "nodes": []},
+                                    {
+                                        "nickname": "E3",
+                                        "nodes": [
+                                            {"nickname": "F1", "nodes": []},
+                                            {"nickname": "F2", "nodes": []},
+                                            {
+                                                "nickname": "F3",
+                                                "nodes": [
+                                                    {"nickname": "G1", "nodes": []},
+                                                    {"nickname": "G2", "nodes": []},
+                                                    {"nickname": "G3", "nodes": []}
+                                                ]
+                                            }]
+                                    }
+                                ]
+                            },
+                            {"nickname": "D3", "nodes": []}
+                        ]
+                    },
+                    {"nickname": "C2", "nodes": []},
+                    {"nickname": "C3", "nodes": []}
+                ]
+            },
+            {
+                "nickname": "B2", "nodes": [
+                    {"nickname": "C4", "nodes": []},
+                    {"nickname": "C5", "nodes": []},
+                    {"nickname": "C6", "nodes": []}
+                ]
+            },
+            {
+                "nickname": "B3",
+                "nodes": [
+                    {"nickname": "C7", "nodes": []},
+                    {"nickname": "C8", "nodes": []},
+                    {"nickname": "C9", "nodes": []}
+                ]
+            },
+            {
+                "nickname": "B4", "nodes": [
+                    {"nickname": "C10", "nodes": []},
+                    {"nickname": "C11", "nodes": []},
+                    {"nickname": "C12", "nodes": []}
+                ]
+            },
+            {
+                "nickname": "B5",
+                "nodes": [
+                    {"nickname": "C10", "nodes": []},
+                    {"nickname": "C11", "nodes": []},
+                    {"nickname": "C15", "nodes": []}
+                ]
+            }
+        ]
+    };
+    let render_opt = {
+        pos: {top: 20, left: 10},
+        cell: {w: 140, h: 30},
+    };
+
+
+    let newNodedialog = new HammerDialog();
+    newNodedialog.setTitleText('添加下级节点');
+
+
+    let cfgNode = function (opt) {
+        opt = opt || {};
+        let cfg_div = new Emt('div', 'class="cfg_div"');
+        let label = new Emt('label', '', window.cfg_count.toString());
+        let isCheck = new Emt('input', 'type="checkbox"', '', {checked: opt.isOk || false});
+        let lev_num = new Emt('input', 'type="number" attr="lev_num"', '', {value: opt.lev_num || 0});
+        let min_num = new Emt('input', 'type="number" attr="min_num"', '', {value: opt.min || 0});
+        let max_num = new Emt('input', 'type="number" attr="max_num"', '', {value: opt.max || 0});
+        let full_ratio = new Emt('input', 'type="number" attr="full_ratio"', '', {value: opt.full_ratio || 0});
+        let repeat_ratios = new Emt('input', 'type="text" attr="lev_num" ', '', {value: opt.repeat_ratios || ''});
+        let isTop = new Emt('input', 'type="checkbox"', '', {checked: opt.isTop || false});
+
+        cfg_div.addNodes([
+            label.addNodes([isCheck]),
+            new Emt('label', '', '等级:').addNodes([
+                lev_num,
+            ]),
+            new Emt('label', '', '最小值(含)').addNodes([
+                min_num,
+            ]),
+            new Emt('label', '', '最大值(不含)').addNodes([
+                max_num,
+            ]),
+            new Emt('label', '', '全额收益比率').addNodes([
+                full_ratio,
+            ]),
+            new Emt('label', '', '同级收益比率').addNodes([
+                repeat_ratios,
+            ]),
+            new Emt('label', '', '顶级？').addNodes([
+                isTop,
+            ]),
+        ]);
+        cfg_div.getInfo = function () {
+            return {
+                id: label.textContent,
+                isCheck: isCheck.checked,
+                lev_num: lev_num.value,
+                min_num: min_num.value,
+                max_num: max_num.value,
+                full_ratio: full_ratio.value,
+                repeat_ratios: repeat_ratios.value,
+                isTop: isTop.checked,
+                isOk: isCheck.checked,
+            }
+        };
+        window.cfg_count++;
+        window.cfg_eles.push(cfg_div);
+        return cfg_div;
+    };
+
+    let createNode = function (node_info, parentNode, sub_index, flag_path) {
+        let node_div = new Emt('div', 'class="node_div"');
+        node_div.node_info = node_info;
+        node_div.node_info.userId = window.node_count;
+        node_div.countInfo = {
+            maxDeep: 0,
+            width: 1,
+            childrenNodes: 0,
+            multiNodesCount: 0,
+        };
+        node_div.all_nodes_count = 0;
+        node_div.node_as_x_has_count = false;//作为宽度是否已经统计过了
+        node_div.curr_nodes_count = node_info.nodes.length;
+
+        node_div.sub_dom_nodes = [];
+        node_div.node_deep = 0;
+
+        node_div.dom_parent = false;
+        node_div.dom_title = false;
+        node_div.dom_nodes = false;
+        node_div.dom_flag = false;
+        node_div.dom_orderSum = false;
+        node_div.dom_more_btn = false;
+
+        node_div.dom_moreOp_div = false;
+
+        node_div.dom_add_cash_toggleBtn = false;
+        node_div.dom_add_cash = false;
+
+        node_div.dom_add_node_toggleBtn = false;
+        node_div.dom_newNode_title = false;
+        node_div.dom_newNode_submit = false;
+
+
+        node_div.dom_update_node_title_btn = false;
+
+        node_div.dom_update_currNode_title_toggleBtn = false;
+        node_div.dom_currNode_newTitle = false;
+        node_div.dom_currNode_newTitle_submit = false;
+
+        node_div.dom_update_currNode_teamSum_toggleBtn = false;
+        node_div.dom_currNode_newTeamSum = false;
+        node_div.dom_currNode_newTeamSum_submit = false;
+
+
+        let tmp_pid = 0;
+        if (parentNode) {
+            node_div.dom_parent = parentNode;
+            node_div.node_deep = parentNode.node_deep + 1;
+            parentNode.sub_dom_nodes.push(node_div);
+            tmp_pid = parentNode.node_info.userId;
+        }
+
+        window.op_log.value += "insert ignore into {db_name}.gz_users set id=" + node_div.node_info.userId + ",nickname='" + node_info.nickname + "';\n";
+        window.op_log.value += "insert ignore into {db_name}.gz_friend set uid=" + tmp_pid.toString() + ",fuid=" + node_div.node_info.userId + ";\n";
+
+        window.sql_log.value += "insert ignore into {db_name}.gz_users set id=" + node_div.node_info.userId + ",nickname='" + node_info.nickname + "';\n";
+        window.sql_log.value += "insert ignore into {db_name}.gz_friend set uid=" + tmp_pid.toString() + ",fuid=" + node_div.node_info.userId + ";\n";
+
+        window.node_count += 1;
+        //  node_div.setAttrs({style: 'top:' + (node_div.node_deep * 100).toString() + 'px'});
+
+        node_div.addNodes([
+            new Emt('div', 'class="node_div_inner"').addNodes([
+                new Emt('div', 'class="input_div"').addNodes([
+                    new Emt('label', '', node_div.node_deep.toString() + '#'),
+                    new Emt('label', '', node_div.node_info.userId.toString()).setIndexHandler(node_div, 'dom_user_id'),
+
+                    //new Emt('label', '', flag_path).setIndexHandler(node_div, 'dom_flag2'),
+                    //new Emt('input', 'type="text"', '', {value: node_info.nickname}).setIndexHandler(node_div, 'dom_title'),
+                    new Emt('label', '', '', {textContent: node_info.nickname}).setIndexHandler(node_div, 'dom_title'),
+                    new Emt('label', '', '').addNodes([
+                        new Emt('input', 'type="text" class="order_sum team_order_sum" readonly="readonly"').setIndexHandler(node_div, 'dom_orderSum'),
+                    ]),
+                    new Emt('label', '', '+').setIndexHandler(node_div, 'dom_more_btn'),
+                    new Emt('form', 'class="dom_more_op_div hide"').setIndexHandler(node_div, 'dom_moreOp_div').addNodes([
+                        new Emt('label', '', '').addNodes([
+                            new Emt('button', 'type="button"', '+支付').setIndexHandler(node_div, 'dom_add_cash_toggleBtn'),
+                            new Emt('input', 'type="number" class="order_sum hide" ').setIndexHandler(node_div, 'dom_add_cash'),
+                        ]),
+                        new Emt('label', '', '').addNodes([
+                            new Emt('button', 'type="button"', '+下级').setIndexHandler(node_div, 'dom_add_node_toggleBtn'),
+                            new Emt('span', 'class="hide"').addNodes([
+                                new Emt('input', 'type="text" class="" placeholder="在此填写下级名"').setIndexHandler(node_div, 'dom_newNode_title'),
+                                new Emt('button', 'type="button"', '确定添加下级').setIndexHandler(node_div, 'dom_newNode_submit'),
+                            ])
+                        ]),
+                        new Emt('label', '', '').addNodes([
+                            new Emt('button', 'type="button"', '修改名称').setIndexHandler(node_div, 'dom_update_currNode_title_toggleBtn'),
+                            new Emt('span', 'class="hide"').addNodes([
+                                new Emt('input', 'type="text" class="" placeholder="在此填写新名字"').setIndexHandler(node_div, 'dom_currNode_newTitle'),
+                                new Emt('button', 'type="button"', '确定修改').setIndexHandler(node_div, 'dom_currNode_newTitle_submit'),
+                            ])
+                        ]),
+
+                        new Emt('label', '', '').addNodes([
+                            new Emt('button', 'type="button"', '修改起始金额').setIndexHandler(node_div, 'dom_update_currNode_teamSum_toggleBtn'),
+                            new Emt('span', 'class="hide"').addNodes([
+                                new Emt('input', 'type="number" class="order_sum" placeholder="在此填写新金额"').setIndexHandler(node_div, 'dom_currNode_newTeamSum'),
+                                new Emt('button', 'type="button"', '确定修改').setIndexHandler(node_div, 'dom_currNode_newTeamSum_submit'),
+                            ])
+                        ]),
+
+                    ])
+
+                ]),
+                new Emt('p', 'class="break_line"'),
+                new Emt('div', 'class="nodes_div"').setIndexHandler(node_div, 'dom_nodes')
+            ])
+        ]);
+
+        node_div.insertNewNode = function (sub_node_info) {
+            let new_sub_node = createNode(sub_node_info, node_div, node_info.length, '');
+            node_div.dom_nodes.addNodes([new_sub_node]);
+            node_info.nodes.push(sub_node_info);
+            node_div.curr_nodes_count = node_info.nodes.length;
+            node_div.getRootParent().reCountDeep().getWidthAmount();
+            node_div.getRootParent().reRender(render_opt);
+        };
+        node_div.generateNode = function (sub_node_info, sub_node_info_index) {
+            node_div.dom_nodes.addNodes([
+                createNode(sub_node_info, node_div, sub_node_info_index, flag_path + '.' + (sub_node_info_index + 1).toString())
+            ])
+        };
+
+
+        node_div.getWidthAmount = function () {
+            node_div.countInfo.width = 0;
+
+            if (node_div.sub_dom_nodes.length > 0) {
+                node_div.countInfo.multiNodesCount = 1;
+                node_div.sub_dom_nodes.forEach((tmp_node) => {
+                    let tmp_ar2 = tmp_node.getWidthAmount();
+                    node_div.countInfo.width += tmp_ar2[0];
+                    node_div.countInfo.multiNodesCount += tmp_ar2[1];
+                });
+            } else {
+                node_div.countInfo.width = 1;
+                node_div.countInfo.multiNodesCount = 0;
+            }
+            node_div.setAttrs({'countInfo.width': node_div.countInfo.width, 'countInfo.multiNodesCount': node_div.countInfo.multiNodesCount});
+            return [node_div.countInfo.width, node_div.countInfo.multiNodesCount];
+        };
+
+
+        node_div.getRootParent = function () {
+            if (node_div.dom_parent === false) {
+                return node_div;
+            } else {
+                return node_div.dom_parent.getRootParent();
+            }
+        };
+
+        //获取路径
+        node_div.getPath = function () {
+            Array.from(document.getElementsByClassName('highlight')).forEach((tmp_ele) => {
+                tmp_ele.classList.remove('highlight');
+            });
+            let ar = [];
+            if (node_div.dom_parent !== false) {
+                node_div.__getPath(ar);
+            }
+            return ar;
+        };
+        node_div.__getPath = function (ar) {
+            ar.push(node_info.nickname);
+            node_div.dom_title.classList.add('highlight');
+            if (node_div.dom_parent !== false) {
+                node_div.dom_parent.__getPath(ar);
+            }
+        };
+
+        //累加金额
+        node_div.addUp = function (number, isPayer) {
+            let raw_num = parseInt(node_div.dom_orderSum.value);
+            raw_num = isNaN(raw_num) ? 0 : raw_num;
+            if (isPayer) {
+                window.op_log.value += '-- ' + node_div.dom_title.textContent + " Pay###:" + number + " + " + raw_num + "=" + node_div.dom_orderSum.value + "\n";
+            } else {
+                node_div.dom_orderSum.value = raw_num + number;
+                window.op_log.value += '-- ' + node_div.dom_title.textContent + " InCome###:" + number + " + " + raw_num + "=" + node_div.dom_orderSum.value + "\n";
+            }
+
+            if (node_div.dom_parent !== false) {
+                node_div.dom_parent.addUp(number);
+            }
+        };
+
+
+        if (node_info.nodes && node_info.nodes.length) {
+            node_info.nodes.forEach((sub_node_info, sub_node_info_index) => {
+                node_div.generateNode(sub_node_info, sub_node_info_index);
+            });
+        }
+        console.log('---------- new node deep:', node_div.node_deep, node_div);
+        //实际上只有等  子节点  全都遍历之后  才方便重新布局
+        node_div.reRender = function (render_opt) {
+            console.log(render_opt.cell.w, render_opt.cell.h, 'all_nodes_count:', node_div.all_nodes_count, 'last_node_deep:', node_div.last_node_deep, 'node_deep:', node_div.node_deep);
+            // -10 是修正边框和margin
+
+            node_div.style.height = ((node_div.last_node_deep - node_div.node_deep + 1) * render_opt.cell.h).toString() + 'px';
+
+            node_div.sub_dom_nodes.forEach(function (sub_dom_node) {
+                sub_dom_node.reRender(render_opt);
+            });
+        };
+
+        /**
+         * 重新统计
+         * @param deep
+         * @returns {any}
+         */
+        node_div.reCountDeep = function (deep) {
+            deep = deep || 0;
+            if (node_div.sub_dom_nodes.length > 0) {
+                node_div.sub_dom_nodes.forEach(function (sub_dom_node) {
+                    sub_dom_node.reCountDeep(deep);
+                });
+            } else {
+                node_div.getRootParent().countInfo.maxDeep = deep;
+            }
+            return node_div;
+        };
+
+
+        node_div.dom_title.addEventListener('click', function () {
+            node_div.getPath();
+        });
+        // node_div.dom_add_cash_toggleBtn.addEventListener('click', function () {
+        //     node_div.dom_add_cash.classList.toggle('hide');
+        // });
+
+        node_div.dom_add_cash.addEventListener('change', function () {
+            node_div.dom_add_cash.classList.add('hide');
+            let num = parseInt(this.value);
+            if (isNaN(num)) {
+                return false;
+            }
+            this.value = 0;
+            window.op_log.value += "insert ignore into {db_name}.gz_recive_order set fin_order_id=" + window.order_count + ",user_id=" + node_div.node_info.userId + ",order_sum=" + num + ";\n";
+            window.sql_log.value += "insert ignore into {db_name}.gz_recive_order set fin_order_id=" + window.order_count + ",user_id=" + node_div.node_info.userId + ",order_sum=" + num + ";\n";
+
+            window.order_count += 1;
+            node_div.addUp(num, true);
+            node_div.dom_moreOp_div.classList.add('hide');
+
+        });
+        node_div.dom_more_btn.addEventListener('click', function () {
+            this.nextElementSibling.classList.toggle('hide');
+        });
+        [node_div.dom_update_currNode_teamSum_toggleBtn, node_div.dom_update_currNode_title_toggleBtn, node_div.dom_add_node_toggleBtn, node_div.dom_add_cash_toggleBtn].forEach(function (toggle_btn) {
+            toggle_btn.addEventListener('click', function () {
+                this.nextElementSibling.classList.toggle('hide');
+                // newNodeTitle.show(node_div, node_info);
+            });
+        });
+        node_div.dom_newNode_submit.addEventListener('click', function () {
+            if (node_div.dom_newNode_title.value.length < 1) {
+                alert('填写有效信息');
+                return false;
+            }
+            window.op_log.value += '\n-- ' + node_div.dom_title.textContent + " addNode### " + node_div.dom_newNode_title.value + "\n";
+            node_div.insertNewNode({"nickname": node_div.dom_newNode_title.value, "nodes": []});
+            this.parentElement.classList.add('hide');
+            node_div.dom_moreOp_div.classList.add('hide');
+
+
+        });
+        node_div.dom_currNode_newTeamSum_submit.addEventListener('click', function () {
+            if (window.dbInited === true) {
+                alert('已经初始化了，本操作需要在初始化之前操作');
+                return false;
+            }
+            let num = parseInt(node_div.dom_currNode_newTeamSum.value);
+            if (isNaN(num)) {
+                alert('填写有效信息');
+                return false;
+            }
+            node_div.dom_currNode_newTeamSum.value = 0;
+            window.op_log.value += '\n-- ' + node_div.dom_title.textContent + " resetOrderSum### " + num + "\n";
+            window.op_log.value += 'insert ignore into {db_name}.gz_user_team_bonus set id=' + node_div.node_info.userId + ',team_order_sum= ' + num + ' on duplicate key update team_order_sum= ' + num + ';\n';
+            window.sql_log.value += 'insert ignore into {db_name}.gz_user_team_bonus set id=' + node_div.node_info.userId + ',team_order_sum= ' + num + ' on duplicate key update team_order_sum= ' + num + ';\n';
+            node_div.dom_orderSum.value = num;
+            this.parentElement.classList.add('hide');
+            node_div.dom_moreOp_div.classList.add('hide');
+
+
+        });
+        node_div.dom_currNode_newTitle_submit.addEventListener('click', function () {
+            if (node_div.dom_currNode_newTitle.value.length < 1) {
+                alert('填写有效信息');
+                return false;
+            }
+            window.op_log.value += '\n-- ' + node_div.dom_title.textContent + " resetOrderSum### " + node_div.dom_currNode_newTitle.value + "\n";
+            window.op_log.value += 'update {db_name}.gz_users set nickname="' + node_div.dom_currNode_newTitle.value + '" where id= ' + node_div.node_info.userId + ';\n';
+            window.sql_log.value += 'update {db_name}.gz_users set nickname="' + node_div.dom_currNode_newTitle.value + '" where id= ' + node_div.node_info.userId + ';\n';
+            node_div.dom_title.textContent = node_div.dom_currNode_newTitle.value;
+            this.parentElement.classList.add('hide');
+            node_div.dom_moreOp_div.classList.add('hide');
+        });
+
+
+        return node_div;
+    };
+
+
+    let op_log = new Emt('textarea', 'class="op_log" readonly="readonly"',).setIndexHandler(window, 'op_log');//操作日志
+    let sql_log = new Emt('textarea', 'class="op_log" readonly="readonly"',).setIndexHandler(window, 'sql_log');//sql日志
+    let res_log = new Emt('textarea', 'class="res_log" readonly="readonly"',).setIndexHandler(window, 'res_log');//结果日志
+
+    let submit_sql_btn = new Emt('button', 'type="button" class="clear_highlight_btn"', '同步数据库');
+    let clear_hightlight_btn = new Emt('button', 'type="button" class="clear_highlight_btn"', '清理高亮');
+    let db_name_select = new Emt('select', ' class="clear_highlight_btn"');
+
+    let cfg_nodes_form = new Emt('form');
+
+    let root_node = createNode(data_tree, false, 0, '#');
+    root_node.style.minWidth = '1000000%';
+    //root_node.setAttrs({style: 'position: absolute'});
+    root_node.reCountDeep().getWidthAmount();
+    root_node.reRender(render_opt);
+
+    /********************************************************************************************************************************************************
+     *  _      _   _   _ ____ _  _ ___
+     *  |     /_\   \_/  |  | |  |  |
+     *  |___ /   \   |   |__| |_/|  |
+     *
+     *******************************************************************************************************************************************************/
+    document.body.append(cfg_nodes_form);
+
+    document.body.append(root_node);
+    document.body.append(clear_hightlight_btn);
+    document.body.append(db_name_select);
+    document.body.append(submit_sql_btn);
+
+    document.body.append(new Emt('div', 'style="width:100%;float:left;"').addNodes([op_log, sql_log, res_log]));
+
+
+    /********************************************************************************************************************************************************
+     *    _   ___  ___  ____ _  _ ___       ___    _   ___   _
+     *   /_\  |__] |__] |___ |\ | |  \      |  \  /_\   |   /_\
+     *  /   \ |    |    |___ | \| |__/      |__/ /   \  |  /   \
+     *
+     *******************************************************************************************************************************************************/
+
+
+    db_name_select.add(new Option('测试1', 'test01'));
+    db_name_select.add(new Option('测试2', 'test02'));
+    db_name_select.add(new Option('测试3', 'test03'));
+
+
+    cfg_nodes_form.addNodes([
+        cfgNode({isOk: true, lev_num: 1, min: 500, max: 1000, full_ratio: 300, repeat_ratios: '', isTop: false}),
+        cfgNode({isOk: true, lev_num: 2, min: 1000, max: 2000, full_ratio: 500, repeat_ratios: '', isTop: false}),
+        cfgNode({isOk: true, lev_num: 3, min: 2000, max: 5000, full_ratio: 700, repeat_ratios: '100', isTop: true}),
+        cfgNode({isOk: false, lev_num: 4, min: 0, max: 500, full_ratio: 300, repeat_ratios: '100,100', isTop: false}),
+        cfgNode({isOk: false, lev_num: 1, min: 0, max: 500, full_ratio: 300, repeat_ratios: '测试例子', isTop: false}),
+        cfgNode({isOk: false, lev_num: 1, min: 0, max: 500, full_ratio: 300, repeat_ratios: '测试例子', isTop: false}),
+        new Emt('pre', '', '' +
+            '【全额收益】，单位万分之一!!!!，没有被下级分润的情况下的收益' + "\n" +
+            '【统计收益比例】,单位万分之一!!!!，\n例子：上下级链条种有等级一样的，比如 子级->父级 顺序， H(0级)-> G(1级)-> F(2级)->E(3级)->D(3级)->C(3级)->B(3级)->A(3级),'
+            + "\n" +
+            '有E、D、C、B、A 4个5级的，E是第一个，走【全额收益】，从D(第2个)开始,算第1个重复，重复链条为[  D、C、B、A ]' +
+            '\n假如值是[ 100,100 ]意味着 D、C各有 100 ‱ 的收益，[ 5,2,1] => D:5 ‱,C:2 ‱,B:1 ‱,  第几个数字就是第几个收益' +
+            '\n如果想让D、A各拿万分之5，值填成  [5,0,0,5]，注意这是在 上下级链条不变的情况下 ')
+
+    ]);
+
+
+    /********************************************************************************************************************************************************
+     *  ____ _  _ ____ _  _ ___
+     *  |___ |  | |___ |\ |  |
+     *  |___  \/  |___ | \|  |
+     *
+     *******************************************************************************************************************************************************/
+
+
+    clear_hightlight_btn.addEventListener('click', function () {
+        Array.from(document.getElementsByClassName('highlight')).forEach((tmp_ele) => {
+            tmp_ele.classList.remove('highlight');
+        });
+    });
+
+
+    submit_sql_btn.addEventListener('click', function () {
+        let postData = {initDb: 0, sql: sql_log.value, db_name: db_name_select.value};
+        if (window.dbInited === false) {
+            if (window.prompt('数据将要初始化，之前的测试数据将会从 ' + db_name_select.value + ' 中清除，部分操作在初始化后不可用，不想继续按 [Esc] 反悔', 'yes') !== 'yes') {
+                alert('不用担心了，没初始化');
+                return false;
+            } else {
+                postData.initDb = 1;
+                window.dbInited = true;
+            }
+        }
+
+        op_log.value += "\n*********** try submit sql ***************\n";
+
+        kl.ajax({
+            url: '/ducktime/v1/team/income/initDb',
+            method: 'POST',
+            data: postData,
+            type: 'json',
+            success: function (res) {
+                console.log(res, res.msg);
+                if (res.status && res.status === 200) {
+                    sql_log.value = '';
+                    op_log.value += "\n*********** submit sql  success ***************\n";
+                    res_log.value = res.data.res;
+                } else {
+                    op_log.value += "\n*********** submit sql fail ***************\n";
+                    op_log.value += res.msg + "\n";
+                }
+            },
+            error: function (error_res) {
+                op_log.value += "\n*********** error submit sql ***************\n";
+                op_log.value += error_res + "\n";
+            }
+        });
+    });
+    cfg_nodes_form.gensql = function () {
+        window.cfg_eles.forEach(function (cfg_ele) {
+            let tmp_info = cfg_ele.getInfo();
+            let sql = "insert ignore into {db_name}.gz_team_bonus_level_cfg set id=" + tmp_info.id + ",lev_num=" + tmp_info.lev_num + ",sum_min=" + tmp_info.min_num + ",sum_max=" + tmp_info.max_num + ",full_ratio=" + tmp_info.full_ratio + ",repeat_ratios=" + (tmp_info.repeat_ratios > 0 ? ("'" + tmp_info.repeat_ratios + "'") : "''") + ",is_top=" + (tmp_info.isTop ? '1' : '2') + ",is_ok=" + (tmp_info.isOk ? '1' : '2') +
+                " on duplicate key update " + "lev_num=" + tmp_info.lev_num + ",sum_min=" + tmp_info.min_num + ",sum_max=" + tmp_info.max_num + ",full_ratio=" + tmp_info.full_ratio + ",repeat_ratios=" + (tmp_info.repeat_ratios.length > 0 ? ("'" + tmp_info.repeat_ratios + "'") : "''") + ",is_top=" + (tmp_info.isTop ? '1' : '2') + ",is_ok=" + (tmp_info.isOk ? '1' : '2') + ";";
+            sql_log.value += "\n" + sql;
+            op_log.value += "\n" + sql;
+        });
+        sql_log.value += "\n\n";
+        op_log.value += "\n\n";
+    };
+    cfg_nodes_form.gensql();
+    cfg_nodes_form.addEventListener('change', function () {
+        cfg_nodes_form.gensql();
+    });
+
+
+</script>
+</html>
