@@ -1,9 +1,0 @@
-## 部署到线上
-
-
-
-mkdir -m 777 -p /data/log/bi/nginx
-useradd  www-data
-chown -R web-data:web-data /data/codes/bee-invasion-back-end
-
- docker run --name nginx_bi_fe -p 2022:80 -p 2023:443  -td   -v /data/codes/bee-invasion:/usr/share/nginx/html:rw     -v /data/codes/bee-invasion-back-end/config/server_file/prod/frontend/nginx/etc/nginx/conf.d:/etc/nginx/conf.d:ro    -v /data/codes/bee-invasion-back-end/config/server_file/prod/frontend/nginx/etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro  -v /data/codes/bee-invasion-back-end/config/server_file/prod/ssl:/ssl:ro  -v /data/log/bi/nginx_fe:/var/log/hammer:rw     nginx:latest

@@ -70,8 +70,8 @@ class CmdIndex extends CmdBase
         }
 
         $json     = json_encode($datas);
-        $filename = __ROOT_DIR__ . '/static/file/admin/js/bi_items.js';
-        $res      = file_put_contents($filename, "\nwindow.bi_items={$json};\n");
+        $filename = __ROOT_DIR__ . '/static/file/admin/js/dp_items.js';
+        $res      = file_put_contents($filename, "\nwindow.dp_items={$json};\n");
         var_dump($res, $filename);
 
     }

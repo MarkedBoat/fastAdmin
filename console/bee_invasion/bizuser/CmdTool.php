@@ -44,7 +44,7 @@ class CmdTool extends CmdBase
 
         $names       = $name_str ? explode(',', $name_str) : explode(',', '辣鸡工具人,霍华德,超高校级维京猛男,pansz,我来组成头部,温酒,WInk,花村妇联主席,BigBrother,bluetie,枕水,青山布衣,傅斩苟,体制老司机,苏xianseng h,繁星点缀,易灵静520,禁与千寻,lili,江浩栾,聆听,文礼,Mosa,梅哲仁,RANDY,长颈鹿鹿鹿,lu luce,王之葵托利,宇宙区长孙连城,懦夫,皇城根奶爸,给我多放肉,理昂,卑微小易,sylar,业余吃瓜人,夜色,恩恩,留小鱼,李阳,王大锤,红伟的笔名,刘镇锐,野鸡男中,五个橘核,波萨达斯星人,农夫三拳,Michael Jackson,光与影的平衡,小铭同学,@辣鸡工具人,@霍华德,李荣楠,Peter Tam,宝宝大葱,池龙,马达熊,ARPK,老杨叔聊志愿填报,齐本安之怒,醉影笑惊鸿,闪耀的新秀,恶少恶言,熊熊,赵树猪,璠璠,小楼卧听雨,bowner,北极熊,江先生,斯德很忙,噼哩,随便起个名,天地晓朝,可乐猪,九风楼主,RR AA,鹏鹏,繁星若尘,昔日复仇者,大道至简,高岩,天才小熊猫,leeHOG,Venom Snake,隐市,Judy,溟影,张向上在市场,八里土人,冰封飞飞,远古善良自由党,LLL,言行合一,乘风右拐,路德维希圣,独行,邹xc,alpha boy,上官人,天道酬勤,青山绿水,岁月静好,好运连连,平凡可贵,叶落知秋,滴水穿石,平平淡淡,品味人生,厚德载物,笑看红尘,宁静致远,喵喵酱,紫薯包,打入狗狗教,巧克力脏脏包,旺仔大馒头,汉堡杀手,熏熏熏酱,村上芝士兔,Zippo骑手,今晚去吃肯德基,AAAA建材市场王丽,aaaaaa菜市场杀鱼师傅,Aaaa汽油大姐,小猪与佩奇,玛卡巴卡的小推车,我来自M78星云,真的栓Q了,武当派老大,我哥是熊大,干翻这苍穹,也就八九不离十吧,滴滴滴快让开,大小姐驾到统统闪开,A汪可欣 「爆款翻朋友圈」,贝壳火苗社区-刘大鱼,爱齿摩玛店谢医生,绝对够真实,我爱吃包子颍州001号店,虾仁不眨眼,芝芝为荔枝,抠鼻屎的熊,吸一口太阳布丁,富婆与低保皆失, 二号葫芦娃,喂自己袋盐,持枪萝莉,煎饼狗子  ,凉拌玛卡巴卡,A阜阳创艺理发店托尼老师,隔壁二傻子,隔壁老王,头上三根毛,消失的秀发,怨灵秃子,不减肥十斤不改名,头上一二三四五跟毛,随便换,宝可梦,琪琪,爱吃槟榔,奋斗,美丽人生,真爱无价,睡莲,达达蹦跶,肖战媳妇,七号公园,顺其自然,舍得,相亲相爱,小玲,小娜,我比易烊千玺帅,天天干饭,下地干活,刘大哥,俺也不懂啊,弄啥里这,俊俊妈妈,阜阳富贵建材,几个中午吃啥,干饭第一名,幼儿园张老师');
         $user_model  = User::model();
-        $exist_users = $user_model->getDbConnect()->setText("select id,nickname from bi_user where id>=102000 and id<106000;")->queryAll();
+        $exist_users = $user_model->getDbConnect()->setText("select id,nickname from dp_user where id>=102000 and id<106000;")->queryAll();
         $exist_names = [];
         $max_user_id = 0;
         foreach ($exist_users as $user)
@@ -65,8 +65,8 @@ class CmdTool extends CmdBase
             {
                 $i       = $i + 1;
                 $tel     = 10000000000 + $i;
-                $sqls[]  = "insert ignore into bi_user set id={$i},nickname='{$new_name}',mobile='{$tel}'";
-                $sqls2[] = "insert ignore into bi_user_fake set id={$i}";
+                $sqls[]  = "insert ignore into dp_user set id={$i},nickname='{$new_name}',mobile='{$tel}'";
+                $sqls2[] = "insert ignore into dp_user_fake set id={$i}";
 
             }
         }

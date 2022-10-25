@@ -27,7 +27,7 @@ class CmdAgentCount extends CmdBase
         $now_date = date('Y-m-d H:i:s', time());
         echo "\nnow:{$now_date}统计昨日消费总计  start\n";
         //查出所有代理
-        $areaArr = Sys::app()->db('dev')->setText("select * from bi_user_bind_area where is_ok = 1")->queryAll();
+        $areaArr = Sys::app()->db('dev')->setText("select * from dp_user_bind_area where is_ok = 1")->queryAll();
         if($areaArr){
             //获取昨天时间
             $time = date("Y-m-d",strtotime("-1 day"));
@@ -35,10 +35,10 @@ class CmdAgentCount extends CmdBase
                 //获取用户消费集合
                 $data['time'] = $time;
                 $data['area_code'] = $val['area_code'];
-                $userList = Sys::app()->db('dev')->setText("select u.area_code,o.order_sum,o.id,o.open_id,o.user_id,o.payed_time from bi_user_profile u left join bi_order o on o.user_id = u.user_id where u.is_ok = 1 and u.area_code = :area_code and o.payment_code = 'gold_ingot' and o.is_ok = 1 and o.is_payed = 1 and DATE_FORMAT(o.payed_time,'%Y-%m-%d') = :time")->bindArray($data)->queryAll();
+                $userList = Sys::app()->db('dev')->setText("select u.area_code,o.order_sum,o.id,o.open_id,o.user_id,o.payed_time from dp_user_profile u left join dp_order o on o.user_id = u.user_id where u.is_ok = 1 and u.area_code = :area_code and o.payment_code = 'gold_ingot' and o.is_ok = 1 and o.is_payed = 1 and DATE_FORMAT(o.payed_time,'%Y-%m-%d') = :time")->bindArray($data)->queryAll();
                 if($userList){
                     //获取当前收益率
-                    $rate = Sys::app()->db('dev')->setText("select JSON_EXTRACT(setting,'$.rate[0]') as setting,JSON_EXTRACT(setting,'$.rate[1]') as litt from bi_game_config where item_code = 'rate_agent_gold_ingot'")->queryRow();
+                    $rate = Sys::app()->db('dev')->setText("select JSON_EXTRACT(setting,'$.rate[0]') as setting,JSON_EXTRACT(setting,'$.rate[1]') as litt from dp_game_config where item_code = 'rate_agent_gold_ingot'")->queryRow();
                     if(!$rate){
                         $printer->tabEcho('暂无代理收益配置 结束');
                         return false;
@@ -55,7 +55,7 @@ class CmdAgentCount extends CmdBase
                         $insertData['area_code'] = $v['area_code'];
                         $insertData['receive_money'] = $v['order_sum'] * $srate;
 
-                        Sys::app()->db('dev')->setText("insert into bi_user_agent_pay_record (user_id,area_code,pay_user_id,money,receive_money,gold_rate,open_id) values (:user_id,:area_code,:pay_user_id,:money,:receive_money,:gold_rate,:open_id) ")->bindArray($insertData)->execute();
+                        Sys::app()->db('dev')->setText("insert into dp_user_agent_pay_record (user_id,area_code,pay_user_id,money,receive_money,gold_rate,open_id) values (:user_id,:area_code,:pay_user_id,:money,:receive_money,:gold_rate,:open_id) ")->bindArray($insertData)->execute();
                     }
                 }
             }

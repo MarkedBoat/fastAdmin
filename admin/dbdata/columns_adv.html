@@ -59,7 +59,7 @@
                         utk = window.utk;
 
                         kl.ajax({
-                            url: '/bee_invasion/v1/admin/dbdata/info?user_token=' + utk,
+                            url: '/dp/v1/admin/dbdata/info?user_token=' + utk,
                             data: {table_name: 'bi_bg_db_column'},
                             type: 'json',
                             success: function (res_request_data) {
@@ -105,7 +105,7 @@
 
 
                         kl.ajax({
-                            url: '/bee_invasion/v1/admin/dbdata/info?user_token=' + utk,
+                            url: '/dp/v1/admin/dbdata/info?user_token=' + utk,
                             data: {table_name: window.serverData.table_name},
                             type: 'json',
                             success: function (res_request_data) {
@@ -150,7 +150,7 @@
 
 
                         kl.ajax({
-                            url: '/bee_invasion/v1/admin/dbdata/select?user_token=' + utk,
+                            url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
                             data: {table_name: 'bi_bg_rbac_role', page_index: 1, page_size: 1000},
                             type: 'json',
                             success: function (res_request_data) {
@@ -258,28 +258,28 @@
                         //     handle_form_edit.createInputGroup('读角色', handle_read_roles_select.root_ele),
                         // ]);
                         form_edit.apiHandle.addGroupPreCreate().setLabelText('读角色').setIndexKey('readRoles').setNameVar('read_roles').setItems([]).create('checkbox_list');
-                        form_edit.apiHandle.ele.input.readRoles.apiHandle.setRemoteItems('/bee_invasion/v1/admin/dbdata/item/roles?user_token=' + utk);
+                        form_edit.apiHandle.ele.input.readRoles.apiHandle.setRemoteItems('/dp/v1/admin/dbdata/item/roles?user_token=' + utk);
 
                         // handle_form_edit.root_ele.addNodes([
                         //     handle_form_edit.createInputGroup('写(选择角色)', handle_opt_roles_select.root_ele),
                         // ]);
                         form_edit.apiHandle.addGroupPreCreate().setLabelText('选写(选择角色)').setIndexKey('optRoles').setNameVar('opt_roles').setItems([
                         ]).create('checkbox_list');
-                        form_edit.apiHandle.ele.input.optRoles.apiHandle.setRemoteItems('/bee_invasion/v1/admin/dbdata/item/roles?user_token=' + utk);
+                        form_edit.apiHandle.ele.input.optRoles.apiHandle.setRemoteItems('/dp/v1/admin/dbdata/item/roles?user_token=' + utk);
 
                         // handle_form_edit.root_ele.addNodes([
                         //     handle_form_edit.createInputGroup('写(全授权)', handle_add_roles_select.root_ele),
                         // ]);
                         form_edit.apiHandle.addGroupPreCreate().setLabelText('加写(全授权)').setIndexKey('addRoles').setNameVar('add_roles').setItems([
                         ]).create('checkbox_list');
-                        form_edit.apiHandle.ele.input.addRoles.apiHandle.setRemoteItems('/bee_invasion/v1/admin/dbdata/item/roles?user_token=' + utk);
+                        form_edit.apiHandle.ele.input.addRoles.apiHandle.setRemoteItems('/dp/v1/admin/dbdata/item/roles?user_token=' + utk);
 
                         //label, text, handle_ele_key, callback
                         form_edit.apiHandle.addGroupPreCreate().setType('button').setContentText('保存').setIndexKey('submit').setClickCall(function (btn) {
                             console.log(btn, this, form_edit.apiHandle, form_edit.apiHandle.ele.input.readRoles.apiHandle.getVal(), form_edit.apiHandle.ele.input.optRoles.apiHandle.getVal(), form_edit.apiHandle.ele.input.addRoles.apiHandle.getVal());
                             //return false;
                             kl.ajax({
-                                url: '/bee_invasion/v1/admin/dbdata/update?user_token=' + utk,
+                                url: '/dp/v1/admin/dbdata/update?user_token=' + utk,
                                 //attr: form,
                                 data: {
                                     attr: {
@@ -408,7 +408,7 @@
                                     post_data.sort[page_data.sort.key] = page_data.sort.type;
                                 }
                                 kl.ajax({
-                                    url: '/bee_invasion/v1/admin/dbdata/select?user_token=' + utk,
+                                    url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
                                     data: post_data,
                                     type: 'json',
                                     success: function (res_request_data) {
@@ -488,7 +488,7 @@
                                         console.log('PRE drop', pre_area, pre_area.data_id, window.dragedEle, window.dragedEle.data_id, tmp_ar);
 
                                         kl.ajax({
-                                            url: '/bee_invasion/v1/admin/dbdata/sortColumn?user_token=' + utk,
+                                            url: '/dp/v1/admin/dbdata/sortColumn?user_token=' + utk,
                                             data: {
                                                 ids: tmp_ar
                                             },
@@ -529,7 +529,7 @@
                                         });
                                         console.log('NEXT drop', pre_area, pre_area.data_id, window.dragedEle, window.dragedEle.data_id, tmp_ar);
                                         kl.ajax({
-                                            url: '/bee_invasion/v1/admin/dbdata/sortColumn?user_token=' + utk,
+                                            url: '/dp/v1/admin/dbdata/sortColumn?user_token=' + utk,
                                             data: {
                                                 ids: tmp_ar
                                             },

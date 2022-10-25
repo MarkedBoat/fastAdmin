@@ -28,8 +28,8 @@
         <script src="/static/file/admin/js/hammer-yii2/datagrid/datagrid.min.20211020.1.js?t=53332"></script>
         <script src="/static/file/admin/js/bg.js"></script>
         <script src="/static/file/struct/bi_input.js"></script>
-        <script src="/bee_invasion/v1/admin/js/items"></script>
-        <script src="/bee_invasion/v1/admin/js/dbStructs"></script>
+        <script src="/dp/v1/admin/js/items"></script>
+        <script src="/dp/v1/admin/js/dbStructs"></script>
 
 
         <div class="site-index">
@@ -66,7 +66,7 @@
                     window.serverData.vals_map = {};
 
                     kl.ajax({
-                        url: '/bee_invasion/v1/admin/dbdata/info?user_token=' + utk,
+                        url: '/dp/v1/admin/dbdata/info?user_token=' + utk,
                         data: {table_name: window.serverData.table_name},
                         type: 'json',
                         success: function (res_request_data) {
@@ -180,7 +180,7 @@
                                 post_data.sort[page_data.sort.key] = page_data.sort.type;
                             }
                             kl.ajax({
-                                url: '/bee_invasion/v1/admin/dbdata/select?user_token=' + utk,
+                                url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
                                 data: post_data,
                                 type: 'json',
                                 success: function (res_request_data) {
@@ -350,7 +350,7 @@
                         });
                         console.log(changed_attrs);
                         kl.ajax({
-                            url: '/bee_invasion/v1/admin/dbdata/update?user_token=' + utk,
+                            url: '/dp/v1/admin/dbdata/update?user_token=' + utk,
                             data: {
                                 attr: changed_attrs,
                                 db_name: window.serverData.db_name,
@@ -407,7 +407,7 @@
                         });
                         console.log(changed_attrs);
                         kl.ajax({
-                            url: '/bee_invasion/v1/admin/dbdata/add?user_token=' + utk,
+                            url: '/dp/v1/admin/dbdata/add?user_token=' + utk,
                             data: {
                                 attr: changed_attrs,
                                 db_name: window.serverData.db_name,

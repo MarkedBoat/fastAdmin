@@ -48,7 +48,7 @@ let bg_init = function (page_init_fun) {
     };
 
     kl.ajax({
-        url: '/bee_invasion/v1/admin/rbac/menu?user_token=' + utk,
+        url: '/dp/v1/admin/rbac/menu?user_token=' + utk,
         data: {},
         method: 'POST',
         success: function (res_menu) {

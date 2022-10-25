@@ -34,7 +34,7 @@ class CmdAgentPay extends CmdBase
         $ytime = date("Y-m-d",time());
         echo "\nnow:{$now_date}代理人收益发放  start\n";
         //查出所有待打钱数据
-        $list = Sys::app()->db('dev')->setText("select * from bi_user_agent_pay_record where is_ok = 1 and status = 1 and DATE_FORMAT(create_time,'%Y-%m-%d') = :time")->bindArray(['time'=>$ytime])->queryAll();
+        $list = Sys::app()->db('dev')->setText("select * from dp_user_agent_pay_record where is_ok = 1 and status = 1 and DATE_FORMAT(create_time,'%Y-%m-%d') = :time")->bindArray(['time'=>$ytime])->queryAll();
         if($list){
             foreach ($list as $k => $v)
             {
@@ -52,7 +52,7 @@ class CmdAgentPay extends CmdBase
                         echo "\n记录代理人 {$uid}*收益{$v['receive_money']} 失败\n";
                     }else{
                         $data['id'] = $v['id'];
-                        Sys::app()->db('dev')->setText("update bi_user_agent_pay_record set status = 2 where id = :id")->bindArray($data)->execute();
+                        Sys::app()->db('dev')->setText("update dp_user_agent_pay_record set status = 2 where id = :id")->bindArray($data)->execute();
                         echo "\n记录代理人 {$uid}*收益{$v['receive_money']} 成功\n";
                     }
                 }

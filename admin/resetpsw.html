@@ -129,7 +129,7 @@
                         let psw2_rsa_str = encrypt2.encrypt(psw2_md5_str);
 
                         kl.ajax({
-                            url: '/bee_invasion/v1/admin/user/resetPsw?user_token=' + utk,
+                            url: '/dp/v1/admin/user/resetPsw?user_token=' + utk,
                             data: {
                                 psw1: psw1_rsa_str,
                                 psw2: psw2_rsa_str,

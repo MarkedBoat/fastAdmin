@@ -59,7 +59,7 @@
                         utk = window.utk;
 
                         kl.ajax({
-                            url: '/bee_invasion/v1/admin/dbdata/info?user_token=' + utk,
+                            url: '/dp/v1/admin/dbdata/info?user_token=' + utk,
                             data: {table_name: 'bi_bg_db_column'},
                             type: 'json',
                             success: function (res_request_data) {
@@ -105,7 +105,7 @@
 
 
                         kl.ajax({
-                            url: '/bee_invasion/v1/admin/dbdata/info?user_token=' + utk,
+                            url: '/dp/v1/admin/dbdata/info?user_token=' + utk,
                             data: {table_name: window.serverData.table_name},
                             type: 'json',
                             success: function (res_request_data) {
@@ -150,7 +150,7 @@
 
 
                         kl.ajax({
-                            url: '/bee_invasion/v1/admin/dbdata/select?user_token=' + utk,
+                            url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
                             data: {table_name: 'bi_bg_rbac_role', page_index: 1, page_size: 1000},
                             type: 'json',
                             success: function (res_request_data) {
@@ -231,7 +231,7 @@
 
                         handle_form_edit.createSubmitButton('', '保存', 'button_submit_ele', function (btn, form) {
                             kl.ajax({
-                                url: '/bee_invasion/v1/admin/dbdata/update?user_token=' + utk,
+                                url: '/dp/v1/admin/dbdata/update?user_token=' + utk,
                                 attr: form,
                                 data: {
                                     attr: {
@@ -357,7 +357,7 @@
                                     post_data.sort[page_data.sort.key] = page_data.sort.type;
                                 }
                                 kl.ajax({
-                                    url: '/bee_invasion/v1/admin/dbdata/select?user_token=' + utk,
+                                    url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
                                     data: post_data,
                                     type: 'json',
                                     success: function (res_request_data) {
@@ -425,7 +425,7 @@
                                     console.log('PRE drop', pre_area, pre_area.data_id, window.dragedEle, window.dragedEle.data_id, tmp_ar);
 
                                     kl.ajax({
-                                        url: '/bee_invasion/v1/admin/dbdata/sortColumn?user_token=' + utk,
+                                        url: '/dp/v1/admin/dbdata/sortColumn?user_token=' + utk,
                                         data: {
                                             ids: tmp_ar
                                         },
@@ -466,7 +466,7 @@
                                     });
                                     console.log('NEXT drop', pre_area, pre_area.data_id, window.dragedEle, window.dragedEle.data_id, tmp_ar);
                                     kl.ajax({
-                                        url: '/bee_invasion/v1/admin/dbdata/sortColumn?user_token=' + utk,
+                                        url: '/dp/v1/admin/dbdata/sortColumn?user_token=' + utk,
                                         data: {
                                             ids: tmp_ar
                                         },
