@@ -1,13 +1,13 @@
 <?php
 
-namespace modules\bee_invasion\v1\api\open;
+namespace modules\dp\v1\api\open;
 
 use models\common\ActionBase;
 use models\common\error\AdvError;
 use models\common\sys\Sys;
 use models\ext\tool\RSA;
-use modules\bee_invasion\v1\dao\game\economy\PlatSrcDao;
-use modules\bee_invasion\v1\model\user\User;
+use modules\dp\v1\dao\game\economy\PlatSrcDao;
+use modules\dp\v1\model\user\User;
 
 
 abstract class OpenBaseAction extends ActionBase

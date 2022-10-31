@@ -1,6 +1,6 @@
 <?php
 
-namespace modules\bee_invasion\v1\dao\admin\dbdata;
+namespace modules\dp\v1\dao\admin\dbdata;
 
 use models\common\db\DbModel;
 use models\common\db\ORM;
@@ -31,7 +31,7 @@ use models\common\sys\Sys;
 class DbColumnDao extends ORM
 {
     public static $_fields_str;
-    public static $tableName    = 'dp_bg_db_column';
+    public static $tableName    = 'bg_db_column';
     public static $pk           = 'id';
     public static $field_config = [
         'id'              => ['db_type' => 'int', 'length' => 0, 'def' => null, 'pro_def' => null],
@@ -59,7 +59,7 @@ class DbColumnDao extends ORM
 
     public function getDbConfName()
     {
-        return 'bee_invade';
+        return 'dp';
     }
 
 }

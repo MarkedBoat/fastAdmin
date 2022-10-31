@@ -1,13 +1,13 @@
 <?php
 
-namespace modules\bee_invasion\v1\model;
+namespace modules\dp\v1\model;
 
 
 use models\common\db\ORM;
 use models\common\error\AdvError;
 use models\common\opt\Opt;
 use models\common\sys\Sys;
-use modules\bee_invasion\v1\model\user\CUserAccount;
+use modules\dp\v1\model\user\CUserAccount;
 
 
 Trait TItem

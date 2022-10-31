@@ -1,13 +1,13 @@
 <?php
 
-namespace modules\bee_invasion\v1\api\admin\rbac;
+namespace modules\dp\v1\api\admin\rbac;
 
 use models\common\opt\Opt;
 use models\common\sys\Sys;
-use modules\bee_invasion\v1\api\admin\AdminBaseAction;
-use modules\bee_invasion\v1\dao\admin\AdminDao;
-use modules\bee_invasion\v1\dao\admin\rbac\RbacUserRoleDao;
-use modules\bee_invasion\v1\model\admin\rbac\RbacUserRole;
+use modules\dp\v1\api\admin\AdminBaseAction;
+use modules\dp\v1\dao\admin\AdminDao;
+use modules\dp\v1\dao\admin\rbac\RbacUserRoleDao;
+use modules\dp\v1\model\admin\rbac\RbacUserRole;
 
 class ActionUserAddRole extends AdminBaseAction
 {

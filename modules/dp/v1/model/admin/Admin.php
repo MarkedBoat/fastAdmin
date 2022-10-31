@@ -1,19 +1,19 @@
 <?php
 
-namespace modules\bee_invasion\v1\model\admin;
+namespace modules\dp\v1\model\admin;
 
 
 use models\common\opt\Opt;
-use modules\bee_invasion\v1\dao\admin\AdminDao;
-use modules\bee_invasion\v1\dao\game\RoleDao;
-use modules\bee_invasion\v1\dao\game\RoleLevCfgDao;
-use modules\bee_invasion\v1\dao\user\UserCgHisDao;
-use modules\bee_invasion\v1\dao\user\UserDao;
-use modules\bee_invasion\v1\dao\user\UserInviterDao;
-use modules\bee_invasion\v1\model\admin\rbac\RbacRole;
-use modules\bee_invasion\v1\model\admin\rbac\RbacUserRole;
-use modules\bee_invasion\v1\model\TCache;
-use modules\bee_invasion\v1\model\TInfo;
+use modules\dp\v1\dao\admin\AdminDao;
+use modules\dp\v1\dao\game\RoleDao;
+use modules\dp\v1\dao\game\RoleLevCfgDao;
+use modules\dp\v1\dao\user\UserCgHisDao;
+use modules\dp\v1\dao\user\UserDao;
+use modules\dp\v1\dao\user\UserInviterDao;
+use modules\dp\v1\model\admin\rbac\RbacRole;
+use modules\dp\v1\model\admin\rbac\RbacUserRole;
+use modules\dp\v1\model\TCache;
+use modules\dp\v1\model\TInfo;
 
 class Admin extends AdminDao
 {

@@ -1,13 +1,13 @@
 <?php
 
-namespace modules\bee_invasion\v1\api\admin\dbdata\item;
+namespace modules\dp\v1\api\admin\dbdata\item;
 
 use models\Api;
 use models\common\opt\Opt;
 use models\common\sys\Sys;
-use modules\bee_invasion\v1\api\admin\AdminBaseAction;
-use modules\bee_invasion\v1\dao\admin\rbac\RbacRoleDao;
-use modules\bee_invasion\v1\model\admin\rbac\RbacRole;
+use modules\dp\v1\api\admin\AdminBaseAction;
+use modules\dp\v1\dao\admin\rbac\RbacRoleDao;
+use modules\dp\v1\model\admin\rbac\RbacRole;
 
 class ActionRoles extends AdminBaseAction
 {
@@ -24,7 +24,7 @@ class ActionRoles extends AdminBaseAction
         //            $where .= " and (LOCATE(:keyword,role_name) != 0 or id = :keyword or LOCATE(:keyword,role_code) != 0)";
         //            $data['keyword'] = $name;
         //        }
-        //        return Sys::app()->db('dev')->setText("select *,'role' as tname from dp_bg_rbac_role where ".$where)->bindArray($data)->queryAll();
+        //        return Sys::app()->db('dp')->setText("select *,'role' as tname from bg_rbac_role where ".$where)->bindArray($data)->queryAll();
         //        //return RbacRoleDao::model()->findAllByWhere(['is_ok' => Opt::isOk]);
         $roles = RbacRole::model()->findAllByWhere(['is_ok' => Opt::isOk]);
         $items = [];

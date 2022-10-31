@@ -1,6 +1,6 @@
 <?php
 
-namespace modules\bee_invasion\v1\dao\admin\rbac;
+namespace modules\dp\v1\dao\admin\rbac;
 
 use models\common\db\DbModel;
 use models\common\db\ORM;
@@ -27,7 +27,7 @@ class RbacActionDao extends ORM
 
 
     public static $_fields_str;
-    public static $tableName    = 'dp_bg_rbac_action';
+    public static $tableName    = 'bg_rbac_action';
     public static $pk           = 'id';
     public static $field_config = [
         'id'          => ['db_type' => 'int', 'length' => 0, 'def' => null, 'pro_def' => null],
@@ -42,7 +42,7 @@ class RbacActionDao extends ORM
 
     public function getDbConfName()
     {
-        return 'bee_invade';
+        return 'dp';
     }
 
 }

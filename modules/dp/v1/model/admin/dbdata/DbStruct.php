@@ -1,10 +1,10 @@
 <?php
 
-namespace modules\bee_invasion\v1\model\admin\dbdata;
+namespace modules\dp\v1\model\admin\dbdata;
 
 
-use modules\bee_invasion\v1\dao\admin\dbdata\DbStructDao;
-use modules\bee_invasion\v1\model\TInfo;
+use modules\dp\v1\dao\admin\dbdata\DbStructDao;
+use modules\dp\v1\model\TInfo;
 
 class DbStruct extends DbStructDao
 {

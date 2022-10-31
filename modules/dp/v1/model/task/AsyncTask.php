@@ -1,16 +1,16 @@
 <?php
 
-namespace modules\bee_invasion\v1\model\task;
+namespace modules\dp\v1\model\task;
 
 
 use models\common\db\ORM;
-use modules\bee_invasion\v1\dao\game\NoteDao;
-use modules\bee_invasion\v1\dao\game\notice\NoticeDao;
-use modules\bee_invasion\v1\dao\task\AsyncTaskDao;
-use modules\bee_invasion\v1\model\CItem;
-use modules\bee_invasion\v1\model\TCache;
-use modules\bee_invasion\v1\model\TInfo;
-use modules\bee_invasion\v1\model\TItem;
+use modules\dp\v1\dao\game\NoteDao;
+use modules\dp\v1\dao\game\notice\NoticeDao;
+use modules\dp\v1\dao\task\AsyncTaskDao;
+use modules\dp\v1\model\CItem;
+use modules\dp\v1\model\TCache;
+use modules\dp\v1\model\TInfo;
+use modules\dp\v1\model\TItem;
 
 class AsyncTask extends AsyncTaskDao
 {

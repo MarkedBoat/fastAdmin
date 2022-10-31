@@ -1,10 +1,10 @@
 <?php
 
-namespace modules\bee_invasion\v1\api\admin\tool;
+namespace modules\dp\v1\api\admin\tool;
 
 use models\common\sys\Sys;
-use modules\bee_invasion\v1\api\admin\AdminBaseAction;
-use modules\bee_invasion\v1\model\tool\Tool;
+use modules\dp\v1\api\admin\AdminBaseAction;
+use modules\dp\v1\model\tool\Tool;
 
 
 class ActionUploadFile extends AdminBaseAction
@@ -27,8 +27,8 @@ class ActionUploadFile extends AdminBaseAction
     }
 
     public function getAreaPro(){
-        $items = Sys::app()->db('dev')->setText("select area_code,area_name,if(area_level=1,0,if(area_level=2,province_code,city_code)) parent_id from dp_area  union all
-select concat(area_code,'x') area_code,'其他' area_name ,city_code parent_id from dp_area where area_level=2 ORDER BY area_code")->queryAll();
+        $items = Sys::app()->db('dp')->setText("select area_code,area_name,if(area_level=1,0,if(area_level=2,province_code,city_code)) parent_id from area  union all
+select concat(area_code,'x') area_code,'其他' area_name ,city_code parent_id from area where area_level=2 ORDER BY area_code")->queryAll();
 
 
         $tree = []; //格式化好的树

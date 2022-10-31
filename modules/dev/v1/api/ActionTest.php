@@ -5,7 +5,7 @@ namespace modules\dev\v1\api;
 use models\common\ActionBase;
 use models\common\sys\Sys;
 use models\ext\mail\TencentMailSmtp;
-use modules\bee_invasion\v1\model\user\User;
+use modules\dp\v1\model\user\User;
 
 
 class ActionTest extends ActionBase

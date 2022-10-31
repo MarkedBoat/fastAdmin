@@ -1,22 +1,22 @@
 <?php
 
-namespace modules\bee_invasion\v1\model\admin\dbdata;
+namespace modules\dp\v1\model\admin\dbdata;
 
 
 use models\common\opt\Opt;
 use models\common\param\DataBox;
 use models\common\sys\Sys;
 use models\ext\tool\filter\SqlFilter;
-use modules\bee_invasion\v1\dao\admin\AdminDao;
-use modules\bee_invasion\v1\dao\admin\dbdata\DbTableDao;
-use modules\bee_invasion\v1\dao\admin\rbac\RbacActionDao;
-use modules\bee_invasion\v1\dao\game\RoleDao;
-use modules\bee_invasion\v1\dao\game\RoleLevCfgDao;
-use modules\bee_invasion\v1\dao\user\UserCgHisDao;
-use modules\bee_invasion\v1\dao\user\UserDao;
-use modules\bee_invasion\v1\dao\user\UserInviterDao;
-use modules\bee_invasion\v1\model\TCache;
-use modules\bee_invasion\v1\model\TInfo;
+use modules\dp\v1\dao\admin\AdminDao;
+use modules\dp\v1\dao\admin\dbdata\DbTableDao;
+use modules\dp\v1\dao\admin\rbac\RbacActionDao;
+use modules\dp\v1\dao\game\RoleDao;
+use modules\dp\v1\dao\game\RoleLevCfgDao;
+use modules\dp\v1\dao\user\UserCgHisDao;
+use modules\dp\v1\dao\user\UserDao;
+use modules\dp\v1\dao\user\UserInviterDao;
+use modules\dp\v1\model\TCache;
+use modules\dp\v1\model\TInfo;
 
 class DbTable extends DbTableDao
 {

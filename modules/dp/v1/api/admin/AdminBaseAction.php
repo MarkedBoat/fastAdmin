@@ -1,14 +1,15 @@
 <?php
 
-namespace modules\bee_invasion\v1\api\admin;
+namespace modules\dp\v1\api\admin;
 
 use models\common\ActionBase;
 use models\common\error\AdvError;
 use models\common\sys\Sys;
-use modules\bee_invasion\v1\dao\admin\AdminTokenDao;
-use modules\bee_invasion\v1\model\admin\Admin;
-use modules\bee_invasion\v1\model\admin\rbac\RbacAction;
-use modules\bee_invasion\v1\model\admin\rbac\RbacRole;
+use models\ext\tool\RSA;
+use modules\dp\v1\dao\admin\AdminTokenDao;
+use modules\dp\v1\model\admin\Admin;
+use modules\dp\v1\model\admin\rbac\RbacAction;
+use modules\dp\v1\model\admin\rbac\RbacRole;
 
 
 abstract class AdminBaseAction extends ActionBase
@@ -24,29 +25,35 @@ abstract class AdminBaseAction extends ActionBase
     public function init()
     {
         parent::init();
-        $token = $this->inputDataBox->tryGetString('user_token');
-        if (!$token)
+        $rsa_token = $this->inputDataBox->tryGetString('user_token');
+        if (!$rsa_token)
         {
             throw new AdvError(AdvError::user_token_not_exist);
         }
-        $user_token = AdminTokenDao::model()->findOneByWhere(['user_token' => $token], false);
-        if (empty($user_token))
-        {
-            throw new AdvError(AdvError::user_token_not_exist);
-        }
+
+        $pri_key    = file_get_contents(__ROOT_DIR__ . '/config/file/web/admin_bg.pri.key');
+        $true_token = RSA::de($pri_key, $rsa_token);
+        list($user_id, $expires) = explode('_', $true_token);
         $now_ts = time();
-        if (intval($user_token->is_ok) !== 1)
+        if (intval($expires) < $now_ts)
+        {
+            throw new AdvError(AdvError::user_token_expired);
+        }
+
+        $user_token_dao = AdminTokenDao::model()->findOneByWhere(['user_id' => $user_id], false);
+        if (empty($user_token_dao))
+        {
+            throw new AdvError(AdvError::user_token_not_exist);
+        }
+        if (intval($user_token_dao->is_ok) !== 1)
         {
             throw new AdvError(AdvError::user_token_deny);
 
         }
-        if (intval($user_token->expires) < $now_ts)
-        {
-            throw new AdvError(AdvError::user_token_expired);
-        }
+
         try
         {
-            $this->user = Admin::model()->findByPk($user_token->user_id);
+            $this->user = Admin::model()->findByPk($user_token_dao->user_id);
             $this->inputDataBox->add('user_id', $this->user->id);
         } catch (\Exception $e)
         {

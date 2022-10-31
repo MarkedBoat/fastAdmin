@@ -192,7 +192,7 @@ class CmdTeam extends CmdBase
         {
 
             $this->printer->tabEcho('清理数据');
-            $sql        = "SELECT op_step FROM bee_invade.dp_bonus_user_score_daily  where ymd={$this->ymd};";
+            $sql        = "SELECT op_step FROM dev_bg.dp_bonus_user_score_daily  where ymd={$this->ymd};";
             $daily_dao  = UserScoreDailyDao::model();
             $daily_rows = $daily_dao->getDbConnect()->setText($sql)->queryAll();
             $op_steps   = array_unique(array_column($daily_rows, 'op_step'));
@@ -200,9 +200,9 @@ class CmdTeam extends CmdBase
             $this->printer->tabEcho("op_steps " . json_encode($op_steps));
             if ($tmp_count === 0 || ($tmp_count === 1 && empty($op_steps[0])))
             {
-                $sql1 = "DELETE FROM `bee_invade`.`dp_bonus_user_score_daily`  where ymd={$this->ymd} and op_step=0;";
+                $sql1 = "DELETE FROM `dev_bg`.`dp_bonus_user_score_daily`  where ymd={$this->ymd} and op_step=0;";
                 $daily_dao->getDbConnect()->setText($sql1)->execute();
-                $sql2 = "DELETE FROM bee_invade.dp_bonus_user_score_his where ymd={$this->ymd};";
+                $sql2 = "DELETE FROM dev_bg.dp_bonus_user_score_his where ymd={$this->ymd};";
                 $daily_dao->getDbConnect()->setText($sql2)->execute();
 
 
@@ -586,7 +586,7 @@ class CmdTeam extends CmdBase
 
 
         $this->printer->newTabEcho('countDaily', '开始循环');
-        $sql        = "SELECT user_id,sum(pay_order_sum) as orders_sum,max(after_lev) as after_lev,min(before_lev) as before_lev,max(after_score_sum) as after_score_sum,min(before_score_sum) as before_score_sum,sum(take_number) take_sum  FROM bee_invade.dp_bonus_user_score_his where ymd={$this->ymd} group by user_id;";
+        $sql        = "SELECT user_id,sum(pay_order_sum) as orders_sum,max(after_lev) as after_lev,min(before_lev) as before_lev,max(after_score_sum) as after_score_sum,min(before_score_sum) as before_score_sum,sum(take_number) take_sum  FROM dev_bg.dp_bonus_user_score_his where ymd={$this->ymd} group by user_id;";
         $count_rows = UserScoreHisDao::model()->getDbConnect()->setText($sql)->queryAll();
         $rows_cnt   = count($count_rows);
 
@@ -625,7 +625,7 @@ class CmdTeam extends CmdBase
 
         $this->initParam();
 
-        $sql        = "SELECT id, db_part_id, user_id, ymd, daily_score_sum, before_score_sum, after_score_sum, before_lev, after_lev, take_num, op_step, is_ok FROM bee_invade.dp_bonus_user_score_daily  where ymd={$this->ymd};";
+        $sql        = "SELECT id, db_part_id, user_id, ymd, daily_score_sum, before_score_sum, after_score_sum, before_lev, after_lev, take_num, op_step, is_ok FROM dev_bg.dp_bonus_user_score_daily  where ymd={$this->ymd};";
         $daily_dao  = UserScoreDailyDao::model();
         $daily_rows = $daily_dao->getDbConnect()->setText($sql)->queryAll();
         $cnt        = count($daily_rows);

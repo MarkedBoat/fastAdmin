@@ -1,16 +1,16 @@
 <?php
 
-namespace modules\bee_invasion\v1\api\admin\dbdata;
+namespace modules\dp\v1\api\admin\dbdata;
 
 use Cassandra\Column;
 use models\Api;
 use models\common\opt\Opt;
 use models\common\sys\Sys;
-use modules\bee_invasion\v1\api\admin\AdminBaseAction;
-use modules\bee_invasion\v1\dao\admin\rbac\RbacRoleDao;
-use modules\bee_invasion\v1\model\admin\dbdata\DbColumn;
-use modules\bee_invasion\v1\model\admin\dbdata\DbTable;
-use modules\bee_invasion\v1\model\admin\rbac\RbacAction;
+use modules\dp\v1\api\admin\AdminBaseAction;
+use modules\dp\v1\dao\admin\rbac\RbacRoleDao;
+use modules\dp\v1\model\admin\dbdata\DbColumn;
+use modules\dp\v1\model\admin\dbdata\DbTable;
+use modules\dp\v1\model\admin\rbac\RbacAction;
 
 
 class ActionFillColumn extends AdminBaseAction
@@ -20,7 +20,7 @@ class ActionFillColumn extends AdminBaseAction
         $this->dispatcher->setOutType(Api::outTypeText);
         \models\Api::$hasOutput = true;
         // $db                     = $this->inputDataBox->getStringNotNull('db');
-        $db = 'bee_invade';
+        $db = 'dev_bg';
         $tn = $this->inputDataBox->getStringNotNull('table');
 
         $tn_table    = DbTable::model()->getTableName();

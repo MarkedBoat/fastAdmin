@@ -1,12 +1,12 @@
 <?php
 
-namespace modules\bee_invasion\v1\api\admin\rbac;
+namespace modules\dp\v1\api\admin\rbac;
 
 use models\common\opt\Opt;
 use models\common\sys\Sys;
-use modules\bee_invasion\v1\api\admin\AdminBaseAction;
-use modules\bee_invasion\v1\dao\admin\rbac\RbacRoleDao;
-use modules\bee_invasion\v1\dao\admin\rbac\RbacRoleTaskDao;
+use modules\dp\v1\api\admin\AdminBaseAction;
+use modules\dp\v1\dao\admin\rbac\RbacRoleDao;
+use modules\dp\v1\dao\admin\rbac\RbacRoleTaskDao;
 
 class ActionTasks extends AdminBaseAction
 {
@@ -19,7 +19,7 @@ class ActionTasks extends AdminBaseAction
             $where .= " and (LOCATE(:keyword,task_name) != 0 or id = :keyword or LOCATE(:keyword,task_code) != 0)";
             $data['keyword'] = $keyword;
         }
-        return Sys::app()->db('dev')->setText("select *,'task' as tname from dp_bg_rbac_task where ".$where)->bindArray($data)->queryAll();
+        return Sys::app()->db('dp')->setText("select *,'task' as tname from bg_rbac_task where ".$where)->bindArray($data)->queryAll();
         //return RbacRoleTaskDao::model()->findAllByWhere(['is_ok' => Opt::isOk]);
     }
 

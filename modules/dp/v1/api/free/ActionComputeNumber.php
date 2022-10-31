@@ -1,6 +1,6 @@
 <?php
 
-namespace modules\bee_invasion\v1\api\free;
+namespace modules\dp\v1\api\free;
 
 use models\Api;
 use models\common\ActionBase;
@@ -8,16 +8,16 @@ use models\common\error\AdvError;
 use models\common\opt\Opt;
 use models\common\sys\Sys;
 use models\ext\tool\RSA;
-use modules\bee_invasion\v1\dao\game\economy\PlatSrcDao;
-use modules\bee_invasion\v1\dao\user\UserFakeDao;
-use modules\bee_invasion\v1\dao\user\UserInviterDao;
-use modules\bee_invasion\v1\model\cache\ApiCache;
-use modules\bee_invasion\v1\model\economy\ConsumableGoods;
-use modules\bee_invasion\v1\model\economy\Currency;
-use modules\bee_invasion\v1\model\game\Config;
-use modules\bee_invasion\v1\model\user\User;
-use modules\bee_invasion\v1\model\user\UserCurrency;
-use modules\bee_invasion\v1\model\user\UserCurrencyHis;
+use modules\dp\v1\dao\game\economy\PlatSrcDao;
+use modules\dp\v1\dao\user\UserFakeDao;
+use modules\dp\v1\dao\user\UserInviterDao;
+use modules\dp\v1\model\cache\ApiCache;
+use modules\dp\v1\model\economy\ConsumableGoods;
+use modules\dp\v1\model\economy\Currency;
+use modules\dp\v1\model\game\Config;
+use modules\dp\v1\model\user\User;
+use modules\dp\v1\model\user\UserCurrency;
+use modules\dp\v1\model\user\UserCurrencyHis;
 
 
 class ActionComputeNumber extends ActionBase

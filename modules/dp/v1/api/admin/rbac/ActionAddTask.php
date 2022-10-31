@@ -1,11 +1,11 @@
 <?php
 
-namespace modules\bee_invasion\v1\api\admin\rbac;
+namespace modules\dp\v1\api\admin\rbac;
 
 use models\common\opt\Opt;
 use models\common\sys\Sys;
-use modules\bee_invasion\v1\api\admin\AdminBaseAction;
-use modules\bee_invasion\v1\model\admin\rbac\RbacTask;
+use modules\dp\v1\api\admin\AdminBaseAction;
+use modules\dp\v1\model\admin\rbac\RbacTask;
 
 
 class ActionAddTask extends AdminBaseAction

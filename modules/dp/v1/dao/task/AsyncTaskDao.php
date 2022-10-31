@@ -1,6 +1,6 @@
 <?php
 
-namespace modules\bee_invasion\v1\dao\task;
+namespace modules\dp\v1\dao\task;
 
 use models\common\db\ORM;
 
@@ -29,7 +29,7 @@ class AsyncTaskDao extends ORM
 
 
     public static $_fields_str;
-    public static $tableName    = 'dp_game_async_task';
+    public static $tableName    = 'game_async_task';
     public static $pk           = 'id';
     public static $field_config = [
         'id'          => ['db_type' => 'int', 'length' => 0, 'def' => null, 'pro_def' => null],
@@ -46,7 +46,7 @@ class AsyncTaskDao extends ORM
 
     public function getDbConfName()
     {
-        return 'bee_invade';
+        return 'dp';
     }
 
 }

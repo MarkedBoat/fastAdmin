@@ -81,7 +81,7 @@
                                     page_size: page_data.page.size,
                                     attr: page_data.filter,
                                     // sort: page_data.sort,
-                                    table_name: 'bi_bg_db_table',
+                                    table_name: 'bg_db_table',
                                 };
                                 for (let attr_key in post_data.attr) {
                                     console.log(attr_key);
@@ -89,6 +89,7 @@
                                         post_data.attr[attr_key] = 'like:%' + post_data.attr[attr_key].substring(1) + '%';
                                     }
                                 }
+                                post_data.attr.is_ok = 1;
                                 if (!page_data.sort.key || !page_data.sort.type) {
                                     console.log('没有排序');
                                 } else {
@@ -174,7 +175,7 @@
                             console.log(tmp_info, tmp_json);
                             let a_column = new Emt('a').setPros({className: 'btn btn-info btn-sm', href: '/admin/dbdata/columns_adv.html?' + tmp_json, target: '_blank', textContent: 'go管理字段'});
                             let a_select = new Emt('a').setPros({className: 'btn btn-info btn-sm', href: '/admin/dbdata/select_adv.html?' + tmp_json, target: '_blank', textContent: 'go查询数据-表'});
-                            let a_orm = new Emt('a').setPros({className: 'btn btn-info btn-sm', href: '/dev/v1/mysql/orm?conf=dev&table=' + row_data.table_name, target: '_blank', textContent: 'ORM'});
+                            let a_orm = new Emt('a').setPros({className: 'btn btn-info btn-sm', href: '/dev/v1/mysql/orm?conf=dp&table=' + row_data.table_name, target: '_blank', textContent: 'ORM'});
                             cell.addNodes([btn_import_column, a_column, a_select, a_orm]);
                         });
 

@@ -1,10 +1,10 @@
 <?php
 
-namespace modules\bee_invasion\v1\api\admin\rbac;
+namespace modules\dp\v1\api\admin\rbac;
 
 use models\common\opt\Opt;
 use models\common\sys\Sys;
-use modules\bee_invasion\v1\api\admin\AdminBaseAction;
+use modules\dp\v1\api\admin\AdminBaseAction;
 
 class ActionRoleMenuList extends AdminBaseAction
 {
@@ -12,7 +12,7 @@ class ActionRoleMenuList extends AdminBaseAction
     {
         $data['id'] = $this->inputDataBox->getStringNotNull('id');
         $tree = [];
-        $items = Sys::app()->db('dev')->setText("select r_t.id, t.*,'role_menu' as tname from dp_bg_rbac_role r left join dp_bg_rbac_role_menu r_t on r.id = r_t.role_id left join dp_bg_rbac_menu t on t.id = r_t.menu_id  where r.id = :id and r.is_ok = 1 and r_t.is_ok = 1 and t.is_ok = 1")->bindArray($data)->queryAll();
+        $items = Sys::app()->db('dp')->setText("select r_t.id, t.*,'role_menu' as tname from bg_rbac_role r left join bg_rbac_role_menu r_t on r.id = r_t.role_id left join bg_rbac_menu t on t.id = r_t.menu_id  where r.id = :id and r.is_ok = 1 and r_t.is_ok = 1 and t.is_ok = 1")->bindArray($data)->queryAll();
         if($items){
             $items = array_column($items, null, 'id');
 

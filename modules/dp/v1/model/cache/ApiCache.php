@@ -1,6 +1,6 @@
 <?php
 
-namespace modules\bee_invasion\v1\model\cache;
+namespace modules\dp\v1\model\cache;
 
 
 use models\common\db\ORM;
@@ -8,7 +8,7 @@ use models\common\db\Redis;
 use models\common\error\AdvError;
 use models\common\opt\Opt;
 use models\common\sys\Sys;
-use modules\bee_invasion\v1\model\TCache;
+use modules\dp\v1\model\TCache;
 
 
 class  ApiCache

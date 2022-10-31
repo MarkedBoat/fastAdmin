@@ -1,11 +1,11 @@
 <?php
 
-namespace modules\bee_invasion\v1\api\admin\rbac;
+namespace modules\dp\v1\api\admin\rbac;
 
 use models\common\opt\Opt;
 use models\common\sys\Sys;
-use modules\bee_invasion\v1\api\admin\AdminBaseAction;
-use modules\bee_invasion\v1\model\admin\rbac\RbacAction;
+use modules\dp\v1\api\admin\AdminBaseAction;
+use modules\dp\v1\model\admin\rbac\RbacAction;
 
 
 class ActionAddAction extends AdminBaseAction
@@ -52,7 +52,7 @@ class ActionAddAction extends AdminBaseAction
             //          'action_code' => $action_code
             //        ];
             //        $where = '(action_name,action_uri,action_code) values (:action_name,:action_uri,:action_code)';
-            //        $insert_res = Sys::app()->db('dev')->setText("insert into dp_bg_rbac_action" . $where)->bindArray($data)->execute();
+            //        $insert_res = Sys::app()->db('dp')->setText("insert into bg_rbac_action" . $where)->bindArray($data)->execute();
 
         }
         if(!$res){

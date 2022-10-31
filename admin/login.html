@@ -79,7 +79,7 @@
 
 
                 kl.ajax({
-                    url: '/static/file/admin/key/admin.pub',
+                    url: '/static/file/admin/key/admin_bg.pub.key',
                     data: {},
                     type: 'text',
                     method: 'GET',
@@ -107,34 +107,28 @@
 
                     console.log(md5_str);
                     kl.ajax({
-                        url: '/dp/v1/admin/user/AdminLogin',
+                        url: '/dp/v1/admin/user/login',
                         data: {
-                            userName: un_input.value,
+                            username: un_input.value,
                             password: rsa_str,
-                            type: 1,
                         },
                         type: 'json',
                         success: function (res_login) {
                             if (res_login.status) {
-                                if (res_login.status === 200) {
-                                    localStorage.setItem('utk', res_login.token);
+                                if (res_login.status === 200 && res_login.data && res_login.data.token) {
+                                    localStorage.setItem('utk', res_login.data.token);
                                     document.location = '/admin/index.html?{}';
                                 } else {
-                                    alert(' 获取表信息 错误:' + (res_login.msg || '未知'));
-                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
-
+                                    alert(' 登录失败:' + (res_login.msg || '未知'));
                                 }
                             } else {
                                 console.log(res_login.status);
-                                alert('获取表信息 请求结果异常');
-                                throw '别看了，连table info 信息都拿不到，还想干啥?';
+                                alert('登录失败 请求结果异常');
                             }
                         },
                         error: function (res_login) {
                             console.log(res_login);
-                            alert('获取表信息 网络异常');
-                            throw '别看了，连table info 信息都拿不到，还想干啥?';
-
+                            alert('登录失败 网络异常');
                         }
                     });
                 });

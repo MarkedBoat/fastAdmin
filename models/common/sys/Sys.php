@@ -321,11 +321,23 @@ class Sys
                 mkdir($d_dir, 0777, true);
                 usleep(10);
             }
+            if (!file_exists($d_dir))
+            {
+                throw new \Exception("创建目录失败  {$d_dir}");
+            }
+
             if (!file_exists($filename))
             {
                 file_put_contents($filename, $date . "->create<-\n", FILE_APPEND);
             }
-            $this->log_filename = $filename;
+            if (file_exists($filename))
+            {
+                $this->log_filename = $filename;
+            }
+            else
+            {
+                die("XXXXXXX");
+            }
         }
 
         file_put_contents($this->log_filename, "{$date}->{$title}\n" . var_export($data, true) . "\n<-\n", FILE_APPEND);

@@ -1,6 +1,6 @@
 <?php
 
-namespace modules\bee_invasion\v1\model;
+namespace modules\dp\v1\model;
 
 
 use models\common\db\ORM;

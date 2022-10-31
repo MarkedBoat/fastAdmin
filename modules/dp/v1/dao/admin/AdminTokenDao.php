@@ -1,6 +1,6 @@
 <?php
 
-namespace modules\bee_invasion\v1\dao\admin;
+namespace modules\dp\v1\dao\admin;
 
 use models\common\db\ORM;
 
@@ -27,7 +27,7 @@ class AdminTokenDao extends ORM
 
 
     public static $_fields_str;
-    public static $tableName    = 'dp_bg_admin_token';
+    public static $tableName    = 'bg_admin_token';
     public static $pk           = 'id';
     public static $field_config = [
         'id'          => ['db_type' => 'int', 'length' => 0, 'def' => null, 'pro_def' => null],
@@ -43,7 +43,7 @@ class AdminTokenDao extends ORM
 
     public function getDbConfName()
     {
-        return 'bee_invade';
+        return 'dp';
     }
 
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace modules\bee_invasion\v1\model\tool;
+namespace modules\dp\v1\model\tool;
 
 use models\common\opt\Opt;
 use models\common\sys\Sys;

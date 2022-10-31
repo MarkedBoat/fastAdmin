@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>项目列表</title>
+    <link href="/static/file/admin/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/file/admin/css/site.css" rel="stylesheet">
+    <link href="/static/file/admin/css/bg.css" rel="stylesheet">
+</head>
+<body>
+<div class="wrap">
+    <nav id="w0" class="navbar-inverse navbar-fixed-top navbar">
+        <div class="container">
+            <div class="navbar-header"></div>
+            <div id="bg_menus_div" class="navbar-brand menus_root">项目列表</div>
+            <div id="w0-collapse" class="collapse navbar-collapse">
+                <ul id="w1" class="navbar-nav navbar-right nav">
+                    <li><a href="/admin/dbdata/tables.html">项目列表</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <script src="/static/file/admin/js/hammer/kl-hammer.js"></script>
+        <script src="/static/file/admin/js/string/string.js"></script>
+        <script src="/static/file/admin/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
+        <script src="/static/file/admin/js/hammer-yii2/datagrid/datagrid.min.2022.10.07.0.js"></script>
+        <script src="/static/file/admin/js/bg.js"></script>
+
+        <div class="site-index">
+
+            <div>
+
+            </div>
+
+
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="page-header" id="h1">项目列表</h3>
+                </div>
+                <div class="panel-body">
+                    <p id="subject_detail"></p>
+                </div>
+            </div>
+
+
+            <div class="body-content" id="content_div">
+
+
+            </div>
+
+        </div>
+        <script>
+            domLoaded(function () {
+                    let utk = '';
+                    let role_infos = [];
+                    bg_init(function () {
+                        utk = window.utk;
+
+                        kl.ajax({
+                            url: '/dp/v1/admin/dbdata/info?user_token=' + utk,
+                            data: {table_name: 'd_project'},
+                            type: 'json',
+                            success: function (res_request_data) {
+                                if (res_request_data.status) {
+                                    if (res_request_data.status === 200) {
+                                        window.serverData.table = res_request_data.data.table;
+                                        window.serverData.columns = res_request_data.data.columns;
+                                        window.serverData.columns.forEach(function (column_info) {
+                                            if (column_info.index_key === 'PRI') {
+                                                window.serverData.table.pk_key = column_info.column_name;
+                                            }
+                                            let tmp_key = column_info.column_name;
+                                            window.serverData.vals_map[tmp_key] = {};
+                                            window.serverData.vals_range_map[tmp_key] = column_info.val_range;
+                                            if (column_info.val_range.length > 0) {
+                                                column_info.val_range.forEach(function (val_config) {
+                                                    //window.serverData.vals_map[tmp_key].list.push({val: val_config.val, label: val_config.text});
+                                                    window.serverData.vals_map[tmp_key][val_config.val] = val_config.text;
+                                                });
+                                            }
+                                        });
+
+
+                                        content();
+                                    } else {
+                                        alert(' 获取表信息 错误:' + (res_request_data.message || '未知'));
+                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                                    }
+                                } else {
+                                    console.log(res_request_data.status);
+                                    alert('获取表信息 请求结果异常');
+                                    throw '别看了， info 信息都拿不到，还想干啥?';
+                                }
+                            },
+                            error: function (res_request_data) {
+                                console.log(res_request_data);
+                                alert('获取表信息 网络异常');
+                                throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                            }
+                        });
+
+
+                        kl.ajax({
+                            url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
+                            data: {table_name: 'bg_rbac_role', page_index: 1, page_size: 1000},
+                            type: 'json',
+                            success: function (res_request_data) {
+                                if (res_request_data.code && res_request_data.code === 'ok') {
+                                    res_request_data.data.dataRows.forEach((role_info) => {
+                                        role_infos.push({val: role_info.role_code, text: role_info.role_name});
+                                    })
+                                }
+                            },
+                            error: function (res_request_data) {
+                            }
+                        })
+                    });
+
+
+                    content = function () {
+                        kl.id('h1').textContent = kl.id('h1').textContent + '/' + serverData.table.title + '/ ' + window.serverData.table_name;
+                        document.title = '【列】' + serverData.table.title + '/' + serverData.table.table_name;
+
+
+                        var raw_root = kl.id('content_div');
+                        var root = new Emt('div').setPros({className: 'row'});
+                        raw_root.append(root);
+
+
+
+                        let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
+
+
+
+                        let id_list = [];
+                        let sort_bar_list = [];
+                        let hanndle_datagrid = hammerBootstarpDatagrid({
+                            ele: kl.id('content_div'),
+                            requestDataFun: function (event_type, page_data, handle_callback) {
+                                id_list = [];
+                                sort_bar_list = [];
+                                console.log(event_type, page_data);
+                                if (event_type === 'filter') {
+                                    console.log('这个不做理会，不然请求太频繁了');
+                                    return false;
+                                }
+                                let post_data = {
+                                    page: {index: 1, size: 1000},
+                                    attr: page_data.filter,
+                                    table_name: 'd_project',
+                                };
+
+                                if (!page_data.sort.key || !page_data.sort.type) {
+                                    console.log('没有排序');
+                                } else {
+                                    // post_data.sort = page_data.sort;
+                                    post_data.sort = {};
+                                    post_data.sort[page_data.sort.key] = page_data.sort.type;
+                                }
+                                kl.ajax({
+                                    url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
+                                    data: post_data,
+                                    type: 'json',
+                                    success: function (res_request_data) {
+                                        if (res_request_data.status) {
+                                            if (res_request_data.status === 200) {
+                                                handle_callback(res_request_data.data.dataRows);
+                                            } else {
+                                                alert('错误:' + (res_request_data.msg || '未知'))
+                                            }
+                                        } else {
+                                            console.log(res_request_data.status);
+                                            alert('请求结果异常')
+                                        }
+                                    },
+                                    error: function (res_request_data) {
+                                        console.log(res_request_data);
+                                        alert('网络异常');
+                                    }
+                                })
+                            },
+                        });
+
+
+                        hanndle_datagrid.addColumn({
+                            filterInputElement: hanndle_datagrid.createInputText(),//如果是字符串，filter 就只是展示文字
+                            title: '项目ID',
+                            dataAttrKey: 'id',
+                            isSortable: true
+                            //cellRenderFunction
+                        });
+
+                        hanndle_datagrid.addColumn({
+                            filterInputElement: hanndle_datagrid.createInputText(),
+                            title: '项目名称',
+                            dataAttrKey: 'title',
+                            isSortable: true,
+                            cellRenderFunction: undefined
+                        });
+                        hanndle_datagrid.addColumn({
+                            filterInputElement: hanndle_datagrid.createInputText(),
+                            title: '项目描述',
+                            dataAttrKey: 'detail',
+                            isSortable: true,
+                            cellRenderFunction: undefined
+                        });
+                        hanndle_datagrid.addColumn({
+                            filterInputElement: hanndle_datagrid.createInputText(),
+                            title: '创建人',
+                            dataAttrKey: 'create_by',
+                            isSortable: true,
+                            cellRenderFunction: undefined
+                        });
+
+                        hanndle_datagrid.addColumn({
+                            filterInputElement: hanndle_datagrid.createInputText(),
+                            title: '创建时间',
+                            dataAttrKey: 'create_time',
+                            isSortable: true,
+                            cellRenderFunction: undefined
+                        });
+                        hanndle_datagrid.addColumn({
+                            filterInputElement: hanndle_datagrid.createInputText(),
+                            title: '最后变更时间',
+                            dataAttrKey: 'update_time',
+                            isSortable: true,
+                            cellRenderFunction: undefined
+                        });
+
+
+                        hanndle_datagrid.addColumn({
+                            filterInputElement: new Emt('span').setAttrsByStr('', '#'),
+                            title: '操作',
+                            dataAttrKey: 'op',
+                            isSortable: false,
+                            cellRenderFunction: function (cell, row_data) {
+                                //  let btn_import_column = new Emt('button').setPros({textContent: '修改'});
+                                // cell.addNodes([btn_import_column]);
+                                cell.addNodes([new Emt('a', '', '详情', {target: '_blank', href: '/admin/project/detail.html?{"project_id":' + row_data.id + '}'})]);
+
+                            }
+                        });
+
+
+                        hanndle_datagrid.requestData('init');
+
+
+                    }
+                }
+            );
+        </script>
+        <style>
+            .drag_sort_div {
+                float: left;
+                width: 100px;
+            }
+
+            .drag_sort_div > * {
+                display: block;
+                float: left;
+            }
+        </style>
+    </div>
+</div>
+
+
+<footer class="footer">
+    <div class="container">
+
+    </div>
+</footer>
+
+<script src="/static/file/admin/js/jquery.js"></script>
+<script src="/static/file/admin/js/bootstrap.js"></script>
+</body>
+</html>

@@ -60,7 +60,7 @@
 
                         kl.ajax({
                             url: '/dp/v1/admin/dbdata/info?user_token=' + utk,
-                            data: {table_name: 'bi_bg_db_column'},
+                            data: {table_name: 'bg_db_column'},
                             type: 'json',
                             success: function (res_request_data) {
                                 if (res_request_data.status) {
@@ -151,7 +151,7 @@
 
                         kl.ajax({
                             url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
-                            data: {table_name: 'bi_bg_rbac_role', page_index: 1, page_size: 1000},
+                            data: {table_name: 'bg_rbac_role', page_index: 1, page_size: 1000},
                             type: 'json',
                             success: function (res_request_data) {
                                 if (res_request_data.code && res_request_data.code === 'ok') {
@@ -294,7 +294,7 @@
                                         opt_roles: JSON.stringify(form_edit.apiHandle.ele.input.optRoles.apiHandle.getVal()),
                                         add_roles: JSON.stringify(form_edit.apiHandle.ele.input.addRoles.apiHandle.getVal()),
                                     },
-                                    table_name: 'bi_bg_db_column',
+                                    table_name: 'bg_db_column',
                                 },
                                 type: 'json',
                                 success: function (res_save_column) {
@@ -396,7 +396,7 @@
                                 let post_data = {
                                     page: {index: 1, size: 1000},
                                     attr: page_data.filter,
-                                    table_name: 'bi_bg_db_column',
+                                    table_name: 'bg_db_column',
                                 };
                                 post_data.attr.table_name = window.serverData.table_name;
 
