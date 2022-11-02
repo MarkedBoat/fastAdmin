@@ -13,9 +13,24 @@ let hammerYii2Bootstarp = function () {
     bootstrap_hanndle.createModal = function (input_option) {
         let init_config = input_option || {};
         let div_modal = new Emt('div').setAttrsByStr('class="fade modal" role="dialog" tabindex="-1"').setPros({id: bootstrap_hanndle.getEleRandId('modal')});
+        if (init_config.easy_close !== true) {
+            div_modal.setAttribute("data-backdrop", "static");
+        }
 
         div_modal.apiHandle = {
-            ele: {root: div_modal}
+            ele: {root: div_modal},
+            setZindex: function () {
+                alert('未初始化');
+            },
+            setTitleText: function (str) {
+                alert('未初始化');
+            },
+            addBodyChildElements: function (eles) {
+                alert('未初始化');
+            },
+            addFooterChildElements: function (eles) {
+                alert('未初始化');
+            },
         };
         div_modal.apiHandle.show = function () {
             $('#' + div_modal.id).modal('show');
@@ -50,14 +65,26 @@ let hammerYii2Bootstarp = function () {
 
         document.body.append(new Emt('div').addNodes([div_modal]));
 
-        div_modal.apiHandle.setZindex = function (zindex_num) {
-            div_modal.style.zIndex = zindex_num;
-            return handle;
-        }
 
         div_modal.apiHandle.ele.title = modal_title;
         div_modal.apiHandle.ele.body = modal_body;
         div_modal.apiHandle.ele.foot = modal_footer;
+        div_modal.apiHandle.setZindex = function (zindex_num) {
+            div_modal.style.zIndex = zindex_num;
+            return div_modal;
+        }
+        div_modal.apiHandle.setTitleText = function (str) {
+            modal_title.textContent = str;
+            return div_modal;
+        }
+        div_modal.apiHandle.addBodyChildElements = function (eles) {
+            modal_body.addNodes(eles);
+            return div_modal;
+        }
+        div_modal.apiHandle.addFooterChildElements = function (eles) {
+            modal_footer.addNodes(eles);
+            return div_modal;
+        }
 
         return div_modal;
 
@@ -672,6 +699,121 @@ let hammerYii2Bootstarp = function () {
         return handle;
     }
 
+    bootstrap_hanndle.createUploadGroupDiv = function (input_param) {
+        let init_config = input_param || {
+            upload: {
+                url: '',
+                params: {},
+                notifyError: function (error_flag, msg) {
+                },
+                notifyOk: function () {
+
+                }
+            },
+            onFileChanged: function (group_div) {
+
+            },
+            file: false
+        };
+        let upload_file_input = new Emt('input', 'type="file" ');
+        let upload_process_div = bootstrap_hanndle.createProcessDiv().apiHandle.reset();
+        let upload_msg = new Emt('p');
+
+        let group_div = new Emt('div').addNodes([
+            upload_file_input,
+            upload_process_div,
+            upload_msg
+        ])
+        group_div.apiHandle = {};
+        upload_file_input.addEventListener('change', function () {
+            console.log(upload_file_input.files[0]);
+            group_div.apiHandle.file = upload_file_input.files[0];
+            if (typeof init_config.onFileChanged === 'function') {
+                init_config.onFileChanged(group_div);
+            } else {
+                group_div.apiHandle.uploadFile();
+            }
+        });
+        group_div.apiHandle.setSourceFile = function (file) {
+            group_div.apiHandle.file = file;
+        }
+        group_div.apiHandle.uploadFile = function () {
+            if (group_div.apiHandle.file === false) {
+                alert('错误调用');
+                throw '错误调用';
+            }
+            let fd = new FormData();
+            let param_list = [];
+            kl.data2list(param_list, init_config.upload.params, 0, '');
+            console.log(param_list);
+            param_list.forEach((param) => {
+                fd.append(param.key, param.val);
+            });
+            fd.append("file", group_div.apiHandle.file);
+
+
+            let xhfUpload = new XMLHttpRequest();
+            xhfUpload.timeout = (init_config.upload.timeout || 3600) * 1000;
+            xhfUpload.addEventListener("load", function () {
+                console.log(xhfUpload);
+
+                let uploadRes = JSON.parse(xhfUpload.responseText);
+                if (uploadRes.code && uploadRes.code == 'ok') {
+                    console.log('文件上传成功', uploadRes);
+                    upload_msg.textContent = '文件上传成功';
+                    if (typeof init_config.upload.notifyOk === 'function') {
+                        init_config.upload.notifyOk(uploadRes);
+                    }
+                } else {
+                    console.log('上传失败', uploadRes);
+                    upload_msg.textContent = '上传失败';
+                    if (typeof init_config.upload.notifyError === 'function') {
+                        init_config.upload.notifyError('upload_error', '上传失败');
+                    }
+                }
+            }, false);
+
+
+            xhfUpload.upload.addEventListener("progress", function (evt) {
+                if (evt.lengthComputable) {
+                    let per100number = parseInt(evt.loaded * 100 / evt.total).toString();
+                    upload_msg.textContent = '上传进度:' + per100number + '%';
+                    upload_process_div.apiHandle.setProcessPerNumber(per100number);
+                }
+            }, false);
+
+
+            xhfUpload.addEventListener("error", function () {
+                if (typeof init_config.upload.notifyError.notifyError === 'function') {
+                    init_config.upload.notifyError.notifyError('error', '出错了');
+                }
+                upload_msg.textContent = '出错了';
+            }, false);
+            xhfUpload.addEventListener("abort", function () {
+                if (typeof init_config.upload.notifyError.notifyError === 'function') {
+                    init_config.upload.notifyError.notifyError('abort', '中断了');
+                }
+                upload_msg.textContent = '中断了';
+
+            }, false);
+
+            xhfUpload.open("POST", init_config.upload.url);
+            xhfUpload.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+
+            xhfUpload.send(fd);
+        };
+        group_div.apiHandle.addEventOnFileChanged = function (fun) {
+            init_config.onFileChanged = fun;
+        }
+        group_div.apiHandle.addEventUploadError = function (fun) {
+            init_config.upload.notifyError = fun;
+        }
+        group_div.apiHandle.addEventUploadOk = function (fun) {
+            init_config.upload.notifyOk = fun;
+        }
+        return group_div;
+
+    }
 
     bootstrap_hanndle.createSelect2 = function (opt) {
         let root_ele = new Emt('select').setAttrsByStr('', '').setPros();

@@ -33,6 +33,7 @@ $init_dirs = [
     '/log/cmd',
     '/log/cli',
     '/log/file/image',
+    '/static/upload'
 ];
 
 foreach ($init_dirs as $init_dir)
@@ -46,6 +47,7 @@ foreach ($init_dirs as $init_dir)
     else
     {
         mkdir($dst_file, 0777, true);
+        chmod($dst_file, 0777);
         echo "\n {$dst_file} 创建文件 \n";
     }
 }

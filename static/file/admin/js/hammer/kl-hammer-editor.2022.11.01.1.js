@@ -1,5 +1,6 @@
-let initEditor = function (opt_input) {
+let hammerEditor = function (opt_input) {
 
+    let apiHandle = {};
 
     if (!opt_input.data_ele) {
         throw '必须设置data_ele,作为html字符串存放目标';
@@ -19,14 +20,13 @@ let initEditor = function (opt_input) {
     }
     let raw_root = opt_input.ui_ele;
     raw_root.setAttribute('style', 'width:100%;height:auto;min-height:300px;font-size:1em');
-    let text_area = new Emt('div').setPros({
-        className: 'text_area',
-        contentEditable: true
-    }).setAttrs({'style': 'width:100%;height:auto;min-height:300px;padding-left:2px;border:1px solid #000;'});
+    let text_area = new Emt('div').setPros({className: 'text_area', contentEditable: true}).setAttrs({'style': 'width:100%;height:auto;min-height:300px;padding-left:2px;border:1px solid #000;'});
     let btns_area = new Emt('div').setPros({className: 'btns_area'});
+    let sync_div = new Emt('div').setPros({className: 'sync_div'});
     raw_root.append(
         btns_area,
-        text_area
+        text_area,
+        sync_div
     );
     //text_area.innerHTML = opt_input.data_ele.value;
 
@@ -58,13 +58,22 @@ let initEditor = function (opt_input) {
         document.execCommand('FormatBlock', false, tagName);
     }
 
-    if (opt_input.btns.indexOf('h1') !== -1) {
-        let opt_h1 = new Emt('button').setPros({className: 'opt_btn opt_btn_h1', textContent: 'h1'});
-        opt_h1.addEventListener('click', function (e) {
-            setTagName('h1');
+
+    if (opt_input.btns.indexOf('header') !== -1) {
+        let opt_header = new Emt('select').setPros({className: 'opt_btn opt_btn_header', textContent: 'H'});
+        opt_header.add(new Option('h1', 'h1'));
+        opt_header.add(new Option('h2', 'h2'));
+        opt_header.add(new Option('h3', 'h3'));
+        opt_header.add(new Option('h4', 'h4'));
+        opt_header.add(new Option('h5', 'h5'));
+        opt_header.add(new Option('h6', 'h6'));
+
+
+        opt_header.addEventListener('change', function (e) {
+            setTagName(opt_header.value);
             e.preventDefault();
         });
-        btns.push(opt_h1);
+        btns.push(opt_header);
     }
 
 
@@ -77,92 +86,126 @@ let initEditor = function (opt_input) {
         btns.push(opt_bold);
     }
 
-    if (opt_input.btns.indexOf('video') !== -1) {
-        if (typeof opt_input.funs.video !== 'function') {
-            throw 'funs.video 未设置,需要设置一个回调 raw_root.addVideoBloc 的方法';
-        }
-        raw_root.addVideoBlock = function (video_src, video_title) {
-            kl.log('插入视频', video_title, video_src);
-            execCommand(
-                'insertHTML',
-                true,
-                "\n" + '<kleditorfile contenteditable="false" type="video" src="' + video_src + '"><file_type>[视频]:</file_type>' + video_title + '</kleditorfile>' + "\n"
-            );
+    if (opt_input.btns.indexOf('fontsize') !== -1) {
+        let opt_fontsize = new Emt('select').setPros({className: 'opt_btn opt_btn_fontsize', textContent: 'size'});
+        opt_fontsize.add(new Option('1/10px', '1'));
+        opt_fontsize.add(new Option('2/12px', '2'));
+        opt_fontsize.add(new Option('3/16px', '3'));
+        opt_fontsize.add(new Option('4/18px', '4'));
+        opt_fontsize.add(new Option('5/24px', '5'));
+        opt_fontsize.add(new Option('6/32px', '6'));
+        opt_fontsize.add(new Option('7/48px', '7'));
 
-            //execCommand('insertHTML', false, (new Emt('p').setPros({className: 'text-center', textContent: '#'})).outerHTML);
-        };
-        let opt_video = new Emt('button').setPros({className: 'opt_btn opt_btn_video', textContent: '视频'});
-        opt_video.addEventListener('click', function (e) {
-            //execCommand('bold', false, null);
-            opt_input.funs.video(raw_root.addVideoBlock);
+        opt_fontsize.addEventListener('change', function (e) {
+            document.execCommand('fontsize', false, opt_fontsize.value);
             e.preventDefault();
         });
-        btns.push(opt_video);
+        btns.push(opt_fontsize);
     }
-    if (opt_input.btns.indexOf('img') !== -1) {
-        let opt_img = new Emt('button').setPros({className: 'opt_btn opt_btn_img', textContent: '图片'});
-        if (typeof opt_input.funs.img !== 'function') {
-            throw 'funs.img 未设置,需要设置一个回调 raw_root.addImglock 的方法';
+
+    apiHandle.flushDataToTextarea = function () {
+        opt_input.data_ele.value = text_area.innerHTML;
+    };
+    apiHandle.addFilePlaceHolder = function (file_name, file_link, file_type) {
+        kl.log('插入文件', file_name, file_link, file_type);
+        if (file_type === undefined || (['image', 'video', 'file']).indexOf(file_type) === -1) {
+            throw '不能接受的文件类型';
         }
-        raw_root.addImgBlock = function (img_src) {
-            kl.log('插入图片', img_src);
-            let p_img = new Emt('p').setPros({className: 'text-center'}).setAttrsByStr('contenteditable="false"').addNodes([
-                new Emt('img').setPros({className: 'img img-thumbnail img-responsive', src: img_src}).setAttrs({style: 'max-width:100%;'}),
-                new Emt('span').setPros({textContent: '#'})
-            ]);
-            execCommand('insertHTML', false, p_img.outerHTML);
-            //execCommand('insertHTML', false, (new Emt('p').setPros({className: 'text-center', textContent: '#'})).outerHTML);
+        let pre_view_div = new Emt('p');
+
+        let file_name_p = new Emt('p', '', file_name);
+        let msg_p = new Emt('p', 'contenteditable="false"', 'wait');
+        let op_p = new Emt('p', 'contenteditable="false"', '#');
+
+
+        let file_place_holder = new Emt('filePlaceHorder', 'contenteditable="false" type="' + file_type + '" src="' + file_link + '"').addNodes([pre_view_div, file_name_p]);
+        file_name_p.setAttribute('style', 'display:block;border:1px solid #000;');
+        let select_self_btn = new Emt('button', 'type="button"', '选中');
+        op_p.addNode(select_self_btn);
+        select_self_btn.addEventListener('click', function () {
+            let selection = window.getSelection();
+            let range = document.createRange();
+            range.selectNodeContents(file_place_holder);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        });
+        file_place_holder.setFilePlaceHolderType = function (typeName) {
+            file_place_holder.setAttribute("type", typeName);
+            apiHandle.flushDataToTextarea();
+        };
+        file_place_holder.setFilePlaceHolderSrc = function (src) {
+            file_place_holder.setAttribute("src", src);
+            console.log('setFilePlaceHolderSrc', src);
+            if (file_type === 'image') {
+                text_area.insertBefore(new Emt('img', 'class="editor_img"', '', {src: src}), file_place_holder);
+                file_place_holder.remove();
+                msg_p.remove();
+                op_p.remove();
+            } else if (file_type === 'video') {
+                text_area.insertBefore(
+                    new Emt('div', 'class="video_placeholder"').addNodes([
+                        new Emt('video', 'class="editor_video"', '', {src: src}),
+                        new Emt('p', '', file_name)
+                    ]),
+                    file_place_holder);
+                file_place_holder.remove();
+                msg_p.remove();
+                op_p.remove();
+            } else {
+                text_area.insertBefore(new Emt('a', 'class="editor_file"', file_name, {href: src}), file_place_holder);
+                file_place_holder.remove();
+                msg_p.remove();
+                op_p.remove();
+            }
+            apiHandle.flushDataToTextarea();
+
         };
 
-        opt_img.addEventListener('click', function (e) {
-            opt_input.funs.img(raw_root.addImgBlock);
-            e.preventDefault();
-        });
-        btns.push(opt_img);
-    }
+        file_place_holder.setFilePlaceHolderMsg = function (msg_text) {
+            msg_p.textContent = msg_text;
+        };
+
+        file_place_holder.setFilePlaceHolderFilenameText = function (filename_str) {
+            file_name_p.textContent = filename_str;
+        };
+
+        file_place_holder.setFilePlaceHolderPreviewElement = function (ele) {
+            pre_view_div.innerHTML = '';
+            pre_view_div.addNode(ele);
+        };
+        file_place_holder.setSourceFile = function (file) {
+            file_place_holder.sourceFile = file;
+            return file_place_holder;
+        };
+        file_place_holder.getSourceFile = function () {
+            return file_place_holder.sourceFile;
+        };
+
+        text_area.focus();
+        text_area.append(new Emt('div', '', '#'));
+        text_area.append(file_place_holder);
+        text_area.append(msg_p);
+        text_area.append(op_p);
+        text_area.append(new Emt('div', '', '#'));
+
+        return file_place_holder;
+    };
+
     if (opt_input.btns.indexOf('file') !== -1) {
-        let opt_file = new Emt('button').setPros({className: 'opt_btn opt_btn_file', textContent: '文件'});
-        if (typeof opt_input.funs.file !== 'function') {
-            throw 'funs.file 未设置,需要设置一个回调 raw_root.addFileBolock 的方法';
+        let opt_file = new Emt('button', 'type="button"').setPros({className: 'opt_btn opt_btn_file', textContent: '文件'});
+        if (typeof opt_input.funs.uploadFile !== 'function') {
+            throw 'funs.uploadFile 未设置,初始化参数需要提供 funs.uploadFile 的方法';
         }
-        raw_root.addFileBolock = function (file_name, file_link, file_sets) {
-            kl.log('插入文件', file_name, file_link);
-            execCommand(
-                'insertHTML',
-                true,
-                "\n" + '<kleditorfile contenteditable="false" type="' + (file_sets || 'file') + '" src="' + file_link + '"><file_type>[文件]:</file_type>' + file_name + '</kleditorfile>' + "\n"
-            );
-        };
-
         opt_file.addEventListener('click', function (e) {
-            opt_input.funs.file(raw_root.addFileBolock);
+            //调起 业务方法 funs.uploadFile，业务方法 (funs.uploadFile) 提供 上传UI（选择、进度、完成），在完成之后改写 编辑器内容
+            //1.此文件是简单化处理，只提供最基础的操作（复杂业务需要UI），所以上传交给业务，未集成上传功能，故而 业务需要调用 apiHandle.addFilePlaceHolder ，并且后续跟踪处理
+            //2.
+            opt_input.funs.uploadFile(apiHandle);
             e.preventDefault();
         });
         btns.push(opt_file);
     }
 
-    if (opt_input.btns.indexOf('link') !== -1) {
-        let opt_link = new Emt('button').setPros({className: 'opt_btn opt_btn_link', textContent: '链接'});
-        if (typeof opt_input.funs.link !== 'function') {
-            throw 'funs.link 未设置,需要设置一个回调 raw_root.addLinkBlock 的方法';
-        }
-        raw_root.addLinkBlock = function (link_name, link_url) {
-            execCommand(
-                'insertHTML',
-                false,
-                (
-                    new Emt('a').setPros({className: 'text-center'}).addNodes([
-                        new Emt('a').setPros({className: 'link', href: link_url, textContent: link_name})
-                    ])
-                ).outerHTML
-            );
-        };
-        opt_link.addEventListener('click', function (e) {
-            opt_input.funs.link(raw_root.addLinkBlock);
-            e.preventDefault();
-        });
-        btns.push(opt_link);
-    }
 
     let opt_table = new Emt('button').setPros({className: 'opt_btn opt_btn_table', textContent: '表格'});
     opt_table.addEventListener('click', function (e) {
@@ -217,6 +260,39 @@ let initEditor = function (opt_input) {
         }
     });
 
+    opt_input.ui_ele.addEventListener('paste', function (event) {
+        console.log('onpaste');
+        let len = event.clipboardData.items.length;
+        for (let i = 0; i < len; i++) {
+            console.log(event.clipboardData.items[i], event.clipboardData.items[i].getAsFile(), 'xxx');
+            if (event.clipboardData.items[i].type.match(/^image\//)) {
+                event.preventDefault();
+                let file_obj = event.clipboardData.items[i].getAsFile();
+                console.log('file_obj', file_obj);
+
+                if (typeof opt_input.funs.uploadPasteFile !== 'function') {
+                    throw 'funs.uploadFile 未设置,初始化参数需要提供 funs.uploadFile 的方法';
+                }
+                //调起 业务方法 funs.uploadPasteFile，业务方法 (funs.uploadFile) 提供 上传UI（选择、进度、完成），在完成之后改写 编辑器内容
+                //1.此文件是简单化处理，只提供最基础的操作（复杂业务需要UI），所以上传交给业务，未集成上传功能，故而 业务需要调用 apiHandle.addFilePlaceHolder ，并且后续跟踪处理
+                //2.
+                let view_ele = new Emt('img');
+                let fr_preview = new FileReader();
+                fr_preview.file = file_obj;
+                fr_preview.onload = function (evt) {
+                    view_ele.src = evt.target.result;
+                };
+                fr_preview.readAsDataURL(file_obj);
+                let filePlacehoder = apiHandle.addFilePlaceHolder(file_obj.name, '', 'image');
+                filePlacehoder.setFilePlaceHolderPreviewElement(view_ele);
+                filePlacehoder.setSourceFile(file_obj);
+                opt_input.funs.uploadPasteFile(apiHandle, filePlacehoder);
+
+            }
+        }
+    });
+
+
     kl.log(opt_input.data_ele.value.length);
     if (opt_input.data_ele.value.length) {
         let si = window.setInterval(function () {
@@ -228,6 +304,12 @@ let initEditor = function (opt_input) {
             }
         }, 200);
     }
+    apiHandle.appendSyncElement = function (ele) {
+        sync_div.addNodes([
+            ele,
+            new Emt('p')
+        ]);
+    };
     return {
         reloadData: function (html_text) {
             opt_input.data_ele.reloadData(html_text);
@@ -285,7 +367,7 @@ let hanndle_lookLargeImage = lookLargeImage();
 
 function formatEditorText2Element(root_ele, ext_opts_input) {
     let ext_opts = ext_opts_input || {isExistVideoPlayer: true};
-    let files = root_ele.getElementsByTagName('kleditorfile');
+    let files = root_ele.getElementsByTagName('filePlaceHorder');
     for (let i = 0; i < files.length; i++) {
         let file_ele = files[i];
         let file_type = file_ele.getAttribute('type');
@@ -301,11 +383,7 @@ function formatEditorText2Element(root_ele, ext_opts_input) {
         } else if (file_type === 'audio') {
             file_ele.parentNode.insertBefore(
                 new Emt('p').setPros({className: 'text-center'}).setAttrsByStr('style="border-top: 1px solid #DDD;"').addNodes([
-                    new Emt('audio').setPros({
-                        className: 'img img-responsive img-thumbnail ',
-                        src: file_src,
-                        controls: 'controls'
-                    }).setAttrsByStr('style="min-width:90%;padding:0px;border:none;min-height:3em;"'),
+                    new Emt('audio').setPros({className: 'img img-responsive img-thumbnail ', src: file_src, controls: 'controls'}).setAttrsByStr('style="min-width:90%;padding:0px;border:none;min-height:3em;"'),
                     new Emt('p').setPros({className: 'text-center', textContent: file_name,}).setAttrsByStr('style="border-top: 1px solid #DDD;"')
                 ]),
                 file_ele
@@ -322,11 +400,7 @@ function formatEditorText2Element(root_ele, ext_opts_input) {
 
             file_ele.parentNode.insertBefore(
                 new Emt('p').setPros({className: 'text-center'}).setAttrsByStr('style="border-top: 1px solid #DDD;"').addNodes([
-                    new Emt('video').setPros({
-                        className: 'img img-responsive img-thumbnail ',
-                        src: file_src,
-                        controls: 'controls'
-                    }).setAttrsByStr('style="min-width:90%;padding:0px;border:none;background:#000"'),
+                    new Emt('video').setPros({className: 'img img-responsive img-thumbnail ', src: file_src, controls: 'controls'}).setAttrsByStr('style="min-width:90%;padding:0px;border:none;background:#000"'),
                     new Emt('p').setPros({className: 'text-center', textContent: file_name,}).setAttrsByStr('style="border-top: 1px solid #DDD;"')
                 ]),
                 file_ele
@@ -343,61 +417,27 @@ function formatEditorText2Element(root_ele, ext_opts_input) {
     for (let i = 0; i < imgs.length; i++) {
         let tmp_src = imgs[i];
         let file_id = imgs[i].src.replace(/.*\/upload\/src\?file_id=(\d+)&.*/, '$1');
-        src_fileId_map[imgs[i].src] = file_id;
+        src_fileId_map[imgs[i]] = file_id;
         file_ids.push(file_id);
     }
-    let lookLargeImgs = function () {
-        for (let i = 0; i < imgs.length; i++) {
-            //kl.log(imgs[i], imgs[i].className.indexOf('img-sthumbnail') !== -1);
-            if (imgs[i].className.indexOf('img-sthumbnail') !== -1 > -1) {
-                imgs[i].parentElement.setAttribute('style', 'border-top: 1px solid #DDD;border-bottom: 1px solid #DDD;');
-                imgs[i].addEventListener('click', function () {
-                    hanndle_lookLargeImage.loadImgSrc(this.src);
-                })
+    kl.ajax({
+        url: '/upload/srcs?file_ids=' + file_ids.join(','),
+        method: 'GET',
+        type: 'json',
+        success: function (data) {
+            for (let i = 0; i < imgs.length; i++) {
+                kl.log(imgs[i], imgs[i].className.indexOf('img-sthumbnail') !== -1);
+                if (imgs[i].className.indexOf('img-sthumbnail') !== -1 > -1) {
+                    imgs[i].parentElement.setAttribute('style', 'border-top: 1px solid #DDD;border-bottom: 1px solid #DDD;');
+                    imgs[i].addEventListener('click', function () {
+                        hanndle_lookLargeImage.loadImgSrc(this.src);
+                    })
+                }
             }
         }
-    };
-    if (file_ids.length > 0) {
-        kl.ajax({
-            url: '/imark/file_srcs?file_ids=' + file_ids.join(','),
-            method: 'GET',
-            type: 'json',
-            success: function (srcs_res) {
-                console.log(srcs_res, srcs_res.srcs, kl.isUndefined(srcs_res, 'srcs'));
-                if (kl.isUndefined(srcs_res, 'srcs') === false) {
-                    kl.log('重写src');
-                    let old_imgs = [];
-                    for (let i = 0; i < imgs.length; i++) {
-                        if (typeof src_fileId_map[imgs[i].src] !== "undefined" && srcs_res.srcs[src_fileId_map[imgs[i].src]]) {
-                            let new_src = srcs_res.srcs[src_fileId_map[imgs[i].src]];
-                            if (imgs[i].className.indexOf('img-sthumbnail') !== -1 > -1) {
-                                let new_img = new Emt('img', '', '', {src: new_src, className: imgs[i].className});
-                                console.log(new_img);
-                                imgs[i].parentElement.setAttribute('style', 'border-top: 1px solid #DDD;border-bottom: 1px solid #DDD;');
-                                imgs[i].parentElement.append(new_img);
-                                old_imgs.push(imgs[i]);
-                                new_img.addEventListener('click', function () {
-                                    hanndle_lookLargeImage.loadImgSrc(this.src);
-                                })
-                            }
-                        }
-                    }
-                    let tmp_len = old_imgs.length;
-                    for (let z = 0; z < tmp_len; z++) {
-                        old_imgs[z].remove();
-                    }
-                } else {
-                    kl.log('重写src2');
-                    lookLargeImgs();
-                }
+    })
 
-            },
-            error: function () {
-                kl.log('重写src3');
-                lookLargeImgs();
-            }
-        })
-    }
+
 }
 
 

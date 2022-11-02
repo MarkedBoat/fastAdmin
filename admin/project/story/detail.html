@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>story:</title>
+    <link href="/static/file/admin/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/file/admin/css/site.css" rel="stylesheet">
+    <link href="/static/file/admin/css/bg.css" rel="stylesheet">
+</head>
+<body>
+<div class="wrap">
+    <nav id="w0" class="navbar-inverse navbar-fixed-top navbar">
+        <div class="container">
+            <div class="navbar-header"></div>
+            <div id="bg_menus_div" class="navbar-brand menus_root">story:</div>
+            <div id="w0-collapse" class="collapse navbar-collapse">
+                <ul id="w1" class="navbar-nav navbar-right nav">
+                    <li><a href="/admin/dbdata/tables.html">story:</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <script src="/static/file/admin/js/hammer/kl-hammer.js"></script>
+        <script src="/static/file/admin/js/string/string.js"></script>
+        <script src="/static/file/admin/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
+        <script src="/static/file/admin/js/hammer-yii2/datagrid/datagrid.min.2022.10.07.0.js"></script>
+        <script src="/static/file/admin/js/bg.js"></script>
+
+        <div class="site-index">
+
+            <div>
+
+            </div>
+
+
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="page-header" id="h1">story:</h3>
+                </div>
+                <div class="panel-body">
+                    <p id="subject_detail"></p>
+                </div>
+            </div>
+
+
+            <div class="body-content" id="content_div">
+
+
+            </div>
+
+        </div>
+        <script>
+            let storys_condtion = {
+                page: {index: 1, size: 1000},
+                attr: {
+                    story_id: 0,
+                },
+                table_name: 'd_story',
+                sort: {story_desc_order: 'desc'}
+            };
+
+            let markTree = function (data_rows, parent_story_id, lev) {
+                console.log('树第N:', data_rows, parent_story_id);
+                let story_infos = [];
+                data_rows.forEach(function (story_info) {
+                    if (story_info.story_id == parent_story_id) {
+                        story_info.lev = lev;
+                        story_info.nodes = markTree(data_rows, story_info.id, lev + 1);
+                        story_infos.push(story_info);
+                    }
+                });
+                return story_infos;
+            };
+            domLoaded(function () {
+                    let utk = '';
+                    let role_infos = [];
+                    bg_init(function () {
+                        utk = window.utk;
+
+
+                        kl.ajax({
+                            url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
+                            data: {table_name: 'bg_rbac_role', page_index: 1, page_size: 1000},
+                            type: 'json',
+                            success: function (res_request_data) {
+                                if (res_request_data.code && res_request_data.code === 'ok') {
+                                    res_request_data.data.dataRows.forEach((role_info) => {
+                                        role_infos.push({val: role_info.role_code, text: role_info.role_name});
+                                    })
+                                }
+                            },
+                            error: function (res_request_data) {
+                            }
+                        });
+
+                        kl.ajax({
+                            url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
+                            data: {table_name: 'd_story', attr: {id: window.serverData.story_id}},
+                            type: 'json',
+                            success: function (res_request_data) {
+                                if (res_request_data.code && res_request_data.code === 'ok' && res_request_data.data && res_request_data.data.rowsTotal === "1") {
+                                    window.serverData.storyInfo = res_request_data.data.dataRows[0];
+                                    storys_condtion.attr.story_id = serverData.storyInfo.id;
+
+                                    content();
+                                }
+                            },
+                            error: function (res_request_data) {
+                            }
+                        });
+                    });
+
+
+                    content = function () {
+                        kl.id('h1').textContent = kl.id('h1').textContent + ':' + window.serverData.storyInfo.id + '/' + window.serverData.storyInfo.title;
+                        //  document.title = '目标版本:' + serverData.table.title + '/' + serverData.table.table_name;
+
+
+                        let raw_root = kl.id('content_div');
+                        let root = new Emt('div').setPros({className: 'row'});
+                        raw_root.append(root);
+
+                        let detail_root_div = new Emt('div');
+                        let storys_root_div = new Emt('div');
+                        let storys_list_div = new Emt('div');
+                        let parent_story_div = new Emt('div');
+
+                        let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
+
+                        let storys_input_div = Emt('div');
+                        let display_storys_type = hammerYii2Bootstarp1.createSelect({items: [{text: '树形', val: 'tree'}, {text: '优先级', val: 'sort'}]});
+                        root.addNodes([
+                            detail_root_div.addNodes([
+                                new Emt('h1', '', '描述'),
+                                new Emt('pre', '', JSON.stringify(window.serverData.storyInfo, null, 4))
+                            ]),
+                            storys_root_div.addNodes([
+                                new Emt('h1', '', '父story:'),
+                                parent_story_div,
+                                new Emt('p'),
+                                new Emt('h1', '', '子story列表:'),
+                                storys_input_div.addNodes([
+                                    new Emt('label', '', '展示方式:').addNode(display_storys_type)
+                                ]),
+                                new Emt('p'),
+                                storys_list_div
+                            ])
+                        ]);
+
+
+                        let modal_edit = hammerYii2Bootstarp1.createModal({title: '修改字段设置'});
+                        let form_edit = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
+
+                        modal_edit.apiHandle.ele.body.addNodes([form_edit]);
+                        // label, placeholder, handle_ele_key, name_key
+                        //handle_form_edit.createInputText('字段', '', 'input_column_key_ele').input_column_key_ele.setPros({readOnly: true});
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('字段').setIndexKey('column_name').create('text');
+                        let column_name_input = form_edit.apiHandle.ele.input.column_name;
+
+                        //let column_id = handle_form_edit.createInputHide('input_column_id_ele', 'id').input_column_id_ele.setPros({readOnly: true});
+                        form_edit.apiHandle.addGroupPreCreate().setNameVar('id').setIndexKey('id').create('hide');
+                        let column_id_input = form_edit.apiHandle.ele.input.id;
+
+                        //let column_title = handle_form_edit.createInputText('字段标题', '用于当成label显示', 'input_title_ele', 'title').input_title_ele;
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('字段标题').setPlaceHolder('用于当成label显示').setIndexKey('title').setNameVar('title').create('text');
+                        let column_title_input = form_edit.apiHandle.ele.input.title;
+
+
+                        //let column_sn = handle_form_edit.createInputText('字段序号', '最小的在前面', 'input_sn_ele', 'column_sn').input_sn_ele;
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('字段序号').setPlaceHolder('大->小').setIndexKey('sn').setNameVar('column_sn').create('number');
+                        let column_sn_input = form_edit.apiHandle.ele.input.sn;
+
+                        // let column_rearmk = handle_form_edit.createInputTextArea('字段描述', '备注', 'input_remark_ele', 'remark').input_remark_ele;
+
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('字段描述').setPlaceHolder('备注').setIndexKey('remark').setNameVar('remark').create('textarea');
+                        let column_remark_input = form_edit.apiHandle.ele.input.remark;
+
+
+                        // let handle_out_datatype_select = hammerYii2Bootstarp1.select({list: ['string', 'int', 'date', 'img_uri']});
+                        //let handle_in_datatype_select = hammerYii2Bootstarp1.select({list: ['string', 'int', 'date']});
+
+
+                        //let handle_vals_range_textarea = hammerYii2Bootstarp1.textarea({});
+                        //let column_vals_range = handle_form_edit.createInputTextArea('取值范围', '代表值对应含义', 'input_val_range_ele', 'val_range').input_val_range_ele;
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('取值范围').setPlaceHolder('代表值对应含义').setIndexKey('val_range').setNameVar('val_range').create('textarea');
+                        let column_valRange_input = form_edit.apiHandle.ele.input.val_range;
+
+
+                        // handle_form_edit.root_ele.addNodes([
+                        //     handle_form_edit.createInputGroup('输出类型', handle_out_datatype_select.root_ele),
+                        // ]);
+
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('输出类型').setIndexKey('out_datatype').setNameVar('out_datatype').setItems([
+                            {text: 'string', val: 'string'},
+                            {text: 'int', val: 'int'},
+                            {text: 'date', val: 'date'},
+                            {text: 'img_uri', val: 'img_uri'}
+                        ]).create('select');
+                        let column_outDataType_input = form_edit.apiHandle.ele.input.out_datatype;
+
+
+                        // handle_form_edit.root_ele.addNodes([
+                        //     handle_form_edit.createInputGroup('接收类型', handle_in_datatype_select.root_ele),
+                        // ]);
+
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('接收类型').setIndexKey('in_datatype').setNameVar('in_datatype').setItems([
+                            {text: 'string', val: 'string'},
+                            {text: 'int', val: 'int'},
+                            {text: 'date', val: 'date'}
+                        ]).create('select');
+                        let column_inDataType_input = form_edit.apiHandle.ele.input.in_datatype;
+
+
+                        let edit_vals_div = new Emt('div').setAttrsByStr('class="table-responsive"');
+                        // handle_form_edit.root_ele.addNodes([
+                        //     handle_form_edit.createInputGroup('修改取值范围', edit_vals_div),
+                        // ]);
+                        let tmp_group = hammerYii2Bootstarp1.createFormInputGroupDiv({});
+                        tmp_group.apiHandle.setText('修改取值范围').apiHandle.addInputEle(edit_vals_div);
+                        form_edit.addNode(tmp_group);
+
+                        // handle_form_edit.root_ele.addNodes([
+                        //     handle_form_edit.createInputGroup('读角色', handle_read_roles_select.root_ele),
+                        // ]);
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('读角色').setIndexKey('readRoles').setNameVar('read_roles').setItems([]).create('checkbox_list');
+                        form_edit.apiHandle.ele.input.readRoles.apiHandle.setRemoteItems('/dp/v1/admin/dbdata/item/roles?user_token=' + utk);
+
+                        // handle_form_edit.root_ele.addNodes([
+                        //     handle_form_edit.createInputGroup('写(选择角色)', handle_opt_roles_select.root_ele),
+                        // ]);
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('选写(选择角色)').setIndexKey('optRoles').setNameVar('opt_roles').setItems([]).create('checkbox_list');
+                        form_edit.apiHandle.ele.input.optRoles.apiHandle.setRemoteItems('/dp/v1/admin/dbdata/item/roles?user_token=' + utk);
+
+                        // handle_form_edit.root_ele.addNodes([
+                        //     handle_form_edit.createInputGroup('写(全授权)', handle_add_roles_select.root_ele),
+                        // ]);
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('加写(全授权)').setIndexKey('addRoles').setNameVar('add_roles').setItems([]).create('checkbox_list');
+                        form_edit.apiHandle.ele.input.addRoles.apiHandle.setRemoteItems('/dp/v1/admin/dbdata/item/roles?user_token=' + utk);
+
+                        //label, text, handle_ele_key, callback
+                        form_edit.apiHandle.addGroupPreCreate().setType('button').setContentText('保存').setIndexKey('submit').setClickCall(function (btn) {
+                            console.log(btn, this, form_edit.apiHandle, form_edit.apiHandle.ele.input.readRoles.apiHandle.getVal(), form_edit.apiHandle.ele.input.optRoles.apiHandle.getVal(), form_edit.apiHandle.ele.input.addRoles.apiHandle.getVal());
+                            //return false;
+                            kl.ajax({
+                                url: '/dp/v1/admin/dbdata/update?user_token=' + utk,
+                                //attr: form,
+                                data: {
+                                    attr: {
+                                        id: form_edit.apiHandle.ele.input.id.apiHandle.getVal(),
+                                        title: form_edit.apiHandle.ele.input.title.apiHandle.getVal(),
+                                        column_sn: form_edit.apiHandle.ele.input.sn.apiHandle.getVal(),
+                                        out_datatype: form_edit.apiHandle.ele.input.out_datatype.apiHandle.getVal(),
+                                        in_datatype: form_edit.apiHandle.ele.input.in_datatype.apiHandle.getVal(),
+                                        val_range: form_edit.apiHandle.ele.input.val_range.apiHandle.getVal(),
+                                        remark: form_edit.apiHandle.ele.input.remark.apiHandle.getVal(),
+                                        read_roles: JSON.stringify(form_edit.apiHandle.ele.input.readRoles.apiHandle.getVal()),
+                                        opt_roles: JSON.stringify(form_edit.apiHandle.ele.input.optRoles.apiHandle.getVal()),
+                                        add_roles: JSON.stringify(form_edit.apiHandle.ele.input.addRoles.apiHandle.getVal()),
+                                    },
+                                    table_name: 'd_project',
+                                },
+                                type: 'json',
+                                success: function (res_save_column) {
+                                    if (res_save_column.status) {
+                                        if (res_save_column.status === 200) {
+                                            hanndle_datagrid.requestData('init');
+                                            //res_save_column(res_save_column.data);
+                                            modal_edit.apiHandle.hide();
+                                        } else {
+                                            alert('错误:' + (res_save_column.msg || '未知'))
+                                        }
+                                    } else {
+                                        console.log(res_save_column);
+                                        alert('请求结果异常')
+                                    }
+                                },
+                                error: function (res_save_column) {
+                                    console.log(res_save_column);
+                                    alert('网络异常');
+                                }
+                            })
+                        }).create('button');
+
+
+                        window.dragedEle = false;
+
+                        let display_parent_story = function () {
+                            kl.ajax({
+                                url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
+                                data: {
+                                    attr: {
+                                        id: window.serverData.storyInfo.story_id,
+                                    },
+                                    table_name: 'd_story',
+                                },
+                                type: 'json',
+                                success: function (res_request_data) {
+                                    if (res_request_data.status) {
+                                        if (res_request_data.status === 200 && res_request_data.data.dataRows.length === 1) {
+                                            parent_story_div.addNode(new Emt('a', '', res_request_data.data.dataRows[0].title, {href: '/admin/project/story/detail.html?{"story_id":' + res_request_data.data.dataRows[0].id + '}'}));
+                                        } else {
+                                            alert('获取父story 错误:' + (res_request_data.msg || '未知'))
+                                        }
+                                    } else {
+                                        console.log(res_request_data.status);
+                                        alert('获取父story 请求结果异常')
+                                    }
+                                },
+                                error: function (res_request_data) {
+                                    console.log(res_request_data);
+                                    alert('获取父story 网络异常');
+                                }
+                            });
+                        };
+                        if (window.serverData.storyInfo.story_id === '0') {
+                            parent_story_div.textContent = '无父级';
+                        } else {
+                            display_parent_story();
+                        }
+
+
+                        let flush_story_list = function () {
+                            kl.ajax({
+                                url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
+                                data: storys_condtion,
+                                type: 'json',
+                                success: function (res_request_data) {
+                                    if (res_request_data.status) {
+                                        if (res_request_data.status === 200) {
+                                            rander_storys_list(res_request_data.data.dataRows);
+                                        } else {
+                                            alert('错误:' + (res_request_data.msg || '未知'))
+                                        }
+                                    } else {
+                                        console.log(res_request_data.status);
+                                        alert('请求结果异常')
+                                    }
+                                },
+                                error: function (res_request_data) {
+                                    console.log(res_request_data);
+                                    alert('网络异常');
+                                }
+                            });
+                        };
+                        flush_story_list();
+                        display_storys_type.addEventListener('change', function () {
+                            flush_story_list();
+                        });
+
+                        let rander_storys_list = function (dataRows) {
+                            storys_list_div.innerHTML = '';
+
+
+                            let tmp_arr = markTree(dataRows, window.serverData.storyInfo.id, 1);
+                            console.log('markTree', tmp_arr);
+                            let story_table = new Emt('table');
+                            story_table.createRow = function () {
+                                let res = {};
+                                let tr = story_table.insertRow();
+                                tr.className = "story_row";
+                                res.tr = tr;
+                                tr.draggable = true;
+                                res.id_td = tr.insertCell();
+                                res.title_td = tr.insertCell();
+                                res.creator_td = tr.insertCell();
+                                res.status_td = tr.insertCell();
+                                res.desc_order_td = tr.insertCell();
+                                res.create_date_td = tr.insertCell();
+                                res.update_date_td = tr.insertCell();
+                                res.op_td = tr.insertCell();
+
+                                res.tr.className = "story_row";
+                                res.id_td.className = "story_id_td";
+                                res.title_td.className = "story_title_td";
+                                res.creator_td.className = "story_creator_td";
+                                res.status_td.className = "story_status_td";
+                                res.desc_order_td.className = "story_desc_order_td";
+                                res.create_date_td.className = "story_create_date_td";
+                                res.update_date_td.className = "story_update_date_td";
+                                res.op_td.className = "story_op_td";
+
+
+                                tr.setStoryInfo = function (story_info) {
+                                    tr.apiHandle = {data: story_info};
+                                    res.id_td.append(new Emt('div', '', story_info.id));
+                                    res.title_td.append(new Emt('div', '', (display_storys_type.apiHandle.getVal() === 'tree' ? ('--->').repeat(story_info.lev - 1) : '') + story_info.title));
+                                    res.creator_td.append(new Emt('div', '', story_info.__relat.create_by.info.real_name));
+                                    res.status_td.append(new Emt('div', '', story_info.is_ok));
+                                    res.desc_order_td.append(new Emt('div', '', story_info.story_desc_order));
+                                    res.create_date_td.append(new Emt('div', '', story_info.create_time));
+                                    res.update_date_td.append(new Emt('div', '', story_info.update_time ? story_info.update_time : '#'));
+                                    res.op_td.append(new Emt('div').addNodes([
+                                        new Emt('a', '', '查看', {href: '/admin/project/story/detail.html?{"story_id":' + story_info.id + '}'}),
+                                        new Emt('a', '', '添加子问题', {href: '/admin/project/story/add_child_story.html?{"parent_story_id":' + story_info.id + '}'})
+                                    ]));
+
+                                };
+
+                                tr.addEventListener('dragstart', function (e) {
+                                    console.log('dragstart', e.target);
+                                    window.dragedEle = tr;
+                                    tr.classList.add('on_drag_row');
+                                });
+                                tr.addEventListener('drag', function (e) {
+                                    //console.log('drag');
+
+                                });
+                                tr.addEventListener('dragend', function (e) {
+                                    console.log('dragend');
+                                    window.dragedEle = false;
+                                    tr.classList.remove('on_drag_row');
+
+
+                                });
+
+                                tr.addEventListener('dragenter', function (e) {
+                                    //console.log('dragenter');
+                                    tr.classList.add('on_drop_row');
+
+                                });
+                                tr.addEventListener('drop', function (e) {
+                                    console.log('PRE drop', tr, tr.apiHandle.data, window.dragedEle, window.dragedEle.apiHandle.data);
+                                    if (display_storys_type.apiHandle.getVal() === 'tree') {
+                                        kl.ajax({
+                                            url: '/dp/v1/project/story/tree?user_token=' + utk,
+                                            data: {
+                                                child_story_id: window.dragedEle.apiHandle.data.id,
+                                                parent_story_id: tr.apiHandle.data.id
+                                            },
+                                            type: 'json',
+                                            success: function (tmp_res) {
+                                                //hanndle_datagrid.requestData('init');
+                                                story_table.remove();
+
+                                                flush_story_list();
+                                            },
+                                            error: function (res_save_column) {
+                                                alert('报错了');
+                                            }
+                                        });
+                                    } else {
+                                        let row_sorts = [];
+                                        let len = story_table.rows.length;
+                                        let draged_id = window.dragedEle.apiHandle.data.id;
+                                        let be_after_id = tr.apiHandle.data.id;
+                                        let sn = len;
+                                        Object.values(story_table.rows).forEach(function (fetch_tr) {
+                                            console.log(fetch_tr);
+                                            if (fetch_tr.apiHandle === undefined) {
+                                                return false;
+                                            }
+                                            if (fetch_tr.apiHandle.data.id === draged_id) {
+                                                return false;
+                                            }
+                                            row_sorts.push({id: fetch_tr.apiHandle.data.id, sn: sn});
+                                            sn = sn - 1;
+                                            if (fetch_tr.apiHandle.data.id === be_after_id) {
+                                                row_sorts.push({id: draged_id, sn: sn});
+                                                sn = sn - 1;
+                                            }
+                                        });
+                                        console.log('row_sorts', row_sorts);
+                                        kl.ajax({
+                                            url: '/dp/v1/project/story/sort?user_token=' + utk,
+                                            data: {
+                                                sorts: row_sorts,
+                                                version_id: serverData.versionInfo.id,
+                                            },
+                                            type: 'json',
+                                            success: function (tmp_res) {
+                                                story_table.remove();
+                                                flush_story_list();
+                                            },
+                                            error: function (res_save_column) {
+                                                alert('报错了');
+                                            }
+                                        });
+
+                                    }
+
+                                    tr.classList.remove('on_drop_row');
+
+
+                                });
+                                tr.addEventListener('dragover', function (e) {
+                                    // console.log('dragover');
+                                    e.preventDefault(); //【重要】一定要加这一行代码，否则，后面的方法 ondrop() 无法触发。
+
+                                });
+                                tr.addEventListener('dragleave', function (e) {
+                                    //console.log('dragleave');
+                                    tr.classList.remove('on_drop_row');
+
+                                });
+
+
+                                return res;
+                            };
+                            let story_header = story_table.createRow();
+
+
+                            story_table.appendStoryRowAsTree = function (story_info) {
+                                let res = story_table.createRow();
+                                res.tr.setStoryInfo(story_info);
+                                if (story_info.nodes.length > 0) {
+                                    story_info.nodes.forEach(function (story_info2) {
+                                        story_table.appendStoryRowAsTree(story_info2);
+                                    });
+                                }
+                            };
+
+                            if (display_storys_type.apiHandle.getVal() === 'tree') {
+                                tmp_arr.forEach(function (story_info) {
+                                    story_table.appendStoryRowAsTree(story_info);
+                                });
+                            } else {
+                                dataRows.forEach(function (story_info) {
+                                    let res = story_table.createRow();
+                                    res.tr.setStoryInfo(story_info);
+                                })
+                            }
+                            storys_list_div.addNode(story_table);
+
+                        };
+
+
+                        window.dragedEle = false;
+
+                    }
+                }
+            );
+        </script>
+        <style>
+            .drag_sort_div {
+                float: left;
+                width: 100px;
+            }
+
+            .drag_sort_div > * {
+                display: block;
+                float: left;
+            }
+
+            .story_row {
+                margin: 10px;
+            }
+
+            .story_row > td > div {
+                display: block;
+                padding: 10px;
+            }
+
+            .on_drag_row > td > div {
+                background: #000;
+                color: #FFF;
+            }
+
+            .on_drop_row > td > div {
+                background: #ffff00;
+                color: #00F;
+            }
+
+        </style>
+    </div>
+</div>
+
+
+<footer class="footer">
+    <div class="container">
+        <p class="pull-left">&copy; My Company 2022</p>
+
+        <p class="pull-right">Powered by <a href="http://www.yiiframework.com/" rel="external">Yii Framework</a></p>
+    </div>
+</footer>
+
+<script src="/static/file/admin/js/jquery.js"></script>
+<script src="/static/file/admin/js/bootstrap.js"></script>
+</body>
+</html>

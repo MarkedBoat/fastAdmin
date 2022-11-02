@@ -50,4 +50,12 @@ class Admin extends AdminDao
         }
         return $this;
     }
+
+    public function getOpenInfo()
+    {
+        return [
+            'user_id'   => $this->id,
+            'real_name' => $this->real_name,
+        ];
+    }
 }

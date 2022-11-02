@@ -47,32 +47,59 @@ let bg_init = function (page_init_fun) {
         return li;
     };
 
+
+    let getMenus = function () {
+        kl.ajax({
+            url: '/dp/v1/admin/rbac/menu?user_token=' + utk,
+            data: {},
+            method: 'POST',
+            success: function (res_menu) {
+                console.log(res_menu);
+                if (res_menu.status) {
+                    if (res_menu.status === 200) {
+                        kl.id('bg_menus_div').append(
+                            new Emt('div', 'class="menus_box"').addNodes([
+                                function (ul) {
+                                    res_menu.data.forEach(function (tree) {
+                                        ul.addNode(tmp_list(tree));
+                                    });
+                                    return ul;
+                                }(new Emt('ul'))
+                            ])
+                        );
+                        page_init_fun();
+                    } else {
+                        alert('失败:' + (res_menu.msg || '未知'))
+                    }
+                } else {
+                    alert('数据异常')
+                }
+            },
+            error: function (res_share) {
+                console.log(res_share);
+                alert('网络错误！');
+            },
+            type: 'json',
+        });
+    };
+
     kl.ajax({
-        url: '/dp/v1/admin/rbac/menu?user_token=' + utk,
+        url: '/dp/v1/admin/user/Info?user_token=' + utk,
         data: {},
         method: 'POST',
-        success: function (res_menu) {
-            console.log(res_menu);
-            if (res_menu.status) {
-                if (res_menu.status === 200) {
-                    kl.id('bg_menus_div').append(
-                        new Emt('div', 'class="menus_box"').addNodes([
-                            function (ul) {
-                                res_menu.data.forEach(function (tree) {
-                                    ul.addNode(tmp_list(tree));
-                                });
-                                return ul;
-                            }(new Emt('ul'))
-                        ])
-                    );
+        success: function (admin_info_res) {
+            console.log(admin_info_res);
+            if (admin_info_res.status) {
+                if (admin_info_res.status === 200) {
                     window.utk = utk;
-                    page_init_fun();
+                    window.adminInfo = admin_info_res.data;
+                    getMenus()
                 } else {
-                    if (res_menu.code.indexOf('user_error_token') === 0) {
+                    if (admin_info_res.code.indexOf('user_error_token') === 0) {
                         alert('未登录，跳转到登录');
                         document.location = '/admin/login.html';
                     } else {
-                        alert('失败:' + (res_menu.msg || '未知'))
+                        alert('失败:' + (admin_info_res.msg || '未知'))
                     }
                 }
             } else {
