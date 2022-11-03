@@ -529,7 +529,7 @@
                                         attr: page_data.filter,
                                         table_name: 'd_story',
                                     };
-                                    post_data.attr.version_id = 1;
+                                    post_data.attr.version_id = 0;
                                     if (!page_data.sort.key || !page_data.sort.type) {
                                         console.log('没有排序');
                                     } else {
@@ -628,7 +628,9 @@
                                             data: {
                                                 attr: {
                                                     id: window.dragedEle.story_id,
-                                                    version_id: version_id
+                                                    version_id: version_id,
+                                                    story_id: 0,
+
                                                 },
                                                 table_name: 'd_story'
                                             },

@@ -353,8 +353,14 @@
                                     res.update_date_td.append(new Emt('div', '', story_info.update_time ? story_info.update_time : '#'));
                                     res.op_td.append(new Emt('div').addNodes([
                                         new Emt('a', '', '查看', {href: '/admin/project/story/detail.html?{"story_id":' + story_info.id + '}'}),
-                                        new Emt('a', '', '添加子问题', {href: '/admin/project/story/add_child_story.html?{"parent_story_id":' + story_info.id + '}'})
+                                        new Emt('a', '', '添加子问题', {href: '/admin/project/story/add.html?{"parent_story_id":' + story_info.id + '}'})
                                     ]));
+                                    if (story_info.lev === 1) {
+                                        tr.classList.add('top_lev_story_tr');
+                                        if (tr.previousElementSibling) {
+                                            tr.previousElementSibling.classList.add('top_lev_story_last_tr');
+                                        }
+                                    }
 
                                 };
 
@@ -376,11 +382,17 @@
                                 });
 
                                 tr.addEventListener('dragenter', function (e) {
+                                    if (tr.apiHandle.data === window.dragedEle.apiHandle.data) {
+                                        return false;
+                                    }
                                     //console.log('dragenter');
                                     tr.classList.add('on_drop_row');
 
                                 });
                                 tr.addEventListener('drop', function (e) {
+                                    if (tr.apiHandle.data === window.dragedEle.apiHandle.data) {
+                                        return false;
+                                    }
                                     console.log('PRE drop', tr, tr.apiHandle.data, window.dragedEle, window.dragedEle.apiHandle.data);
                                     if (display_storys_type.apiHandle.getVal() === 'tree') {
                                         kl.ajax({
@@ -459,6 +471,15 @@
                                 return res;
                             };
                             let story_header = story_table.createRow();
+                            story_header.tr.setStoryInfo({
+                                id: 0,
+                                title: 'story描述',
+                                __relat: {create_by: {info: {real_name: 'top'}}}
+                            });
+                            story_header.op_td.innerHTML = '';
+                            story_header.op_td.append(new Emt('div').addNodes([
+                                new Emt('a', '', '添加子问题', {href: '/admin/project/story/add.html?{"version_id":' + window.serverData.versionInfo.id + '}'})
+                            ]));
 
 
                             story_table.appendStoryRowAsTree = function (story_info) {
@@ -522,6 +543,17 @@
                 color: #00F;
             }
 
+            .top_lev_story_tr {
+                border-top: 1px dashed #000;
+            }
+
+            .top_lev_story_tr > td > div {
+                margin-top: 10px;
+            }
+
+            .top_lev_story_last_tr > td > div {
+                margin-bottom: 30px;
+            }
         </style>
     </div>
 </div>

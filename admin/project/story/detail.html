@@ -134,6 +134,7 @@
                         root.addNodes([
                             detail_root_div.addNodes([
                                 new Emt('h1', '', '描述'),
+                                new Emt('div', '', '', {innerHTML: window.serverData.storyInfo.detail}),
                                 new Emt('pre', '', JSON.stringify(window.serverData.storyInfo, null, 4))
                             ]),
                             storys_root_div.addNodes([
@@ -148,140 +149,6 @@
                                 storys_list_div
                             ])
                         ]);
-
-
-                        let modal_edit = hammerYii2Bootstarp1.createModal({title: '修改字段设置'});
-                        let form_edit = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
-
-                        modal_edit.apiHandle.ele.body.addNodes([form_edit]);
-                        // label, placeholder, handle_ele_key, name_key
-                        //handle_form_edit.createInputText('字段', '', 'input_column_key_ele').input_column_key_ele.setPros({readOnly: true});
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('字段').setIndexKey('column_name').create('text');
-                        let column_name_input = form_edit.apiHandle.ele.input.column_name;
-
-                        //let column_id = handle_form_edit.createInputHide('input_column_id_ele', 'id').input_column_id_ele.setPros({readOnly: true});
-                        form_edit.apiHandle.addGroupPreCreate().setNameVar('id').setIndexKey('id').create('hide');
-                        let column_id_input = form_edit.apiHandle.ele.input.id;
-
-                        //let column_title = handle_form_edit.createInputText('字段标题', '用于当成label显示', 'input_title_ele', 'title').input_title_ele;
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('字段标题').setPlaceHolder('用于当成label显示').setIndexKey('title').setNameVar('title').create('text');
-                        let column_title_input = form_edit.apiHandle.ele.input.title;
-
-
-                        //let column_sn = handle_form_edit.createInputText('字段序号', '最小的在前面', 'input_sn_ele', 'column_sn').input_sn_ele;
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('字段序号').setPlaceHolder('大->小').setIndexKey('sn').setNameVar('column_sn').create('number');
-                        let column_sn_input = form_edit.apiHandle.ele.input.sn;
-
-                        // let column_rearmk = handle_form_edit.createInputTextArea('字段描述', '备注', 'input_remark_ele', 'remark').input_remark_ele;
-
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('字段描述').setPlaceHolder('备注').setIndexKey('remark').setNameVar('remark').create('textarea');
-                        let column_remark_input = form_edit.apiHandle.ele.input.remark;
-
-
-                        // let handle_out_datatype_select = hammerYii2Bootstarp1.select({list: ['string', 'int', 'date', 'img_uri']});
-                        //let handle_in_datatype_select = hammerYii2Bootstarp1.select({list: ['string', 'int', 'date']});
-
-
-                        //let handle_vals_range_textarea = hammerYii2Bootstarp1.textarea({});
-                        //let column_vals_range = handle_form_edit.createInputTextArea('取值范围', '代表值对应含义', 'input_val_range_ele', 'val_range').input_val_range_ele;
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('取值范围').setPlaceHolder('代表值对应含义').setIndexKey('val_range').setNameVar('val_range').create('textarea');
-                        let column_valRange_input = form_edit.apiHandle.ele.input.val_range;
-
-
-                        // handle_form_edit.root_ele.addNodes([
-                        //     handle_form_edit.createInputGroup('输出类型', handle_out_datatype_select.root_ele),
-                        // ]);
-
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('输出类型').setIndexKey('out_datatype').setNameVar('out_datatype').setItems([
-                            {text: 'string', val: 'string'},
-                            {text: 'int', val: 'int'},
-                            {text: 'date', val: 'date'},
-                            {text: 'img_uri', val: 'img_uri'}
-                        ]).create('select');
-                        let column_outDataType_input = form_edit.apiHandle.ele.input.out_datatype;
-
-
-                        // handle_form_edit.root_ele.addNodes([
-                        //     handle_form_edit.createInputGroup('接收类型', handle_in_datatype_select.root_ele),
-                        // ]);
-
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('接收类型').setIndexKey('in_datatype').setNameVar('in_datatype').setItems([
-                            {text: 'string', val: 'string'},
-                            {text: 'int', val: 'int'},
-                            {text: 'date', val: 'date'}
-                        ]).create('select');
-                        let column_inDataType_input = form_edit.apiHandle.ele.input.in_datatype;
-
-
-                        let edit_vals_div = new Emt('div').setAttrsByStr('class="table-responsive"');
-                        // handle_form_edit.root_ele.addNodes([
-                        //     handle_form_edit.createInputGroup('修改取值范围', edit_vals_div),
-                        // ]);
-                        let tmp_group = hammerYii2Bootstarp1.createFormInputGroupDiv({});
-                        tmp_group.apiHandle.setText('修改取值范围').apiHandle.addInputEle(edit_vals_div);
-                        form_edit.addNode(tmp_group);
-
-                        // handle_form_edit.root_ele.addNodes([
-                        //     handle_form_edit.createInputGroup('读角色', handle_read_roles_select.root_ele),
-                        // ]);
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('读角色').setIndexKey('readRoles').setNameVar('read_roles').setItems([]).create('checkbox_list');
-                        form_edit.apiHandle.ele.input.readRoles.apiHandle.setRemoteItems('/dp/v1/admin/dbdata/item/roles?user_token=' + utk);
-
-                        // handle_form_edit.root_ele.addNodes([
-                        //     handle_form_edit.createInputGroup('写(选择角色)', handle_opt_roles_select.root_ele),
-                        // ]);
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('选写(选择角色)').setIndexKey('optRoles').setNameVar('opt_roles').setItems([]).create('checkbox_list');
-                        form_edit.apiHandle.ele.input.optRoles.apiHandle.setRemoteItems('/dp/v1/admin/dbdata/item/roles?user_token=' + utk);
-
-                        // handle_form_edit.root_ele.addNodes([
-                        //     handle_form_edit.createInputGroup('写(全授权)', handle_add_roles_select.root_ele),
-                        // ]);
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('加写(全授权)').setIndexKey('addRoles').setNameVar('add_roles').setItems([]).create('checkbox_list');
-                        form_edit.apiHandle.ele.input.addRoles.apiHandle.setRemoteItems('/dp/v1/admin/dbdata/item/roles?user_token=' + utk);
-
-                        //label, text, handle_ele_key, callback
-                        form_edit.apiHandle.addGroupPreCreate().setType('button').setContentText('保存').setIndexKey('submit').setClickCall(function (btn) {
-                            console.log(btn, this, form_edit.apiHandle, form_edit.apiHandle.ele.input.readRoles.apiHandle.getVal(), form_edit.apiHandle.ele.input.optRoles.apiHandle.getVal(), form_edit.apiHandle.ele.input.addRoles.apiHandle.getVal());
-                            //return false;
-                            kl.ajax({
-                                url: '/dp/v1/admin/dbdata/update?user_token=' + utk,
-                                //attr: form,
-                                data: {
-                                    attr: {
-                                        id: form_edit.apiHandle.ele.input.id.apiHandle.getVal(),
-                                        title: form_edit.apiHandle.ele.input.title.apiHandle.getVal(),
-                                        column_sn: form_edit.apiHandle.ele.input.sn.apiHandle.getVal(),
-                                        out_datatype: form_edit.apiHandle.ele.input.out_datatype.apiHandle.getVal(),
-                                        in_datatype: form_edit.apiHandle.ele.input.in_datatype.apiHandle.getVal(),
-                                        val_range: form_edit.apiHandle.ele.input.val_range.apiHandle.getVal(),
-                                        remark: form_edit.apiHandle.ele.input.remark.apiHandle.getVal(),
-                                        read_roles: JSON.stringify(form_edit.apiHandle.ele.input.readRoles.apiHandle.getVal()),
-                                        opt_roles: JSON.stringify(form_edit.apiHandle.ele.input.optRoles.apiHandle.getVal()),
-                                        add_roles: JSON.stringify(form_edit.apiHandle.ele.input.addRoles.apiHandle.getVal()),
-                                    },
-                                    table_name: 'd_project',
-                                },
-                                type: 'json',
-                                success: function (res_save_column) {
-                                    if (res_save_column.status) {
-                                        if (res_save_column.status === 200) {
-                                            hanndle_datagrid.requestData('init');
-                                            //res_save_column(res_save_column.data);
-                                            modal_edit.apiHandle.hide();
-                                        } else {
-                                            alert('错误:' + (res_save_column.msg || '未知'))
-                                        }
-                                    } else {
-                                        console.log(res_save_column);
-                                        alert('请求结果异常')
-                                    }
-                                },
-                                error: function (res_save_column) {
-                                    console.log(res_save_column);
-                                    alert('网络异常');
-                                }
-                            })
-                        }).create('button');
 
 
                         window.dragedEle = false;

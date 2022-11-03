@@ -15,7 +15,7 @@ use modules\dp\v1\model\admin\dbdata\DbTable;
 use modules\dp\v1\model\admin\rbac\RbacAction;
 
 
-class ActionRelation extends AdminBaseAction
+class ActionTree extends AdminBaseAction
 {
     public $requestMethods = ['POST'];
     public $dataSource     = 'POST';
