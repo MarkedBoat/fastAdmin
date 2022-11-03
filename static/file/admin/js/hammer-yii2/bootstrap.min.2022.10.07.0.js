@@ -184,6 +184,7 @@ let hammerYii2Bootstarp = function () {
                 init_config.clickCall(btn_ele);
             });
         }
+        bootstrap_hanndle.__initInputEle(btn_ele, input_param);
 
         return btn_ele;
     }
@@ -295,6 +296,11 @@ let hammerYii2Bootstarp = function () {
                 }
             })
             return inputEle;
+        }
+        inputEle.apiHandle.setClickCall = function (fun) {
+            inputEle.addEventListener('click', function () {
+                fun(this);
+            });
         }
 
 

@@ -53,13 +53,15 @@
         </div>
         <script>
             let storys_condtion = {
-                page: {index: 1, size: 1000},
-                attr: {
-                    version_id: 0,
-                },
-                table_name: 'd_story',
-                sort: {story_desc_order: 'desc'}
-            };
+                    page_index: 1, page_size: 1000,
+
+                    attr: {
+                        version_id: 0,
+                    },
+                    table_name: 'd_story',
+                    sort: {story_desc_order: 'desc'}
+                }
+            ;
 
             let markTree = function (data_rows, parent_story_id, lev) {
                 console.log('树第N:', data_rows, parent_story_id);
@@ -95,20 +97,61 @@
                             }
                         });
 
-                        kl.ajax({
-                            url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
-                            data: {table_name: 'd_version', attr: {id: window.serverData.version_id}},
-                            type: 'json',
-                            success: function (res_request_data) {
-                                if (res_request_data.code && res_request_data.code === 'ok' && res_request_data.data && res_request_data.data.rowsTotal === "1") {
-                                    window.serverData.versionInfo = res_request_data.data.dataRows[0];
-                                    storys_condtion.attr.version_id = serverData.versionInfo.id;
-                                    content();
+
+                        let getStoryTableInfo = function (fun) {
+                            kl.ajax({
+                                url: '/dp/v1/admin/dbdata/info?user_token=' + utk,
+                                data: {table_name: 'd_story'},
+                                type: 'json',
+                                success: function (res_request_data) {
+                                    if (res_request_data.status) {
+                                        if (res_request_data.status === 200) {
+                                            window.serverData.storyColumnMap = {};
+                                            window.serverData.storyStepMap = {};
+                                            res_request_data.data.columns.forEach(function (colInfo) {
+                                                window.serverData.storyColumnMap[colInfo.column_name] = colInfo;
+                                            });
+                                            window.serverData.storyColumnMap.step.val_range.forEach(function (itemInfo) {
+                                                window.serverData.storyStepMap[itemInfo.val] = itemInfo.text;
+                                            });
+
+                                            fun();
+                                        } else {
+                                            alert(' 获取表信息 错误:' + (res_request_data.message || '未知'));
+                                            throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                                        }
+                                    } else {
+                                        alert('获取表信息 请求结果异常');
+                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
+                                    }
+                                },
+                                error: function (res_request_data) {
+                                    console.log(res_request_data);
+                                    alert('获取表信息 网络异常');
+                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
+
                                 }
-                            },
-                            error: function (res_request_data) {
-                            }
-                        });
+                            });
+                        };
+
+
+                        getStoryTableInfo(function () {
+                            kl.ajax({
+                                url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
+                                data: {table_name: 'd_version', attr: {id: window.serverData.version_id}},
+                                type: 'json',
+                                success: function (res_request_data) {
+                                    if (res_request_data.code && res_request_data.code === 'ok' && res_request_data.data && res_request_data.data.rowsTotal === "1") {
+                                        window.serverData.versionInfo = res_request_data.data.dataRows[0];
+                                        storys_condtion.attr.version_id = serverData.versionInfo.id;
+                                        content();
+                                    }
+                                },
+                                error: function (res_request_data) {
+                                }
+                            });
+                        })
                     });
 
 
@@ -347,7 +390,7 @@
                                     res.id_td.append(new Emt('div', '', story_info.id));
                                     res.title_td.append(new Emt('div', '', (display_storys_type.apiHandle.getVal() === 'tree' ? ('--->').repeat(story_info.lev - 1) : '') + story_info.title));
                                     res.creator_td.append(new Emt('div', '', story_info.__relat.create_by.info.real_name));
-                                    res.status_td.append(new Emt('div', '', story_info.is_ok));
+                                    res.status_td.append(new Emt('div', '', serverData.storyStepMap[story_info.step]));
                                     res.desc_order_td.append(new Emt('div', '', story_info.story_desc_order));
                                     res.create_date_td.append(new Emt('div', '', story_info.create_time));
                                     res.update_date_td.append(new Emt('div', '', story_info.update_time ? story_info.update_time : '#'));
@@ -474,7 +517,11 @@
                             story_header.tr.setStoryInfo({
                                 id: 0,
                                 title: 'story描述',
-                                __relat: {create_by: {info: {real_name: 'top'}}}
+                                __relat: {create_by: {info: {real_name: '创建人'}}},
+                                story_desc_order: '优先级/大->小',
+                                create_time: '创建时间',
+                                update_time: '修改时间',
+
                             });
                             story_header.op_td.innerHTML = '';
                             story_header.op_td.append(new Emt('div').addNodes([
@@ -545,6 +592,7 @@
 
             .top_lev_story_tr {
                 border-top: 1px dashed #000;
+                background: #EEE;
             }
 
             .top_lev_story_tr > td > div {
@@ -552,7 +600,7 @@
             }
 
             .top_lev_story_last_tr > td > div {
-                margin-bottom: 30px;
+                margin-bottom: 10px;
             }
         </style>
     </div>
