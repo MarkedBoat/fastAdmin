@@ -37,16 +37,6 @@
             </div>
 
 
-            <div class="panel panel-primary">
-                <div class="panel-heading">
-                    <h3 class="page-header" id="h1">story:</h3>
-                </div>
-                <div class="panel-body">
-                    <p id="subject_detail"></p>
-                </div>
-            </div>
-
-
             <div class="body-content" id="content_div">
 
 
@@ -86,16 +76,22 @@
             let markStoryStepDiv = function (commitInfo) {
                 console.log('markStoryStepDiv', commitInfo);
                 let step_div = new Emt('div', 'class="story_commit_div"',);
-                let reply_div = new Emt('div', '', '回复:', {});
+                let reply_div = new Emt('div', '', '', {});
                 step_div.setAttribute('id', 'story_commit_div_' + commitInfo.id);
 
-                let reply_this_btn = new Emt('button', 'type="button"', '回复当前');
-
+                let reply_this_btn = new Emt('button', 'type="button" class="reply_commit_btn"', '回复当前');
+                if (commitInfo.detail.length > 0) {
+                    step_div.addNodes([
+                        new Emt('div', 'class="story_commit_detail_div"', '', {innerHTML: commitInfo.detail})
+                    ]);
+                }
                 step_div.addNodes([
-                    new Emt('pre', '', '创建:' + commitInfo.__relat.create_by.info.real_name + '/' + commitInfo.create_time),
-                    new Emt('pre', '', '状态:' + window.serverData.storyCommitMap[commitInfo.step]),
-                    new Emt('div', 'class="story_commit_detail_div"', '', {innerHTML: commitInfo.detail}),
-                    reply_div,
+                    new Emt('div', 'class="short_info_div"').addNodes([
+                        new Emt('span', 'class="id_span"', '#' + commitInfo.id),
+                        new Emt('span', 'class="status_span"', '' + window.serverData.storyCommitMap[commitInfo.step]),
+                        new Emt('span', 'class="create_span"', commitInfo.__relat.create_by.info.real_name + '/' + commitInfo.create_time),
+                        reply_div,
+                    ]),
                 ]);
                 step_div.apiHandle = {
                     data: commitInfo,
@@ -107,10 +103,10 @@
                 reply_div.addNode(reply_this_btn);
 
                 if (parseInt(commitInfo.reply_id) > 0) {
-                    reply_div.addNodes([new Emt('a', '', '父step', {href: '#story_commit_div_' + commitInfo.reply_id})]);
+                    reply_div.addNodes([new Emt('a', '', '父commit', {href: '#story_commit_div_' + commitInfo.reply_id})]);
                     if (pageData.commit_map[commitInfo.reply_id]) {
                         pageData.commit_map[commitInfo.reply_id].apiHandle.ele.replies_div.addNodes([
-                            new Emt('a', '', commitInfo.__relat.create_by.info.real_name + '/' + commitInfo.create_time + '[' + window.serverData.storyCommitMap[commitInfo.step] + ']', {href: '#story_commit_div_' + commitInfo.id})
+                            new Emt('a', '', '#' + commitInfo.id + '/' + commitInfo.__relat.create_by.info.real_name + '/' + commitInfo.create_time + '[' + window.serverData.storyCommitMap[commitInfo.step] + ']', {href: '#story_commit_div_' + commitInfo.id})
                         ]);
                     }
 
@@ -119,791 +115,720 @@
                 return step_div;
             };
             domLoaded(function () {
-                    let utk = '';
-                    let role_infos = [];
-                    bg_init(function () {
-                        utk = window.utk;
+                let utk = '';
+                let role_infos = [];
+                bg_init(function () {
+                    utk = window.utk;
 
 
+                    kl.ajax({
+                        url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
+                        data: {table_name: 'bg_rbac_role', page_index: 1, page_size: 1000},
+                        type: 'json',
+                        success: function (res_request_data) {
+                            if (res_request_data.code && res_request_data.code === 'ok') {
+                                res_request_data.data.dataRows.forEach((role_info) => {
+                                    role_infos.push({val: role_info.role_code, text: role_info.role_name});
+                                })
+                            }
+                        },
+                        error: function (res_request_data) {
+                        }
+                    });
+
+
+                    let getStoryTableInfo = function (fun) {
                         kl.ajax({
-                            url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
-                            data: {table_name: 'bg_rbac_role', page_index: 1, page_size: 1000},
+                            url: '/dp/v1/admin/dbdata/info?user_token=' + utk,
+                            data: {table_name: 'd_story'},
                             type: 'json',
                             success: function (res_request_data) {
-                                if (res_request_data.code && res_request_data.code === 'ok') {
-                                    res_request_data.data.dataRows.forEach((role_info) => {
-                                        role_infos.push({val: role_info.role_code, text: role_info.role_name});
-                                    })
+                                if (res_request_data.status) {
+                                    if (res_request_data.status === 200) {
+                                        window.serverData.storyColumnMap = {};
+                                        window.serverData.storyCommitMap = {};
+                                        res_request_data.data.columns.forEach(function (colInfo) {
+                                            window.serverData.storyColumnMap[colInfo.column_name] = colInfo;
+                                        });
+                                        window.serverData.storyColumnMap.step.val_range.forEach(function (itemInfo) {
+                                            window.serverData.storyCommitMap[itemInfo.val] = itemInfo.text;
+                                        });
+
+                                        fun();
+                                    } else {
+                                        alert(' 获取表信息 错误:' + (res_request_data.message || '未知'));
+                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                                    }
+                                } else {
+                                    alert('获取表信息 请求结果异常');
+                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
+                                }
+                            },
+                            error: function (res_request_data) {
+                                console.log(res_request_data);
+                                alert('获取表信息 网络异常');
+                                throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                            }
+                        });
+                    };
+
+                    getStoryTableInfo(function () {
+                        kl.ajax({
+                            url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
+                            data: {table_name: 'd_story', attr: {id: window.serverData.story_id}},
+                            type: 'json',
+                            success: function (res_request_data) {
+                                if (res_request_data.code && res_request_data.code === 'ok' && res_request_data.data && res_request_data.data.rowsTotal === "1") {
+                                    window.serverData.storyInfo = res_request_data.data.dataRows[0];
+                                    storys_condtion.attr.story_id = serverData.storyInfo.id;
+
+                                    content();
                                 }
                             },
                             error: function (res_request_data) {
                             }
                         });
-
-
-                        let getStoryTableInfo = function (fun) {
-                            kl.ajax({
-                                url: '/dp/v1/admin/dbdata/info?user_token=' + utk,
-                                data: {table_name: 'd_story'},
-                                type: 'json',
-                                success: function (res_request_data) {
-                                    if (res_request_data.status) {
-                                        if (res_request_data.status === 200) {
-                                            window.serverData.storyColumnMap = {};
-                                            window.serverData.storyCommitMap = {};
-                                            res_request_data.data.columns.forEach(function (colInfo) {
-                                                window.serverData.storyColumnMap[colInfo.column_name] = colInfo;
-                                            });
-                                            window.serverData.storyColumnMap.step.val_range.forEach(function (itemInfo) {
-                                                window.serverData.storyCommitMap[itemInfo.val] = itemInfo.text;
-                                            });
-
-                                            fun();
-                                        } else {
-                                            alert(' 获取表信息 错误:' + (res_request_data.message || '未知'));
-                                            throw '别看了，连table info 信息都拿不到，还想干啥?';
-
-                                        }
-                                    } else {
-                                        alert('获取表信息 请求结果异常');
-                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
-                                    }
-                                },
-                                error: function (res_request_data) {
-                                    console.log(res_request_data);
-                                    alert('获取表信息 网络异常');
-                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
-
-                                }
-                            });
-                        };
-
-                        getStoryTableInfo(function () {
-                            kl.ajax({
-                                url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
-                                data: {table_name: 'd_story', attr: {id: window.serverData.story_id}},
-                                type: 'json',
-                                success: function (res_request_data) {
-                                    if (res_request_data.code && res_request_data.code === 'ok' && res_request_data.data && res_request_data.data.rowsTotal === "1") {
-                                        window.serverData.storyInfo = res_request_data.data.dataRows[0];
-                                        storys_condtion.attr.story_id = serverData.storyInfo.id;
-
-                                        content();
-                                    }
-                                },
-                                error: function (res_request_data) {
-                                }
-                            });
-                        });
-
-
                     });
 
 
-                    content = function () {
-                        kl.id('h1').textContent = kl.id('h1').textContent + window.serverData.storyInfo.id + '/' + window.serverData.storyInfo.title;
-                        document.title = kl.id('h1').textContent;
+                });
 
 
-                        let raw_root = kl.id('content_div');
-                        let root = new Emt('div').setPros({className: 'row'});
-                        raw_root.append(root);
-
-                        let detail_root_div = new Emt('div');
-                        let storys_root_div = new Emt('div');
-                        let storys_list_div = new Emt('div');
-                        let parent_story_div = new Emt('div');
-
-                        let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
-                        let upload_file_modal = hammerYii2Bootstarp1.createModal({title: '上传文件'});
-
-                        let storys_input_div = Emt('div');
-                        let display_storys_type = hammerYii2Bootstarp1.createSelect({items: [{text: '树形', val: 'tree'}, {text: '优先级', val: 'sort'}]});
-
-                        let story_title_h3 = new Emt('h3', '', '', {innerHTML: window.serverData.storyInfo.title});
-                        let story_detail_div = new Emt('div', '', '', {innerHTML: window.serverData.storyInfo.detail || '问题描述'});
-                        let detail_ui_div = new Emt('div', '');
-                        let story_detail_textarea = new Emt('textarea', 'class="hide"', '', {value: window.serverData.storyInfo.detail});
+                content = function () {
+                    //kl.id('h1').textContent = kl.id('h1').textContent + window.serverData.storyInfo.id + '/' + window.serverData.storyInfo.title;
+                    document.title = 'story:' + window.serverData.storyInfo.id + '/' + window.serverData.storyInfo.title;
 
 
-                        let form_edit = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('项目').setIndexKey('project_id').create('select');
-                        form_edit.apiHandle.ele.input.project_id.apiHandle.setInitVal(window.serverData.storyInfo.project_id);
-                        form_edit.apiHandle.ele.input.project_id.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'project'});
+                    let raw_root = kl.id('content_div');
+                    let root = new Emt('div').setPros({className: 'row'});
+                    raw_root.append(root);
 
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('目标版本').setIndexKey('version_id').create('select');
-                        form_edit.apiHandle.ele.input.version_id.apiHandle.setInitVal(window.serverData.storyInfo.version_id);
-                        form_edit.apiHandle.ele.input.version_id.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'version', project_id: window.serverData.storyInfo.project_id});
-                        form_edit.apiHandle.ele.input.project_id.addEventListener('change', function () {
-                            form_edit.apiHandle.ele.input.version_id.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'version', project_id: form_edit.apiHandle.ele.input.project_id.apiHandle.getVal()});
-                        });
+                    let detail_root_div = new Emt('div', 'class="detail_root_div"');
+                    let storys_root_div = new Emt('div', 'class="storys_root_div"');
+                    let storys_list_div = new Emt('div', 'class="storys_list_div"');
+                    let parent_story_div = new Emt('div', 'class="parent_story_div"');
 
+                    let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
+                    let upload_file_modal = hammerYii2Bootstarp1.createModal({title: '上传文件'});
 
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('父级story').setIndexKey('parent_story_id').create('select');
-                        form_edit.apiHandle.ele.input.parent_story_id.apiHandle.setInitVal(window.serverData.storyInfo.version_id);
-                        form_edit.apiHandle.ele.input.parent_story_id.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'story', version_id: window.serverData.storyInfo.version_id});
-                        form_edit.apiHandle.ele.input.version_id.addEventListener('change', function () {
-                            form_edit.apiHandle.ele.input.parent_story_id.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'story', version_id: form_edit.apiHandle.ele.input.version_id.apiHandle.getVal()});
-                        });
+                    let storys_input_div = Emt('div');
+                    let display_storys_type = hammerYii2Bootstarp1.createSelect({items: [{text: '树形', val: 'tree'}, {text: '优先级', val: 'sort'}]});
 
-
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('story标题').setPlaceHolder('标题').setIndexKey('title').create('text');
-                        form_edit.apiHandle.ele.input.title.apiHandle.setInitVal(window.serverData.storyInfo.title);
-
-                        let detail_edit_div = new Emt('div');
-                        let detail_edit_textarea = new Emt('textarea', 'rows="6" class="form-control hide" ', '', {value: window.serverData.storyInfo.detail || '尚未填写'});
-                        let detail_group_div = hammerYii2Bootstarp1.createFormInputGroupDiv({text: '描述'});
-                        detail_group_div.apiHandle.addInputEle(detail_edit_div);
-                        detail_group_div.apiHandle.addInputEle(detail_edit_textarea);
-                        form_edit.addNode(detail_group_div);
-
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('状态').setIndexKey('step').create('select');
-                        form_edit.apiHandle.ele.input.step.apiHandle.setInitVal(window.serverData.storyInfo.step).apiHandle.setItems(serverData.storyColumnMap.step.val_range);
-                        form_edit.apiHandle.ele.input.step.parentElement.className = 'col-sm-3';
-                        form_edit.apiHandle.addGroupPreCreate().setType('button').setContentText('保存').setIndexKey('submit').create('button');
-                        form_edit.apiHandle.ele.input.submit.parentElement.className = 'col-sm-3';
+                    let story_title_h3 = new Emt('h3', '', '', {innerHTML: '[ ' + window.serverData.storyInfo.id + ' ] ' + window.serverData.storyInfo.title});
+                    let story_detail_div = new Emt('div', '', '', {innerHTML: window.serverData.storyInfo.detail || '问题描述'});
+                    let detail_ui_div = new Emt('div', '');
+                    let story_detail_textarea = new Emt('textarea', 'class="hide"', '', {value: window.serverData.storyInfo.detail});
 
 
-                        let op_div = new Emt('div', 'class="hide"');
-                        let display_div = new Emt('div');
-                        let show_editor_btn = new Emt('button', 'type="button"', '编辑');
-                        let exit_editor_btn = new Emt('button', 'type="button" ', '退出编辑');
+                    let form_edit = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
+                    form_edit.apiHandle.addGroupPreCreate().setLabelText('项目').setIndexKey('project_id').create('select');
+                    form_edit.apiHandle.ele.input.project_id.apiHandle.setInitVal(window.serverData.storyInfo.project_id);
+                    form_edit.apiHandle.ele.input.project_id.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'project'});
+
+                    form_edit.apiHandle.addGroupPreCreate().setLabelText('目标版本').setIndexKey('version_id').create('select');
+                    form_edit.apiHandle.ele.input.version_id.apiHandle.setInitVal(window.serverData.storyInfo.version_id);
+                    form_edit.apiHandle.ele.input.version_id.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'version', project_id: window.serverData.storyInfo.project_id});
+                    form_edit.apiHandle.ele.input.project_id.addEventListener('change', function () {
+                        form_edit.apiHandle.ele.input.version_id.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'version', project_id: form_edit.apiHandle.ele.input.project_id.apiHandle.getVal()});
+                    });
 
 
-                        let commits_div = new Emt('div');
-
-                        let new_commit_form = hammerYii2Bootstarp1.createForm({dataNameTpl: 'commit[$var]'});
-                        let reply_group_div = hammerYii2Bootstarp1.createFormInputGroupDiv({text: '回复:'});
-                        let new_commit_reply_id = hammerYii2Bootstarp1.createHideInput({}).apiHandle.setInitVal(0);
-                        let new_commit_reply_link = new Emt('a', '', '跳转至回复');
-                        let new_commit_reply_checkbox = new Emt('input', 'type="checkbox"');
-
-                        reply_group_div.apiHandle.addInputEle(new_commit_reply_id);
-                        reply_group_div.apiHandle.addInputEle(new Emt('label').addNodes([
-                            new Emt('span', '', '是否回复其它step'),
-                            new_commit_reply_checkbox,
-                        ]));
-                        reply_group_div.apiHandle.addInputEle(new_commit_reply_link);
-                        new_commit_form.addNode(reply_group_div);
+                    form_edit.apiHandle.addGroupPreCreate().setLabelText('父级story').setIndexKey('parent_story_id').create('select');
+                    form_edit.apiHandle.ele.input.parent_story_id.apiHandle.setInitVal(window.serverData.storyInfo.version_id);
+                    form_edit.apiHandle.ele.input.parent_story_id.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'story', version_id: window.serverData.storyInfo.version_id});
+                    form_edit.apiHandle.ele.input.version_id.addEventListener('change', function () {
+                        form_edit.apiHandle.ele.input.parent_story_id.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'story', version_id: form_edit.apiHandle.ele.input.version_id.apiHandle.getVal()});
+                    });
 
 
-                        let new_commit_detail_ui_div = new Emt('div');
-                        let new_commit_detail_textarea = new Emt('textarea', 'rows="6" class="form-control hide" ', '', {});
-                        let new_commit_detail_group_div = hammerYii2Bootstarp1.createFormInputGroupDiv({text: '描述'});
-                        new_commit_detail_group_div.apiHandle.addInputEle(new_commit_detail_ui_div);
-                        new_commit_detail_group_div.apiHandle.addInputEle(new_commit_detail_textarea);
-                        new_commit_form.addNode(new_commit_detail_group_div);
+                    form_edit.apiHandle.addGroupPreCreate().setLabelText('story标题').setPlaceHolder('标题').setIndexKey('title').create('text');
+                    form_edit.apiHandle.ele.input.title.apiHandle.setInitVal(window.serverData.storyInfo.title);
+
+                    let detail_edit_div = new Emt('div');
+                    let detail_edit_textarea = new Emt('textarea', 'rows="6" class="form-control hide" ', '', {value: window.serverData.storyInfo.detail || '尚未填写'});
+                    let detail_group_div = hammerYii2Bootstarp1.createFormInputGroupDiv({text: '描述'});
+                    detail_group_div.apiHandle.addInputEle(detail_edit_div);
+                    detail_group_div.apiHandle.addInputEle(detail_edit_textarea);
+                    form_edit.addNode(detail_group_div);
 
 
-                        new_commit_form.apiHandle.addGroupPreCreate().setLabelText('耗时').setIndexKey('used_hours').create('number');
-                        new_commit_form.apiHandle.ele.input.used_hours.apiHandle.setInitVal(0);
-                        new_commit_form.apiHandle.ele.input.used_hours.parentElement.className = 'col-sm-3';
+                    form_edit.apiHandle.addGroupPreCreate().setType('button').setContentText('保存').setIndexKey('submit').create('button');
+                    form_edit.apiHandle.ele.input.submit.parentElement.className = 'col-sm-3';
 
 
-                        new_commit_form.apiHandle.addGroupPreCreate().setLabelText('状态').setIndexKey('step').create('select');
-                        new_commit_form.apiHandle.ele.input.step.apiHandle.setItems(serverData.storyColumnMap.step.val_range);
-                        new_commit_form.apiHandle.ele.input.step.apiHandle.setInitVal('comment');
-
-                        new_commit_form.apiHandle.ele.input.step.parentElement.className = 'col-sm-3';
-
-                        new_commit_form.apiHandle.addGroupPreCreate().setLabelText('提交').setType('button').setContentText('提交commit').setIndexKey('commit').create('button');
-                        new_commit_form.apiHandle.ele.input.commit.parentElement.className = 'col-sm-3';
+                    let op_div = new Emt('div', 'class="hide"');
+                    let display_div = new Emt('div');
+                    let show_editor_btn = new Emt('button', 'type="button"', '编辑');
+                    let exit_editor_btn = new Emt('button', 'type="button" ', '退出编辑');
 
 
-                        root.addNodes([
-                            detail_root_div.addNodes([
-                                new Emt('h1', '', '描述'),
-                                display_div.addNodes([
-                                    story_title_h3,
-                                    new Emt('p', 'class="break-line" style="border-bottom: 1px solid #AAA;padding-top: 20px;padding-bottom: 20px;"'),
-                                    story_detail_div,
-                                    new Emt('p').addNodes([
-                                        show_editor_btn
-                                    ]),
+                    let commits_div = new Emt('div');
+
+                    let new_commit_form = hammerYii2Bootstarp1.createForm({dataNameTpl: 'commit[$var]'});
+                    let reply_group_div = hammerYii2Bootstarp1.createFormInputGroupDiv({text: '回复:'});
+                    let new_commit_reply_id = hammerYii2Bootstarp1.createHideInput({}).apiHandle.setInitVal(0);
+                    let new_commit_reply_link = new Emt('a', '', '跳转至回复');
+                    let new_commit_reply_checkbox = new Emt('input', 'type="checkbox"');
+
+                    reply_group_div.apiHandle.addInputEle(new_commit_reply_id);
+                    reply_group_div.apiHandle.addInputEle(new Emt('label').addNodes([
+                        new Emt('span', '', '回复'),
+                        new_commit_reply_checkbox,
+                    ]));
+                    reply_group_div.apiHandle.addInputEle(new_commit_reply_link);
+                    new_commit_form.addNode(reply_group_div);
+
+
+                    let new_commit_detail_ui_div = new Emt('div');
+                    let new_commit_detail_textarea = new Emt('textarea', 'rows="6" class="form-control hide" ', '', {});
+                    let new_commit_detail_group_div = hammerYii2Bootstarp1.createFormInputGroupDiv({text: '描述'});
+                    new_commit_detail_group_div.apiHandle.addInputEle(new_commit_detail_ui_div);
+                    new_commit_detail_group_div.apiHandle.addInputEle(new_commit_detail_textarea);
+                    new_commit_form.addNode(new_commit_detail_group_div);
+
+
+                    new_commit_form.apiHandle.addGroupPreCreate().setLabelText('耗时').setIndexKey('used_hours').create('number');
+                    new_commit_form.apiHandle.ele.input.used_hours.apiHandle.setInitVal(0);
+                    new_commit_form.apiHandle.ele.input.used_hours.parentElement.className = 'col-sm-3';
+
+
+                    new_commit_form.apiHandle.addGroupPreCreate().setLabelText('状态').setIndexKey('step').create('select');
+                    new_commit_form.apiHandle.ele.input.step.apiHandle.setItems(serverData.storyColumnMap.step.val_range);
+                    new_commit_form.apiHandle.ele.input.step.apiHandle.setInitVal('comment');
+
+                    new_commit_form.apiHandle.ele.input.step.parentElement.className = 'col-sm-3';
+
+                    new_commit_form.apiHandle.addGroupPreCreate().setLabelText('提交').setType('button').setContentText('提交commit').setIndexKey('commit').create('button');
+                    new_commit_form.apiHandle.ele.input.commit.parentElement.className = 'col-sm-3';
+
+
+                    root.addNodes([
+                        detail_root_div.addNodes([
+                            new Emt('h4', '', '描述'),
+                            display_div.addNodes([
+                                story_title_h3,
+                                new Emt('p', 'class="break-line" style="border-bottom: 1px solid #AAA;padding-top: 20px;padding-bottom: 20px;"'),
+                                story_detail_div,
+                                new Emt('p').addNodes([
+                                    show_editor_btn
                                 ]),
-                                op_div.addNodes([
-                                    form_edit,
-                                    new Emt('p').addNodes([
-                                        exit_editor_btn
-                                    ]),
-                                ]),
-                                new Emt('pre', '', '创建:' + window.serverData.storyInfo.__relat.create_by.info.real_name + '/' + window.serverData.storyInfo.create_time),
-                                new Emt('pre', '', '状态:' + window.serverData.storyCommitMap[window.serverData.storyInfo.step]),
-                                //  new Emt('pre', '', JSON.stringify(window.serverData.storyInfo, null, 4))
                             ]),
-                            storys_root_div.addNodes([
-                                new Emt('h1', '', '父story:'),
-                                parent_story_div,
-                                new Emt('p'),
-                                new Emt('h1', '', '子story列表:'),
+                            op_div.addNodes([
+                                form_edit,
+                                new Emt('p').addNodes([
+                                    exit_editor_btn
+                                ]),
+                            ]),
+                            new Emt('div', 'class="short_info_div"').addNodes([
+                                new Emt('span', 'class="create_span"', '创建:' + window.serverData.storyInfo.__relat.create_by.info.real_name + '/' + window.serverData.storyInfo.create_time),
+                                new Emt('span', 'class="status_span"', '状态:' + window.serverData.storyCommitMap[window.serverData.storyInfo.step]),
+                            ])
+
+
+                            //  new Emt('pre', '', JSON.stringify(window.serverData.storyInfo, null, 4))
+                        ]),
+                        storys_root_div.addNodes([
+                            new Emt('h4', '', '父story:'),
+                            parent_story_div,
+                            new Emt('p'),
+                            new Emt('h4', '', '子story列表:'),
+                            new Emt('div').addNodes([
                                 storys_input_div.addNodes([
                                     new Emt('label', '', '展示方式:').addNode(display_storys_type)
                                 ]),
                                 new Emt('p'),
                                 storys_list_div
-                            ]),
-                            commits_div
-                        ]);
+                            ])
 
-                        //初始化 story编辑 富文本
-                        hammerEditor({
-                            ui_ele: detail_edit_div,
-                            data_ele: detail_edit_textarea,
-                            btns: ('header,bold,fontsize,file').split(','),
-                            funs: {
-                                uploadFile: function (editorApiHandle) {
-                                    if (upload_file_modal.apiHandle.ele.body.childElementCount > 0) {
-                                        console.log('之前的上传 还没用');
-                                        upload_file_modal.apiHandle.show();
-                                        return false;
+                        ]),
+                        new Emt('h4', '', '历史提交:'),
+                        commits_div
+                    ]);
+
+                    //初始化 story编辑 富文本
+                    hammerEditor({
+                        ui_ele: detail_edit_div,
+                        data_ele: detail_edit_textarea,
+                        btns: ('header,bold,fontsize,file').split(','),
+                        funs: {
+                            uploadFile: function (editorApiHandle) {
+                                if (upload_file_modal.apiHandle.ele.body.childElementCount > 0) {
+                                    console.log('之前的上传 还没用');
+                                    upload_file_modal.apiHandle.show();
+                                    return false;
+                                }
+                                let upload_groupDiv = hammerYii2Bootstarp1.createUploadGroupDiv({
+                                    upload: {
+                                        url: '/dp/v1/admin/file/upload?user_token=' + utk,
+                                        params: {},
+
                                     }
-                                    let upload_groupDiv = hammerYii2Bootstarp1.createUploadGroupDiv({
-                                        upload: {
-                                            url: '/dp/v1/admin/file/upload?user_token=' + utk,
-                                            params: {},
-
-                                        }
-                                    });
-                                    upload_file_modal.apiHandle.addBodyChildElements([upload_groupDiv]);
-                                    upload_file_modal.apiHandle.show();
-                                    let filePlaceHolder = false;//只有这个玩意是来自于 editor.js  而upload_groupDiv是来自于UI.js
-                                    upload_groupDiv.apiHandle.addEventOnFileChanged(function () {
-                                        let file_type = 'file';
-                                        if (upload_groupDiv.apiHandle.file.type.match(/^image\//)) {
-                                            file_type = 'image';
-                                        } else if (upload_groupDiv.apiHandle.file.type.match(/^video\//)) {
-                                            file_type = 'video';
-                                        }
-                                        filePlaceHolder = editorApiHandle.addFilePlaceHolder(upload_groupDiv.apiHandle.file.name, '#', file_type);//必须实现 确定了src 之后,回调 editor,让editor插入文件
-                                        editorApiHandle.appendSyncElement(upload_groupDiv);
-                                        upload_file_modal.apiHandle.hide();
-                                        upload_groupDiv.apiHandle.uploadFile();
-
-                                    });
-
-                                    upload_groupDiv.apiHandle.addEventUploadOk(function (uploadRes) {
-                                        if (uploadRes && uploadRes.code === 'ok' && uploadRes.data && uploadRes.data.url) {
-                                            filePlaceHolder.setFilePlaceHolderSrc(uploadRes.data.url);
-                                            editorApiHandle.flushDataToTextarea();
-                                        }
-                                    });
-                                    upload_groupDiv.apiHandle.addEventUploadError(function (uploadRes) {
-                                        filePlaceHolder.setFilePlaceHolderFilenameText('上传失败');
-                                    });
-
-
-                                },
-                                uploadPasteFile: function (editorApiHandle, filePlaceHolder) {
-                                    let upload_groupDiv = hammerYii2Bootstarp1.createUploadGroupDiv({
-                                        upload: {
-                                            url: '/dp/v1/admin/file/upload?user_token=' + utk,
-                                            params: {},
-
-                                        }
-                                    });
-                                    upload_file_modal.apiHandle.addBodyChildElements([upload_groupDiv]);
-                                    upload_file_modal.apiHandle.show();
-                                    upload_groupDiv.apiHandle.setSourceFile(filePlaceHolder.getSourceFile());
+                                });
+                                upload_file_modal.apiHandle.addBodyChildElements([upload_groupDiv]);
+                                upload_file_modal.apiHandle.show();
+                                let filePlaceHolder = false;//只有这个玩意是来自于 editor.js  而upload_groupDiv是来自于UI.js
+                                upload_groupDiv.apiHandle.addEventOnFileChanged(function () {
+                                    let file_type = 'file';
+                                    if (upload_groupDiv.apiHandle.file.type.match(/^image\//)) {
+                                        file_type = 'image';
+                                    } else if (upload_groupDiv.apiHandle.file.type.match(/^video\//)) {
+                                        file_type = 'video';
+                                    }
+                                    filePlaceHolder = editorApiHandle.addFilePlaceHolder(upload_groupDiv.apiHandle.file.name, '#', file_type);//必须实现 确定了src 之后,回调 editor,让editor插入文件
                                     editorApiHandle.appendSyncElement(upload_groupDiv);
                                     upload_file_modal.apiHandle.hide();
                                     upload_groupDiv.apiHandle.uploadFile();
 
+                                });
 
-                                    upload_groupDiv.apiHandle.addEventUploadOk(function (uploadRes) {
-                                        if (uploadRes && uploadRes.code === 'ok' && uploadRes.data && uploadRes.data.url) {
-                                            filePlaceHolder.setFilePlaceHolderSrc(uploadRes.data.url);
-                                        }
-                                    });
+                                upload_groupDiv.apiHandle.addEventUploadOk(function (uploadRes) {
+                                    if (uploadRes && uploadRes.code === 'ok' && uploadRes.data && uploadRes.data.url) {
+                                        filePlaceHolder.setFilePlaceHolderSrc(uploadRes.data.url);
+                                        editorApiHandle.flushDataToTextarea();
+                                    }
+                                });
+                                upload_groupDiv.apiHandle.addEventUploadError(function (uploadRes) {
+                                    filePlaceHolder.setFilePlaceHolderFilenameText('上传失败');
+                                });
 
-                                    upload_groupDiv.apiHandle.addEventUploadError(function (uploadRes) {
-                                        filePlaceHolder.setFilePlaceHolderFilenameText('上传失败');
-                                    });
+
+                            },
+                            uploadPasteFile: function (editorApiHandle, filePlaceHolder) {
+                                let upload_groupDiv = hammerYii2Bootstarp1.createUploadGroupDiv({
+                                    upload: {
+                                        url: '/dp/v1/admin/file/upload?user_token=' + utk,
+                                        params: {},
+
+                                    }
+                                });
+                                upload_file_modal.apiHandle.addBodyChildElements([upload_groupDiv]);
+                                upload_file_modal.apiHandle.show();
+                                upload_groupDiv.apiHandle.setSourceFile(filePlaceHolder.getSourceFile());
+                                editorApiHandle.appendSyncElement(upload_groupDiv);
+                                upload_file_modal.apiHandle.hide();
+                                upload_groupDiv.apiHandle.uploadFile();
 
 
-                                },
-                                link: function (editor_insertLink_callback) {
-                                    let url = 'ddd';//必须实现  插入的视频 src
-                                    editor_insertLink_callback('link name', 'http://www.baidu.com');//必须实现 确定了src 之后,回调 editor,让editor插入链接
-                                }
+                                upload_groupDiv.apiHandle.addEventUploadOk(function (uploadRes) {
+                                    if (uploadRes && uploadRes.code === 'ok' && uploadRes.data && uploadRes.data.url) {
+                                        filePlaceHolder.setFilePlaceHolderSrc(uploadRes.data.url);
+                                    }
+                                });
+
+                                upload_groupDiv.apiHandle.addEventUploadError(function (uploadRes) {
+                                    filePlaceHolder.setFilePlaceHolderFilenameText('上传失败');
+                                });
+
+
+                            },
+                            link: function (editor_insertLink_callback) {
+                                let url = 'ddd';//必须实现  插入的视频 src
+                                editor_insertLink_callback('link name', 'http://www.baidu.com');//必须实现 确定了src 之后,回调 editor,让editor插入链接
                             }
-                        });
-                        console.log(form_edit.apiHandle.ele.input.submit, form_edit.apiHandle.ele.input.submit.apiHandle);
-                        //保存修改的数据
-                        form_edit.apiHandle.ele.input.submit.apiHandle.setClickCall(function (btn) {
-                            let attr = {
-                                id: window.serverData.storyInfo.id,
-                                project_id: form_edit.apiHandle.ele.input.project_id.apiHandle.getVal(),
-                                version_id: form_edit.apiHandle.ele.input.version_id.apiHandle.getVal(),
-                                story_id: form_edit.apiHandle.ele.input.parent_story_id.apiHandle.getVal(),
-                                title: form_edit.apiHandle.ele.input.title.apiHandle.getVal(),
-                                detail: detail_edit_textarea.value,
-                            };
-                            if (attr.title.length < 5) {
-                                alert('标题过短');
-                                return false;
-                            }
-                            console.log(btn, this, form_edit.apiHandle, attr);
-                            // return false;
-                            kl.ajax({
-                                url: '/dp/v1/admin/dbdata/update?user_token=' + utk,
-                                //attr: form,
-                                data: {
-                                    attr: attr,
-                                    table_name: 'd_story',
-                                    db_name: 'dp'
-                                },
-                                type: 'json',
-                                success: function (save_story_res) {
-                                    if (save_story_res.status) {
-                                        if (kl.getObjValByPath(save_story_res, 'data.select.new') !== undefined) {
-                                            // window.location.reload();
-                                            story_title_h3.innerHTML = save_story_res.data.select.new.title;
-                                            story_detail_div.innerHTML = save_story_res.data.select.new.detail;
-                                            display_div.classList.remove('hide');
-                                            op_div.classList.add('hide');
-
-                                        } else {
-                                            alert('保存story错误:' + (save_story_res.msg || '未知'))
-                                        }
-                                    } else {
-                                        console.log(save_story_res);
-                                        alert('请求结果异常')
-                                    }
-                                },
-                                error: function (res_save_column) {
-                                    console.log(res_save_column);
-                                    alert('网络异常');
-                                }
-                            })
-                        });
-                        show_editor_btn.addEventListener('click', function () {
-                            display_div.classList.add('hide');
-                            op_div.classList.remove('hide');
-
-                        });
-                        exit_editor_btn.addEventListener('click', function () {
-                            display_div.classList.remove('hide');
-                            op_div.classList.add('hide');
-
-                            story_detail_textarea.value = window.serverData.storyInfo.detail;
-                            detail_ui_div.innerHTML = '';
-
-                        });
-
-
-                        //初始化  new commit 富文本
-                        hammerEditor({
-                            ui_ele: new_commit_detail_ui_div,
-                            data_ele: new_commit_detail_textarea,
-                            btns: ('header,bold,fontsize,file').split(','),
-                            funs: {
-                                uploadFile: function (editorApiHandle) {
-                                    if (upload_file_modal.apiHandle.ele.body.childElementCount > 0) {
-                                        console.log('之前的上传 还没用');
-                                        upload_file_modal.apiHandle.show();
-                                        return false;
-                                    }
-                                    let upload_groupDiv = hammerYii2Bootstarp1.createUploadGroupDiv({
-                                        upload: {
-                                            url: '/dp/v1/admin/file/upload?user_token=' + utk,
-                                            params: {},
-
-                                        }
-                                    });
-                                    upload_file_modal.apiHandle.addBodyChildElements([upload_groupDiv]);
-                                    upload_file_modal.apiHandle.show();
-                                    let filePlaceHolder = false;//只有这个玩意是来自于 editor.js  而upload_groupDiv是来自于UI.js
-                                    upload_groupDiv.apiHandle.addEventOnFileChanged(function () {
-                                        let file_type = 'file';
-                                        if (upload_groupDiv.apiHandle.file.type.match(/^image\//)) {
-                                            file_type = 'image';
-                                        } else if (upload_groupDiv.apiHandle.file.type.match(/^video\//)) {
-                                            file_type = 'video';
-                                        }
-                                        filePlaceHolder = editorApiHandle.addFilePlaceHolder(upload_groupDiv.apiHandle.file.name, '#', file_type);//必须实现 确定了src 之后,回调 editor,让editor插入文件
-                                        editorApiHandle.appendSyncElement(upload_groupDiv);
-                                        upload_file_modal.apiHandle.hide();
-                                        upload_groupDiv.apiHandle.uploadFile();
-
-                                    });
-
-                                    upload_groupDiv.apiHandle.addEventUploadOk(function (uploadRes) {
-                                        if (uploadRes && uploadRes.code === 'ok' && uploadRes.data && uploadRes.data.url) {
-                                            filePlaceHolder.setFilePlaceHolderSrc(uploadRes.data.url);
-                                            editorApiHandle.flushDataToTextarea();
-                                        }
-                                    });
-                                    upload_groupDiv.apiHandle.addEventUploadError(function (uploadRes) {
-                                        filePlaceHolder.setFilePlaceHolderFilenameText('上传失败');
-                                    });
-
-
-                                },
-                                uploadPasteFile: function (editorApiHandle, filePlaceHolder) {
-                                    let upload_groupDiv = hammerYii2Bootstarp1.createUploadGroupDiv({
-                                        upload: {
-                                            url: '/dp/v1/admin/file/upload?user_token=' + utk,
-                                            params: {},
-
-                                        }
-                                    });
-                                    upload_file_modal.apiHandle.addBodyChildElements([upload_groupDiv]);
-                                    upload_file_modal.apiHandle.show();
-                                    upload_groupDiv.apiHandle.setSourceFile(filePlaceHolder.getSourceFile());
-                                    editorApiHandle.appendSyncElement(upload_groupDiv);
-                                    upload_file_modal.apiHandle.hide();
-                                    upload_groupDiv.apiHandle.uploadFile();
-
-
-                                    upload_groupDiv.apiHandle.addEventUploadOk(function (uploadRes) {
-                                        if (uploadRes && uploadRes.code === 'ok' && uploadRes.data && uploadRes.data.url) {
-                                            filePlaceHolder.setFilePlaceHolderSrc(uploadRes.data.url);
-                                        }
-                                    });
-
-                                    upload_groupDiv.apiHandle.addEventUploadError(function (uploadRes) {
-                                        filePlaceHolder.setFilePlaceHolderFilenameText('上传失败');
-                                    });
-
-
-                                },
-                                link: function (editor_insertLink_callback) {
-                                    let url = 'ddd';//必须实现  插入的视频 src
-                                    editor_insertLink_callback('link name', 'http://www.baidu.com');//必须实现 确定了src 之后,回调 editor,让editor插入链接
-                                }
-                            }
-                        });
-
-                        new_commit_reply_checkbox.addEventListener('change', function () {
-                            new_commit_reply_checkbox.checked ? new_commit_reply_link.classList.remove('hide') : new_commit_reply_link.classList.add('hide');
-                        });
-                        new_commit_form.apiHandle.ele.input.commit.apiHandle.setClickCall(function (btn) {
-                            let attr = {
-                                story_id: window.serverData.storyInfo.id,
-                                reply_id: new_commit_reply_checkbox.checked ? new_commit_reply_id.value : 0,
-                                used_hours: new_commit_form.apiHandle.ele.input.used_hours.apiHandle.getVal(),
-                                step: new_commit_form.apiHandle.ele.input.step.apiHandle.getVal(),
-                                detail: new_commit_detail_textarea.value,
-                                create_by: window.adminInfo.user_id,
-                            };
-
-                            console.log(btn, this, new_commit_form.apiHandle, attr);
-                            kl.ajax({
-                                url: '/dp/v1/admin/dbdata/add?user_token=' + utk,
-                                //attr: form,
-                                data: {
-                                    attr: attr,
-                                    table_name: 'd_story_commit',
-                                    db_name: 'dp'
-                                },
-                                type: 'json',
-                                success: function (save_story_res) {
-                                    if (save_story_res.status) {
-
-                                        if (kl.getObjValByPath(save_story_res, 'data.insert.data.id') !== undefined) {
-                                            document.location.reload();
-
-                                        } else {
-                                            alert('保存story错误:' + (save_story_res.msg || '未知'))
-                                        }
-                                    } else {
-                                        console.log(save_story_res);
-                                        alert('请求结果异常')
-                                    }
-                                },
-                                error: function (res_save_column) {
-                                    console.log(res_save_column);
-                                    alert('网络异常');
-                                }
-                            })
-                        });
-
-
-                        window.dragedEle = false;
-
-                        let display_parent_story = function () {
-                            kl.ajax({
-                                url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
-                                data: {
-                                    attr: {
-                                        id: window.serverData.storyInfo.story_id,
-                                    },
-                                    table_name: 'd_story',
-                                },
-                                type: 'json',
-                                success: function (res_request_data) {
-                                    if (res_request_data.status) {
-                                        if (res_request_data.status === 200 && res_request_data.data.dataRows.length === 1) {
-                                            parent_story_div.addNode(new Emt('a', '', res_request_data.data.dataRows[0].title, {href: '/admin/project/story/detail.html?{"story_id":' + res_request_data.data.dataRows[0].id + '}'}));
-                                        } else {
-                                            alert('获取父story 错误:' + (res_request_data.msg || '未知'))
-                                        }
-                                    } else {
-                                        console.log(res_request_data.status);
-                                        alert('获取父story 请求结果异常')
-                                    }
-                                },
-                                error: function (res_request_data) {
-                                    console.log(res_request_data);
-                                    alert('获取父story 网络异常');
-                                }
-                            });
-                        };
-                        if (window.serverData.storyInfo.story_id === '0') {
-                            parent_story_div.textContent = '无父级';
-                        } else {
-                            display_parent_story();
                         }
-
-                        let display_story_commits = function () {
-                            kl.ajax({
-                                url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
-                                data: {
-                                    attr: {
-                                        story_id: window.serverData.storyInfo.id,
-                                    },
-                                    table_name: 'd_story_commit',
-                                    page_index: 1, page_size: 1000
-                                },
-                                type: 'json',
-                                success: function (res_request_data) {
-                                    if (res_request_data.status) {
-                                        if (res_request_data.status === 200 && res_request_data.data.dataRows) {
-                                            res_request_data.data.dataRows.forEach((commitInfo) => {
-                                                commits_div.addNode(markStoryStepDiv(commitInfo));
-                                            });
-                                            pageData.replyThis = function (oldStepDiv) {
-                                                new_commit_reply_link.href = "#" + oldStepDiv.id;
-                                                new_commit_reply_id.value = oldStepDiv.apiHandle.data.id;
-                                            };
-                                            commits_div.addNode(new Emt('div', 'class="story_commit_div"').addNode(new_commit_form));
-                                        } else {
-                                            alert('获取story commits 错误:' + (res_request_data.msg || '未知'))
-                                        }
+                    });
+                    console.log(form_edit.apiHandle.ele.input.submit, form_edit.apiHandle.ele.input.submit.apiHandle);
+                    //保存修改的数据
+                    form_edit.apiHandle.ele.input.submit.apiHandle.setClickCall(function (btn) {
+                        let attr = {
+                            id: window.serverData.storyInfo.id,
+                            project_id: form_edit.apiHandle.ele.input.project_id.apiHandle.getVal(),
+                            version_id: form_edit.apiHandle.ele.input.version_id.apiHandle.getVal(),
+                            story_id: form_edit.apiHandle.ele.input.parent_story_id.apiHandle.getVal(),
+                            title: form_edit.apiHandle.ele.input.title.apiHandle.getVal(),
+                            detail: detail_edit_textarea.value,
+                        };
+                        if (attr.title.length < 5) {
+                            alert('标题过短');
+                            return false;
+                        }
+                        console.log(btn, this, form_edit.apiHandle, attr);
+                        // return false;
+                        kl.ajax({
+                            url: '/dp/v1/project/story/update?user_token=' + utk,
+                            data: attr,
+                            type: 'json',
+                            success: function (save_story_res) {
+                                if (save_story_res.status) {
+                                    if (kl.isUndefined(save_story_res, 'data.story.id')) {
+                                        alert('保存story错误:' + (save_story_res.msg || '未知'))
                                     } else {
-                                        console.log(res_request_data.status);
-                                        alert('获取story commits 请求结果异常')
+                                        // window.location.reload();
+                                        story_title_h3.innerHTML = save_story_res.data.story.title;
+                                        story_detail_div.innerHTML = save_story_res.data.story.detail;
+                                        display_div.classList.remove('hide');
+                                        op_div.classList.add('hide');
                                     }
-                                },
-                                error: function (res_request_data) {
-                                    console.log(res_request_data);
-                                    alert('获取story commits 网络异常');
+                                } else {
+                                    console.log(save_story_res);
+                                    alert('请求结果异常')
                                 }
-                            });
+                            },
+                            error: function (res_save_column) {
+                                console.log(res_save_column);
+                                alert('网络异常');
+                            }
+                        })
+                    });
+                    if ((['create_story']).indexOf(window.serverData.storyInfo.step) == -1) {
+                        show_editor_btn.classList.add('hide');
+                    }
+                    show_editor_btn.addEventListener('click', function () {
+
+                        display_div.classList.add('hide');
+                        op_div.classList.remove('hide');
+
+                    });
+                    exit_editor_btn.addEventListener('click', function () {
+                        display_div.classList.remove('hide');
+                        op_div.classList.add('hide');
+
+                        story_detail_textarea.value = window.serverData.storyInfo.detail;
+                        detail_ui_div.innerHTML = '';
+
+                    });
+
+
+                    //初始化  new commit 富文本
+                    hammerEditor({
+                        ui_ele: new_commit_detail_ui_div,
+                        data_ele: new_commit_detail_textarea,
+                        btns: ('header,bold,fontsize,file').split(','),
+                        funs: {
+                            uploadFile: function (editorApiHandle) {
+                                if (upload_file_modal.apiHandle.ele.body.childElementCount > 0) {
+                                    console.log('之前的上传 还没用');
+                                    upload_file_modal.apiHandle.show();
+                                    return false;
+                                }
+                                let upload_groupDiv = hammerYii2Bootstarp1.createUploadGroupDiv({
+                                    upload: {
+                                        url: '/dp/v1/admin/file/upload?user_token=' + utk,
+                                        params: {},
+
+                                    }
+                                });
+                                upload_file_modal.apiHandle.addBodyChildElements([upload_groupDiv]);
+                                upload_file_modal.apiHandle.show();
+                                let filePlaceHolder = false;//只有这个玩意是来自于 editor.js  而upload_groupDiv是来自于UI.js
+                                upload_groupDiv.apiHandle.addEventOnFileChanged(function () {
+                                    let file_type = 'file';
+                                    if (upload_groupDiv.apiHandle.file.type.match(/^image\//)) {
+                                        file_type = 'image';
+                                    } else if (upload_groupDiv.apiHandle.file.type.match(/^video\//)) {
+                                        file_type = 'video';
+                                    }
+                                    filePlaceHolder = editorApiHandle.addFilePlaceHolder(upload_groupDiv.apiHandle.file.name, '#', file_type);//必须实现 确定了src 之后,回调 editor,让editor插入文件
+                                    editorApiHandle.appendSyncElement(upload_groupDiv);
+                                    upload_file_modal.apiHandle.hide();
+                                    upload_groupDiv.apiHandle.uploadFile();
+
+                                });
+
+                                upload_groupDiv.apiHandle.addEventUploadOk(function (uploadRes) {
+                                    if (uploadRes && uploadRes.code === 'ok' && uploadRes.data && uploadRes.data.url) {
+                                        filePlaceHolder.setFilePlaceHolderSrc(uploadRes.data.url);
+                                        editorApiHandle.flushDataToTextarea();
+                                    }
+                                });
+                                upload_groupDiv.apiHandle.addEventUploadError(function (uploadRes) {
+                                    filePlaceHolder.setFilePlaceHolderFilenameText('上传失败');
+                                });
+
+
+                            },
+                            uploadPasteFile: function (editorApiHandle, filePlaceHolder) {
+                                let upload_groupDiv = hammerYii2Bootstarp1.createUploadGroupDiv({
+                                    upload: {
+                                        url: '/dp/v1/admin/file/upload?user_token=' + utk,
+                                        params: {},
+
+                                    }
+                                });
+                                upload_file_modal.apiHandle.addBodyChildElements([upload_groupDiv]);
+                                upload_file_modal.apiHandle.show();
+                                upload_groupDiv.apiHandle.setSourceFile(filePlaceHolder.getSourceFile());
+                                editorApiHandle.appendSyncElement(upload_groupDiv);
+                                upload_file_modal.apiHandle.hide();
+                                upload_groupDiv.apiHandle.uploadFile();
+
+
+                                upload_groupDiv.apiHandle.addEventUploadOk(function (uploadRes) {
+                                    if (uploadRes && uploadRes.code === 'ok' && uploadRes.data && uploadRes.data.url) {
+                                        filePlaceHolder.setFilePlaceHolderSrc(uploadRes.data.url);
+                                    }
+                                });
+
+                                upload_groupDiv.apiHandle.addEventUploadError(function (uploadRes) {
+                                    filePlaceHolder.setFilePlaceHolderFilenameText('上传失败');
+                                });
+
+
+                            },
+                            link: function (editor_insertLink_callback) {
+                                let url = 'ddd';//必须实现  插入的视频 src
+                                editor_insertLink_callback('link name', 'http://www.baidu.com');//必须实现 确定了src 之后,回调 editor,让editor插入链接
+                            }
+                        }
+                    });
+
+                    new_commit_reply_checkbox.changeVal = function () {
+                        new_commit_reply_checkbox.checked ? new_commit_reply_link.classList.remove('hide') : new_commit_reply_link.classList.add('hide');
+                    };
+                    new_commit_reply_checkbox.addEventListener('change', function () {
+                        new_commit_reply_checkbox.changeVal();
+                    });
+                    new_commit_form.apiHandle.ele.input.commit.apiHandle.setClickCall(function (btn) {
+                        let attr = {
+                            story_id: window.serverData.storyInfo.id,
+                            reply_id: new_commit_reply_checkbox.checked ? new_commit_reply_id.value : 0,
+                            used_hours: new_commit_form.apiHandle.ele.input.used_hours.apiHandle.getVal(),
+                            step: new_commit_form.apiHandle.ele.input.step.apiHandle.getVal(),
+                            detail: new_commit_detail_textarea.value,
+                            create_by: window.adminInfo.user_id,
                         };
 
-                        display_story_commits();
-
-                        let flush_story_list = function () {
-                            kl.ajax({
-                                url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
-                                data: storys_condtion,
-                                type: 'json',
-                                success: function (res_request_data) {
-                                    if (res_request_data.status) {
-                                        if (res_request_data.status === 200) {
-                                            rander_storys_list(res_request_data.data.dataRows);
-                                        } else {
-                                            alert('错误:' + (res_request_data.msg || '未知'))
-                                        }
+                        console.log(btn, this, new_commit_form.apiHandle, attr);
+                        kl.ajax({
+                            url: '/dp/v1/project/story/commit/add?user_token=' + utk,
+                            data: attr,
+                            type: 'json',
+                            success: function (save_story_res) {
+                                if (save_story_res.status) {
+                                    if (kl.isUndefined(save_story_res, 'data.commit.id')) {
+                                        alert('保存commit错误:' + (save_story_res.msg || '未知'))
                                     } else {
-                                        console.log(res_request_data.status);
-                                        alert('请求结果异常')
+                                        document.location.reload();
                                     }
-                                },
-                                error: function (res_request_data) {
-                                    console.log(res_request_data);
-                                    alert('网络异常');
+                                } else {
+                                    console.log(save_story_res);
+                                    alert('请求结果异常')
                                 }
-                            });
-                        };
-                        flush_story_list();
-                        display_storys_type.addEventListener('change', function () {
-                            flush_story_list();
+                            },
+                            error: function (res_save_column) {
+                                console.log(res_save_column);
+                                alert('网络异常');
+                            }
+                        })
+                    });
+
+
+                    window.dragedEle = false;
+
+                    let display_parent_story = function () {
+                        kl.ajax({
+                            url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
+                            data: {
+                                attr: {
+                                    id: window.serverData.storyInfo.story_id,
+                                },
+                                table_name: 'd_story',
+                            },
+                            type: 'json',
+                            success: function (res_request_data) {
+                                if (res_request_data.status) {
+                                    if (res_request_data.status === 200 && res_request_data.data.dataRows.length === 1) {
+                                        parent_story_div.addNode(new Emt('a', '', res_request_data.data.dataRows[0].title, {href: '/admin/project/story/detail.html?{"story_id":' + res_request_data.data.dataRows[0].id + '}'}));
+                                    } else {
+                                        alert('获取父story 错误:' + (res_request_data.msg || '未知'))
+                                    }
+                                } else {
+                                    console.log(res_request_data.status);
+                                    alert('获取父story 请求结果异常')
+                                }
+                            },
+                            error: function (res_request_data) {
+                                console.log(res_request_data);
+                                alert('获取父story 网络异常');
+                            }
                         });
+                    };
+                    if (window.serverData.storyInfo.story_id === '0') {
+                        parent_story_div.textContent = '无父级';
+                    } else {
+                        display_parent_story();
+                    }
 
-                        let rander_storys_list = function (dataRows) {
-                            storys_list_div.innerHTML = '';
-
-
-                            let tmp_arr = markTree(dataRows, window.serverData.storyInfo.id, 1);
-                            console.log('markTree', tmp_arr);
-                            let story_table = new Emt('table');
-                            story_table.createRow = function () {
-                                let res = {};
-                                let tr = story_table.insertRow();
-                                tr.className = "story_row";
-                                res.tr = tr;
-                                tr.draggable = true;
-                                res.id_td = tr.insertCell();
-                                res.title_td = tr.insertCell();
-                                res.creator_td = tr.insertCell();
-                                res.status_td = tr.insertCell();
-                                res.desc_order_td = tr.insertCell();
-                                res.create_date_td = tr.insertCell();
-                                res.update_date_td = tr.insertCell();
-                                res.op_td = tr.insertCell();
-
-                                res.tr.className = "story_row";
-                                res.id_td.className = "story_id_td";
-                                res.title_td.className = "story_title_td";
-                                res.creator_td.className = "story_creator_td";
-                                res.status_td.className = "story_status_td";
-                                res.desc_order_td.className = "story_desc_order_td";
-                                res.create_date_td.className = "story_create_date_td";
-                                res.update_date_td.className = "story_update_date_td";
-                                res.op_td.className = "story_op_td";
-
-
-                                tr.setStoryInfo = function (story_info) {
-                                    tr.apiHandle = {data: story_info};
-                                    res.id_td.append(new Emt('div', '', story_info.id));
-                                    res.title_td.append(new Emt('div', '', (display_storys_type.apiHandle.getVal() === 'tree' ? ('--->').repeat(story_info.lev - 1) : '') + story_info.title));
-                                    res.creator_td.append(new Emt('div', '', story_info.__relat.create_by.info.real_name));
-                                    res.status_td.append(new Emt('div', '', story_info.is_ok));
-                                    res.desc_order_td.append(new Emt('div', '', story_info.story_desc_order));
-                                    res.create_date_td.append(new Emt('div', '', story_info.create_time));
-                                    res.update_date_td.append(new Emt('div', '', story_info.update_time ? story_info.update_time : '#'));
-                                    res.op_td.append(new Emt('div').addNodes([
-                                        new Emt('a', '', '查看', {href: '/admin/project/story/detail.html?{"story_id":' + story_info.id + '}'}),
-                                        new Emt('a', '', '添加子问题', {href: '/admin/project/story/add_child_story.html?{"parent_story_id":' + story_info.id + '}'})
-                                    ]));
-
-                                };
-
-                                tr.addEventListener('dragstart', function (e) {
-                                    console.log('dragstart', e.target);
-                                    window.dragedEle = tr;
-                                    tr.classList.add('on_drag_row');
-                                });
-                                tr.addEventListener('drag', function (e) {
-                                    //console.log('drag');
-
-                                });
-                                tr.addEventListener('dragend', function (e) {
-                                    console.log('dragend');
-                                    window.dragedEle = false;
-                                    tr.classList.remove('on_drag_row');
-
-
-                                });
-
-                                tr.addEventListener('dragenter', function (e) {
-                                    //console.log('dragenter');
-                                    tr.classList.add('on_drop_row');
-
-                                });
-                                tr.addEventListener('drop', function (e) {
-                                    console.log('PRE drop', tr, tr.apiHandle.data, window.dragedEle, window.dragedEle.apiHandle.data);
-                                    if (display_storys_type.apiHandle.getVal() === 'tree') {
-                                        kl.ajax({
-                                            url: '/dp/v1/project/story/tree?user_token=' + utk,
-                                            data: {
-                                                child_story_id: window.dragedEle.apiHandle.data.id,
-                                                parent_story_id: tr.apiHandle.data.id
-                                            },
-                                            type: 'json',
-                                            success: function (tmp_res) {
-                                                //hanndle_datagrid.requestData('init');
-                                                story_table.remove();
-
-                                                flush_story_list();
-                                            },
-                                            error: function (res_save_column) {
-                                                alert('报错了');
-                                            }
+                    let display_story_commits = function () {
+                        kl.ajax({
+                            url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
+                            data: {
+                                attr: {
+                                    story_id: window.serverData.storyInfo.id,
+                                },
+                                table_name: 'd_story_commit',
+                                page_index: 1, page_size: 1000
+                            },
+                            type: 'json',
+                            success: function (res_request_data) {
+                                if (res_request_data.status) {
+                                    if (res_request_data.status === 200 && res_request_data.data.dataRows) {
+                                        res_request_data.data.dataRows.forEach((commitInfo) => {
+                                            commits_div.addNode(markStoryStepDiv(commitInfo));
                                         });
+                                        pageData.replyThis = function (oldStepDiv) {
+                                            new_commit_reply_link.href = "#" + oldStepDiv.id;
+                                            new_commit_reply_link.textContent = "#" + oldStepDiv.apiHandle.data.id + oldStepDiv.textContent.substr(0, 20);
+
+                                            new_commit_reply_id.value = oldStepDiv.apiHandle.data.id;
+                                            new_commit_reply_checkbox.checked = true;
+                                            new_commit_reply_checkbox.changeVal();
+                                        };
+                                        commits_div.addNode(new Emt('div', 'class="story_commit_div"').addNode(new_commit_form));
                                     } else {
-                                        let row_sorts = [];
-                                        let len = story_table.rows.length;
-                                        let draged_id = window.dragedEle.apiHandle.data.id;
-                                        let be_after_id = tr.apiHandle.data.id;
-                                        let sn = len;
-                                        Object.values(story_table.rows).forEach(function (fetch_tr) {
-                                            console.log(fetch_tr);
-                                            if (fetch_tr.apiHandle === undefined) {
-                                                return false;
-                                            }
-                                            if (fetch_tr.apiHandle.data.id === draged_id) {
-                                                return false;
-                                            }
-                                            row_sorts.push({id: fetch_tr.apiHandle.data.id, sn: sn});
-                                            sn = sn - 1;
-                                            if (fetch_tr.apiHandle.data.id === be_after_id) {
-                                                row_sorts.push({id: draged_id, sn: sn});
-                                                sn = sn - 1;
-                                            }
-                                        });
-                                        console.log('row_sorts', row_sorts);
-                                        kl.ajax({
-                                            url: '/dp/v1/project/story/sort?user_token=' + utk,
-                                            data: {
-                                                sorts: row_sorts,
-                                                version_id: serverData.versionInfo.id,
-                                            },
-                                            type: 'json',
-                                            success: function (tmp_res) {
-                                                story_table.remove();
-                                                flush_story_list();
-                                            },
-                                            error: function (res_save_column) {
-                                                alert('报错了');
-                                            }
-                                        });
-
+                                        alert('获取story commits 错误:' + (res_request_data.msg || '未知'))
                                     }
+                                } else {
+                                    console.log(res_request_data.status);
+                                    alert('获取story commits 请求结果异常')
+                                }
+                            },
+                            error: function (res_request_data) {
+                                console.log(res_request_data);
+                                alert('获取story commits 网络异常');
+                            }
+                        });
+                    };
 
-                                    tr.classList.remove('on_drop_row');
+                    display_story_commits();
+
+                    let flush_story_list = function () {
+                        kl.ajax({
+                            url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
+                            data: storys_condtion,
+                            type: 'json',
+                            success: function (res_request_data) {
+                                if (res_request_data.status) {
+                                    if (res_request_data.status === 200) {
+                                        rander_storys_list(res_request_data.data.dataRows);
+                                    } else {
+                                        alert('错误:' + (res_request_data.msg || '未知'))
+                                    }
+                                } else {
+                                    console.log(res_request_data.status);
+                                    alert('请求结果异常')
+                                }
+                            },
+                            error: function (res_request_data) {
+                                console.log(res_request_data);
+                                alert('网络异常');
+                            }
+                        });
+                    };
+                    flush_story_list();
+                    display_storys_type.addEventListener('change', function () {
+                        flush_story_list();
+                    });
+
+                    let rander_storys_list = function (dataRows) {
+                        storys_list_div.innerHTML = '';
 
 
-                                });
-                                tr.addEventListener('dragover', function (e) {
-                                    // console.log('dragover');
-                                    e.preventDefault(); //【重要】一定要加这一行代码，否则，后面的方法 ondrop() 无法触发。
+                        let tmp_arr = markTree(dataRows, window.serverData.storyInfo.id, 1);
+                        console.log('markTree', tmp_arr);
+                        let story_table = new Emt('table');
+                        story_table.createRow = function () {
+                            let res = {};
+                            let tr = story_table.insertRow();
+                            tr.className = "story_row";
+                            res.tr = tr;
+                            res.id_td = tr.insertCell();
+                            res.title_td = tr.insertCell();
+                            res.creator_td = tr.insertCell();
+                            res.status_td = tr.insertCell();
+                            res.desc_order_td = tr.insertCell();
+                            res.create_date_td = tr.insertCell();
+                            res.update_date_td = tr.insertCell();
+                            res.op_td = tr.insertCell();
 
-                                });
-                                tr.addEventListener('dragleave', function (e) {
-                                    //console.log('dragleave');
-                                    tr.classList.remove('on_drop_row');
+                            res.tr.className = "story_row";
+                            res.id_td.className = "story_id_td";
+                            res.title_td.className = "story_title_td";
+                            res.creator_td.className = "story_creator_td";
+                            res.status_td.className = "story_status_td";
+                            res.desc_order_td.className = "story_desc_order_td";
+                            res.create_date_td.className = "story_create_date_td";
+                            res.update_date_td.className = "story_update_date_td";
+                            res.op_td.className = "story_op_td";
 
-                                });
 
-
-                                return res;
+                            tr.setStoryInfo = function (story_info) {
+                                tr.apiHandle = {data: story_info};
+                                res.id_td.append(new Emt('div', '', story_info.id));
+                                res.title_td.append(new Emt('div', '', (display_storys_type.apiHandle.getVal() === 'tree' ? ('--->').repeat(story_info.lev - 1) : '') + story_info.title));
+                                res.creator_td.append(new Emt('div', '', story_info.__relat.create_by.info.real_name));
+                                res.status_td.append(new Emt('div', '', window.serverData.storyCommitMap[story_info.step]));
+                                res.desc_order_td.append(new Emt('div', '', story_info.story_desc_order));
+                                res.create_date_td.append(new Emt('div', '', story_info.create_time));
+                                res.update_date_td.append(new Emt('div', '', story_info.update_time ? story_info.update_time : '#'));
+                                res.op_td.append(new Emt('div').addNodes([
+                                    new Emt('a', '', '查看', {target: '_blank', href: '/admin/project/story/detail.html?{"story_id":' + story_info.id + '}'}),
+                                    new Emt('a', '', '添加子问题', {target: '_blank', href: '/admin/project/story/add.html?{"parent_story_id":' + story_info.id + '}'})
+                                ]));
+                                tr.classList.add('story_status_' + story_info.step);
                             };
-                            let story_header = story_table.createRow();
+
+                            return res;
+                        };
+                        let story_header = story_table.createRow();
+                        story_header.tr.setStoryInfo({
+                            id: 0,
+                            title: 'story描述',
+                            __relat: {create_by: {info: {real_name: '创建人'}}},
+                            story_desc_order: '优先级/大->小',
+                            create_time: '创建时间',
+                            update_time: '修改时间',
+
+                        });
+                        story_header.op_td.innerHTML = '';
+                        story_header.op_td.append(new Emt('div').addNodes([
+                            new Emt('a', '', '添加子问题', {href: '/admin/project/story/add.html?{"parent_story_id":' + window.serverData.storyInfo.id + '}'})
+                        ]));
 
 
-                            story_table.appendStoryRowAsTree = function (story_info) {
+                        story_table.appendStoryRowAsTree = function (story_info) {
+                            let res = story_table.createRow();
+                            res.tr.setStoryInfo(story_info);
+                            if (story_info.nodes.length > 0) {
+                                story_info.nodes.forEach(function (story_info2) {
+                                    story_table.appendStoryRowAsTree(story_info2);
+                                });
+                            }
+                        };
+
+                        if (display_storys_type.apiHandle.getVal() === 'tree') {
+                            tmp_arr.forEach(function (story_info) {
+                                story_table.appendStoryRowAsTree(story_info);
+                            });
+                        } else {
+                            dataRows.forEach(function (story_info) {
                                 let res = story_table.createRow();
                                 res.tr.setStoryInfo(story_info);
-                                if (story_info.nodes.length > 0) {
-                                    story_info.nodes.forEach(function (story_info2) {
-                                        story_table.appendStoryRowAsTree(story_info2);
-                                    });
-                                }
-                            };
+                            })
+                        }
+                        storys_list_div.addNode(story_table);
 
-                            if (display_storys_type.apiHandle.getVal() === 'tree') {
-                                tmp_arr.forEach(function (story_info) {
-                                    story_table.appendStoryRowAsTree(story_info);
-                                });
-                            } else {
-                                dataRows.forEach(function (story_info) {
-                                    let res = story_table.createRow();
-                                    res.tr.setStoryInfo(story_info);
-                                })
-                            }
-                            storys_list_div.addNode(story_table);
-
-                        };
+                    };
 
 
-                        window.dragedEle = false;
+                    window.dragedEle = false;
 
-                    }
-                }
-            );
+                };
+                setInterval(function () {
+                    let imgs = Object.values(document.getElementsByTagName('img'));
+                    imgs.forEach(function (img) {
+                        if (img.init === undefined) {
+                            img.classList.add('img_small_size');
+                            img.addEventListener('click', function () {
+                                img.classList.toggle('img_small_size');
+                            });
+                            img.init = true;
+                        }
+                    })
+                }, 1000);
+            });
         </script>
         <style>
             .hide {
@@ -940,15 +865,75 @@
             }
 
             .story_commit_div {
-                border: 1px solid #000;
+                border-left: 1px solid #000;
                 margin-top: 10px;
-                margin-bottom: 10px;
+                margin-bottom: 40px;
                 padding: 10px;
             }
 
             .story_commit_detail_div {
                 padding: 10px;
-                border: 1px solid #000;
+                border-bottom: 1px solid #000;
+            }
+
+            h4 {
+                background: #337ab7;
+                background: #777;
+                padding-top: 10px;
+                padding-bottom: 10px;
+
+                color: #FFF;
+                font-weight: 900;
+                margin-top: 50px;
+                padding-left: 20px;
+            }
+
+            h4 + div {
+                margin-left: 20px;
+                border: 1px solid #666;
+                padding: 20px;
+                border-radius: 4px;
+            }
+
+            .storys_list_div {
+                -padding: 20px;
+            }
+
+            .short_info_div {
+                padding-left: 20px;
+                padding-top: 10px;
+            }
+
+            .short_info_div > span {
+                display: block;
+                float: left;
+                background: #CCC;
+                border-radius: 4px;
+                margin-right: 5px;
+                padding: 5px;
+            }
+
+            .reply_commit_btn {
+                display: block;
+                float: left;
+                background: #CCC;
+                border-radius: 4px;
+                margin-right: 5px;
+                padding: 2.5px;
+            }
+
+            .img_small_size {
+                max-height: 300px;
+                max-width: 800px;
+                width: auto;
+                height: auto;
+            }
+
+            .story_op_td > div > a {
+                display: block;
+                float: left;
+                margin-right: 5px;
+                padding: 5px;
             }
         </style>
     </div>

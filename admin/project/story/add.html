@@ -358,25 +358,23 @@
                             console.log(btn, this, form_edit.apiHandle, attr);
                             // return false;
                             kl.ajax({
-                                url: '/dp/v1/admin/dbdata/add?user_token=' + utk,
+                                url: '/dp/v1/project/story/add?user_token=' + utk,
                                 //attr: form,
                                 data: {
-                                    attr: attr,
-                                    table_name: 'd_story',
-                                    db_name: 'dp'
+                                    project_id: form_edit.apiHandle.ele.input.project_id.apiHandle.getVal(),
+                                    version_id: form_edit.apiHandle.ele.input.version_id.apiHandle.getVal(),
+                                    story_id: form_edit.apiHandle.ele.input.parent_story_id.apiHandle.getVal(),
+                                    title: form_edit.apiHandle.ele.input.title.apiHandle.getVal(),
+                                    detail: detail_edit_textarea.value,
+                                    create_by: window.adminInfo.user_id,
                                 },
                                 type: 'json',
                                 success: function (save_story_res) {
                                     if (save_story_res.status) {
-                                        if (save_story_res.status === 200) {
-                                            //insert.data.id
-                                            if (save_story_res.data.insert && save_story_res.data.insert.data && save_story_res.data.insert.data.id) {
-                                                location.href = 'https://dev.aiqingyinghang.com:2051/admin/project/story/detail.html?{"story_id":' + save_story_res.data.insert.data.id + '}';
-
-                                            }
-                                            console.log(save_story_res.data)
-                                        } else {
+                                        if (kl.isUndefined(save_story_res,'data.story.id')) {
                                             alert('错误:' + (save_story_res.msg || '未知'))
+                                        } else {
+                                            location.href = 'https://dev.aiqingyinghang.com:2051/admin/project/story/detail.html?{"story_id":' + save_story_res.data.story.id + '}';
                                         }
                                     } else {
                                         console.log(save_story_res);

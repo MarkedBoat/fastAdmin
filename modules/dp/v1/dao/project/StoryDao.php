@@ -16,6 +16,7 @@ use models\common\db\ORM;
  * @property string end_date 预期结束时间
  * @property int create_by admin_id
  * @property int is_close 是否关闭
+ * @property string step post 提交创建,confirm 需求等确认,dev 开发中,test 测试,pre 预览测试 ,prod 线上测试,feedback 运营反馈 ,end  结束 ,close 非正常关闭,del  删除
  * @property int is_ok 是否正常  1:是  2:否
  * @property string create_time
  * @property string update_time
@@ -33,6 +34,7 @@ class StoryDao extends ORM
     public $end_date         = null;
     public $create_by        = 0;
     public $is_close         = 2;
+    public $step             = 'post';
     public $is_ok            = 1;
     public $create_time      = null;
     public $update_time      = null;
@@ -53,6 +55,7 @@ class StoryDao extends ORM
         'end_date'         => ['db_type' => 'timestamp', 'length' => 0, 'def' => null, 'pro_def' => null],
         'create_by'        => ['db_type' => 'int', 'length' => 0, 'def' => 0, 'pro_def' => 0],
         'is_close'         => ['db_type' => 'tinyint', 'length' => 0, 'def' => 2, 'pro_def' => 2],
+        'step'             => ['db_type' => 'varchar', 'length' => 32, 'def' => 'post', 'pro_def' => 'post'],
         'is_ok'            => ['db_type' => 'tinyint', 'length' => 0, 'def' => 1, 'pro_def' => 1],
         'create_time'      => ['db_type' => 'timestamp', 'length' => 0, 'def' => 'CURRENT_TIMESTAMP', 'pro_def' => null],
         'update_time'      => ['db_type' => 'timestamp', 'length' => 0, 'def' => null, 'pro_def' => null],

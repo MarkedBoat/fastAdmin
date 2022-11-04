@@ -31,6 +31,10 @@ class ActionTree extends AdminBaseAction
         $child_story = StoryDao::model()->findByPk($child_id);
         if ($parent_id)
         {
+            if ($parent_id === $child_id)
+            {
+                throw new AdvError(AdvError::request_param_verify_fail, '禁止套娃');
+            }
             $this->parent_story_ids[] = $child_id;
 
             $res = $this->getParentStoryEnd($parent_id);

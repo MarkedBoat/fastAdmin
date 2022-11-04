@@ -395,8 +395,8 @@
                                     res.create_date_td.append(new Emt('div', '', story_info.create_time));
                                     res.update_date_td.append(new Emt('div', '', story_info.update_time ? story_info.update_time : '#'));
                                     res.op_td.append(new Emt('div').addNodes([
-                                        new Emt('a', '', '查看', {href: '/admin/project/story/detail.html?{"story_id":' + story_info.id + '}'}),
-                                        new Emt('a', '', '添加子问题', {href: '/admin/project/story/add.html?{"parent_story_id":' + story_info.id + '}'})
+                                        new Emt('a', '', '查看', {target: '_blank', href: '/admin/project/story/detail.html?{"story_id":' + story_info.id + '}'}),
+                                        new Emt('a', '', '添加子问题', {target: '_blank', href: '/admin/project/story/add.html?{"parent_story_id":' + story_info.id + '}'})
                                     ]));
                                     if (story_info.lev === 1) {
                                         tr.classList.add('top_lev_story_tr');
@@ -404,6 +404,7 @@
                                             tr.previousElementSibling.classList.add('top_lev_story_last_tr');
                                         }
                                     }
+                                    tr.classList.add('story_status_' + story_info.step);
 
                                 };
 
@@ -601,6 +602,43 @@
 
             .top_lev_story_last_tr > td > div {
                 margin-bottom: 10px;
+            }
+
+
+            .img_small_size {
+                max-height: 300px;
+                max-width: 800px;
+                width: auto;
+                height: auto;
+            }
+
+            .story_op_td > div > a {
+                display: block;
+                float: left;
+                margin-right: 5px;
+                padding: 5px;
+            }
+
+            .story_status_feedback, .story_status_pre, .story_status_prod {
+                color: #F00;
+            }
+
+            .story_status_create_story {
+                -color: #F00;
+                font-weight: 900;
+            }
+
+            .story_status_end {
+                color: #0000FF;
+            }
+
+            .story_status_close {
+                color: #AAA;
+            }
+
+            .story_status_del {
+                color: #AAA;
+                text-decoration: line-through;
             }
         </style>
     </div>
