@@ -136,7 +136,32 @@
                         }
                     });
 
+                    let getAdminList = function (fun) {
+                        kl.ajax({
+                            url: '/dp/v1/project/items?user_token=' + utk,
+                            data: {item_code: 'admin'},
+                            type: 'json',
+                            success: function (res_request_data) {
+                                if (typeof res_request_data.forEach === "function") {
+                                    window.serverData.adminList = res_request_data;
+                                    window.serverData.adminMap = {};
+                                    res_request_data.forEach(function (adminInfo) {
+                                        window.serverData.adminMap[adminInfo.val] = adminInfo.text;
+                                    });
+                                    fun();
+                                } else {
+                                    alert('获取表信息 请求结果异常');
+                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
+                                }
+                            },
+                            error: function (res_request_data) {
+                                console.log(res_request_data);
+                                alert('获取表信息 网络异常');
+                                throw '别看了，连table info 信息都拿不到，还想干啥?';
 
+                            }
+                        });
+                    };
                     let getStoryTableInfo = function (fun) {
                         kl.ajax({
                             url: '/dp/v1/admin/dbdata/info?user_token=' + utk,
@@ -147,11 +172,22 @@
                                     if (res_request_data.status === 200) {
                                         window.serverData.storyColumnMap = {};
                                         window.serverData.storyCommitMap = {};
+
                                         res_request_data.data.columns.forEach(function (colInfo) {
                                             window.serverData.storyColumnMap[colInfo.column_name] = colInfo;
                                         });
                                         window.serverData.storyColumnMap.step.val_range.forEach(function (itemInfo) {
                                             window.serverData.storyCommitMap[itemInfo.val] = itemInfo.text;
+                                        });
+
+                                        window.serverData.storyCommit = {map: {}, items: window.serverData.storyColumnMap.step.val_range};
+                                        window.serverData.storyCommit.items.forEach(function (itemInfo) {
+                                            window.serverData.storyCommit.map[itemInfo.val] = itemInfo.text;
+                                        });
+
+                                        window.serverData.storyType = {map: {}, items: window.serverData.storyColumnMap.story_type.val_range};
+                                        window.serverData.storyType.items.forEach(function (itemInfo) {
+                                            window.serverData.storyType.map[itemInfo.val] = itemInfo.text;
                                         });
 
                                         fun();
@@ -174,7 +210,7 @@
                         });
                     };
 
-                    getStoryTableInfo(function () {
+                    let getStoryRowInfo = function () {
                         kl.ajax({
                             url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
                             data: {table_name: 'd_story', attr: {id: window.serverData.story_id}},
@@ -183,14 +219,22 @@
                                 if (res_request_data.code && res_request_data.code === 'ok' && res_request_data.data && res_request_data.data.rowsTotal === "1") {
                                     window.serverData.storyInfo = res_request_data.data.dataRows[0];
                                     storys_condtion.attr.story_id = serverData.storyInfo.id;
-
                                     content();
                                 }
                             },
                             error: function (res_request_data) {
                             }
                         });
-                    });
+                    };
+                    getAdminList(
+                        function () {
+                            getStoryTableInfo(
+                                function () {
+                                    getStoryRowInfo()
+                                }
+                            )
+                        }
+                    );
 
 
                 });
@@ -294,9 +338,20 @@
                     new_commit_form.apiHandle.ele.input.used_hours.parentElement.className = 'col-sm-3';
 
 
+                    new_commit_form.apiHandle.addGroupPreCreate().setLabelText('跟踪人').setIndexKey('tracker').create('select');
+                    new_commit_form.apiHandle.ele.input.tracker.apiHandle.setItems(window.serverData.adminList);
+                    new_commit_form.apiHandle.ele.input.tracker.apiHandle.setInitVal(serverData.storyInfo.tracker);
+                    new_commit_form.apiHandle.ele.input.tracker.parentElement.className = 'col-sm-3';
+
+                    new_commit_form.apiHandle.addGroupPreCreate().setLabelText('类型').setIndexKey('story_type').create('select');
+                    new_commit_form.apiHandle.ele.input.story_type.apiHandle.setItems(window.serverData.storyType.items);
+                    new_commit_form.apiHandle.ele.input.story_type.apiHandle.setInitVal(window.serverData.storyInfo.story_type);
+                    new_commit_form.apiHandle.ele.input.story_type.parentElement.className = 'col-sm-3';
+
                     new_commit_form.apiHandle.addGroupPreCreate().setLabelText('状态').setIndexKey('step').create('select');
-                    new_commit_form.apiHandle.ele.input.step.apiHandle.setItems(serverData.storyColumnMap.step.val_range);
+                    new_commit_form.apiHandle.ele.input.step.apiHandle.setItems(window.serverData.storyCommit.items);
                     new_commit_form.apiHandle.ele.input.step.apiHandle.setInitVal('comment');
+
 
                     new_commit_form.apiHandle.ele.input.step.parentElement.className = 'col-sm-3';
 
@@ -580,6 +635,8 @@
                     new_commit_reply_checkbox.addEventListener('change', function () {
                         new_commit_reply_checkbox.changeVal();
                     });
+
+
                     new_commit_form.apiHandle.ele.input.commit.apiHandle.setClickCall(function (btn) {
                         let attr = {
                             story_id: window.serverData.storyInfo.id,
@@ -588,7 +645,25 @@
                             step: new_commit_form.apiHandle.ele.input.step.apiHandle.getVal(),
                             detail: new_commit_detail_textarea.value,
                             create_by: window.adminInfo.user_id,
+                            tracker: new_commit_form.apiHandle.ele.input.tracker.apiHandle.getVal(),
+                            story_type: new_commit_form.apiHandle.ele.input.story_type.apiHandle.getVal(),
                         };
+
+
+                        if (new_commit_form.apiHandle.ele.input.tracker.apiHandle.isChange()) {
+                            let old_tracker = (window.serverData.adminMap[window.serverData.storyInfo.tracker] || '') + '(' + window.serverData.storyInfo.tracker + ')';
+                            let new_tracker = (window.serverData.adminMap[attr.tracker] || '') + '(' + attr.tracker.toString() + ')';
+
+                            attr.detail = attr.detail + "\n 更换跟踪人  原跟踪人:" + old_tracker + " 新跟踪人: " + new_tracker + "\n";
+                        }
+
+                        if (new_commit_form.apiHandle.ele.input.story_type.apiHandle.isChange()) {
+                            let old_type = (window.serverData.storyType.map[window.serverData.storyInfo.story_type] || '') + '(' + window.serverData.storyInfo.story_type + ')';
+                            let new_type = (window.serverData.storyType.map[attr.story_type] || '') + '(' + attr.story_type.toString() + ')';
+
+                            attr.detail = attr.detail + "\n 更换story类型  原类型:" + old_type + " 新类型: " + new_type + "\n";
+                        }
+
 
                         console.log(btn, this, new_commit_form.apiHandle, attr);
                         kl.ajax({

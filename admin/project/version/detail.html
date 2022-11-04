@@ -172,6 +172,16 @@
 
                         let storys_input_div = Emt('div');
                         let display_storys_type = hammerYii2Bootstarp1.createSelect({items: [{text: '树形', val: 'tree'}, {text: '优先级', val: 'sort'}]});
+                        let story_step_select = hammerYii2Bootstarp1.createSelect({}).apiHandle.setInitVal('');
+                        story_step_select.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'story_step'});
+
+                        let create_by_select = hammerYii2Bootstarp1.createSelect({}).apiHandle.setInitVal('');
+                        create_by_select.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'admin'});
+
+                        let tracker_select = hammerYii2Bootstarp1.createSelect({}).apiHandle.setInitVal('');
+                        tracker_select.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'admin'});
+
+
                         root.addNodes([
                             detail_root_div.addNodes([
                                 new Emt('h1', '', '目标版本详情'),
@@ -180,7 +190,11 @@
                             storys_root_div.addNodes([
                                 new Emt('h1', '', 'story列表'),
                                 storys_input_div.addNodes([
-                                    new Emt('label', '', '展示方式:').addNode(display_storys_type)
+                                    new Emt('label', '', '展示方式:').addNode(display_storys_type),
+                                    new Emt('label', '', 'story状态:').addNode(story_step_select),
+                                    new Emt('label', '', '创建人:').addNode(create_by_select),
+                                    new Emt('label', '', '跟踪人:').addNode(tracker_select),
+
                                 ]),
                                 new Emt('p'),
                                 storys_list_div
@@ -191,143 +205,33 @@
                         let modal_edit = hammerYii2Bootstarp1.createModal({title: '修改字段设置'});
                         let form_edit = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
 
-                        modal_edit.apiHandle.ele.body.addNodes([form_edit]);
-                        // label, placeholder, handle_ele_key, name_key
-                        //handle_form_edit.createInputText('字段', '', 'input_column_key_ele').input_column_key_ele.setPros({readOnly: true});
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('字段').setIndexKey('column_name').create('text');
-                        let column_name_input = form_edit.apiHandle.ele.input.column_name;
-
-                        //let column_id = handle_form_edit.createInputHide('input_column_id_ele', 'id').input_column_id_ele.setPros({readOnly: true});
-                        form_edit.apiHandle.addGroupPreCreate().setNameVar('id').setIndexKey('id').create('hide');
-                        let column_id_input = form_edit.apiHandle.ele.input.id;
-
-                        //let column_title = handle_form_edit.createInputText('字段标题', '用于当成label显示', 'input_title_ele', 'title').input_title_ele;
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('字段标题').setPlaceHolder('用于当成label显示').setIndexKey('title').setNameVar('title').create('text');
-                        let column_title_input = form_edit.apiHandle.ele.input.title;
-
-
-                        //let column_sn = handle_form_edit.createInputText('字段序号', '最小的在前面', 'input_sn_ele', 'column_sn').input_sn_ele;
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('字段序号').setPlaceHolder('大->小').setIndexKey('sn').setNameVar('column_sn').create('number');
-                        let column_sn_input = form_edit.apiHandle.ele.input.sn;
-
-                        // let column_rearmk = handle_form_edit.createInputTextArea('字段描述', '备注', 'input_remark_ele', 'remark').input_remark_ele;
-
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('字段描述').setPlaceHolder('备注').setIndexKey('remark').setNameVar('remark').create('textarea');
-                        let column_remark_input = form_edit.apiHandle.ele.input.remark;
-
-
-                        // let handle_out_datatype_select = hammerYii2Bootstarp1.select({list: ['string', 'int', 'date', 'img_uri']});
-                        //let handle_in_datatype_select = hammerYii2Bootstarp1.select({list: ['string', 'int', 'date']});
-
-
-                        //let handle_vals_range_textarea = hammerYii2Bootstarp1.textarea({});
-                        //let column_vals_range = handle_form_edit.createInputTextArea('取值范围', '代表值对应含义', 'input_val_range_ele', 'val_range').input_val_range_ele;
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('取值范围').setPlaceHolder('代表值对应含义').setIndexKey('val_range').setNameVar('val_range').create('textarea');
-                        let column_valRange_input = form_edit.apiHandle.ele.input.val_range;
-
-
-                        // handle_form_edit.root_ele.addNodes([
-                        //     handle_form_edit.createInputGroup('输出类型', handle_out_datatype_select.root_ele),
-                        // ]);
-
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('输出类型').setIndexKey('out_datatype').setNameVar('out_datatype').setItems([
-                            {text: 'string', val: 'string'},
-                            {text: 'int', val: 'int'},
-                            {text: 'date', val: 'date'},
-                            {text: 'img_uri', val: 'img_uri'}
-                        ]).create('select');
-                        let column_outDataType_input = form_edit.apiHandle.ele.input.out_datatype;
-
-
-                        // handle_form_edit.root_ele.addNodes([
-                        //     handle_form_edit.createInputGroup('接收类型', handle_in_datatype_select.root_ele),
-                        // ]);
-
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('接收类型').setIndexKey('in_datatype').setNameVar('in_datatype').setItems([
-                            {text: 'string', val: 'string'},
-                            {text: 'int', val: 'int'},
-                            {text: 'date', val: 'date'}
-                        ]).create('select');
-                        let column_inDataType_input = form_edit.apiHandle.ele.input.in_datatype;
-
-
-                        let edit_vals_div = new Emt('div').setAttrsByStr('class="table-responsive"');
-                        // handle_form_edit.root_ele.addNodes([
-                        //     handle_form_edit.createInputGroup('修改取值范围', edit_vals_div),
-                        // ]);
-                        let tmp_group = hammerYii2Bootstarp1.createFormInputGroupDiv({});
-                        tmp_group.apiHandle.setText('修改取值范围').apiHandle.addInputEle(edit_vals_div);
-                        form_edit.addNode(tmp_group);
-
-                        // handle_form_edit.root_ele.addNodes([
-                        //     handle_form_edit.createInputGroup('读角色', handle_read_roles_select.root_ele),
-                        // ]);
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('读角色').setIndexKey('readRoles').setNameVar('read_roles').setItems([]).create('checkbox_list');
-                        form_edit.apiHandle.ele.input.readRoles.apiHandle.setRemoteItems('/dp/v1/admin/dbdata/item/roles?user_token=' + utk);
-
-                        // handle_form_edit.root_ele.addNodes([
-                        //     handle_form_edit.createInputGroup('写(选择角色)', handle_opt_roles_select.root_ele),
-                        // ]);
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('选写(选择角色)').setIndexKey('optRoles').setNameVar('opt_roles').setItems([]).create('checkbox_list');
-                        form_edit.apiHandle.ele.input.optRoles.apiHandle.setRemoteItems('/dp/v1/admin/dbdata/item/roles?user_token=' + utk);
-
-                        // handle_form_edit.root_ele.addNodes([
-                        //     handle_form_edit.createInputGroup('写(全授权)', handle_add_roles_select.root_ele),
-                        // ]);
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('加写(全授权)').setIndexKey('addRoles').setNameVar('add_roles').setItems([]).create('checkbox_list');
-                        form_edit.apiHandle.ele.input.addRoles.apiHandle.setRemoteItems('/dp/v1/admin/dbdata/item/roles?user_token=' + utk);
-
-                        //label, text, handle_ele_key, callback
-                        form_edit.apiHandle.addGroupPreCreate().setType('button').setContentText('保存').setIndexKey('submit').setClickCall(function (btn) {
-                            console.log(btn, this, form_edit.apiHandle, form_edit.apiHandle.ele.input.readRoles.apiHandle.getVal(), form_edit.apiHandle.ele.input.optRoles.apiHandle.getVal(), form_edit.apiHandle.ele.input.addRoles.apiHandle.getVal());
-                            //return false;
-                            kl.ajax({
-                                url: '/dp/v1/admin/dbdata/update?user_token=' + utk,
-                                //attr: form,
-                                data: {
-                                    attr: {
-                                        id: form_edit.apiHandle.ele.input.id.apiHandle.getVal(),
-                                        title: form_edit.apiHandle.ele.input.title.apiHandle.getVal(),
-                                        column_sn: form_edit.apiHandle.ele.input.sn.apiHandle.getVal(),
-                                        out_datatype: form_edit.apiHandle.ele.input.out_datatype.apiHandle.getVal(),
-                                        in_datatype: form_edit.apiHandle.ele.input.in_datatype.apiHandle.getVal(),
-                                        val_range: form_edit.apiHandle.ele.input.val_range.apiHandle.getVal(),
-                                        remark: form_edit.apiHandle.ele.input.remark.apiHandle.getVal(),
-                                        read_roles: JSON.stringify(form_edit.apiHandle.ele.input.readRoles.apiHandle.getVal()),
-                                        opt_roles: JSON.stringify(form_edit.apiHandle.ele.input.optRoles.apiHandle.getVal()),
-                                        add_roles: JSON.stringify(form_edit.apiHandle.ele.input.addRoles.apiHandle.getVal()),
-                                    },
-                                    table_name: 'd_project',
-                                },
-                                type: 'json',
-                                success: function (res_save_column) {
-                                    if (res_save_column.status) {
-                                        if (res_save_column.status === 200) {
-                                            hanndle_datagrid.requestData('init');
-                                            //res_save_column(res_save_column.data);
-                                            modal_edit.apiHandle.hide();
-                                        } else {
-                                            alert('错误:' + (res_save_column.msg || '未知'))
-                                        }
-                                    } else {
-                                        console.log(res_save_column);
-                                        alert('请求结果异常')
-                                    }
-                                },
-                                error: function (res_save_column) {
-                                    console.log(res_save_column);
-                                    alert('网络异常');
-                                }
-                            })
-                        }).create('button');
-
 
                         window.dragedEle = false;
 
                         let flush_story_list = function () {
+
+                            let search_data = {
+                                page_index: 1, page_size: 1000,
+                                attr: {
+                                    version_id: storys_condtion.attr.version_id,
+                                },
+                                table_name: 'd_story',
+                                sort: {story_desc_order: 'desc'}
+                            };
+
+
+                            if (story_step_select.apiHandle.getVal() && story_step_select.apiHandle.getVal() != 0) {
+                                search_data.attr.step = story_step_select.apiHandle.getVal();
+                            }
+                            if (create_by_select.apiHandle.getVal() && create_by_select.apiHandle.getVal() != 0) {
+                                search_data.attr.create_by = create_by_select.apiHandle.getVal();
+                            }
+                            if (tracker_select.apiHandle.getVal() && tracker_select.apiHandle.getVal() != 0) {
+                                search_data.attr.tracker = tracker_select.apiHandle.getVal();
+                            }
                             kl.ajax({
                                 url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
-                                data: storys_condtion,
+                                data: search_data,
                                 type: 'json',
                                 success: function (res_request_data) {
                                     if (res_request_data.status) {
@@ -348,9 +252,12 @@
                             });
                         };
                         flush_story_list();
-                        display_storys_type.addEventListener('change', function () {
-                            flush_story_list();
+                        [display_storys_type, tracker_select, create_by_select, story_step_select].forEach((select_ele) => {
+                            select_ele.addEventListener('change', function () {
+                                flush_story_list();
+                            });
                         });
+
 
                         let rander_storys_list = function (dataRows) {
                             storys_list_div.innerHTML = '';
@@ -368,6 +275,7 @@
                                 res.id_td = tr.insertCell();
                                 res.title_td = tr.insertCell();
                                 res.creator_td = tr.insertCell();
+                                res.tracker_td = tr.insertCell();
                                 res.status_td = tr.insertCell();
                                 res.desc_order_td = tr.insertCell();
                                 res.create_date_td = tr.insertCell();
@@ -378,6 +286,7 @@
                                 res.id_td.className = "story_id_td";
                                 res.title_td.className = "story_title_td";
                                 res.creator_td.className = "story_creator_td";
+                                res.tracker_td.className = "story_tracker_td";
                                 res.status_td.className = "story_status_td";
                                 res.desc_order_td.className = "story_desc_order_td";
                                 res.create_date_td.className = "story_create_date_td";
@@ -390,6 +299,8 @@
                                     res.id_td.append(new Emt('div', '', story_info.id));
                                     res.title_td.append(new Emt('div', '', (display_storys_type.apiHandle.getVal() === 'tree' ? ('--->').repeat(story_info.lev - 1) : '') + story_info.title));
                                     res.creator_td.append(new Emt('div', '', story_info.__relat.create_by.info.real_name));
+                                    res.tracker_td.append(new Emt('div', '', story_info.__relat.tracker.label ? story_info.__relat.tracker.info.real_name : '#'));
+
                                     res.status_td.append(new Emt('div', '', serverData.storyStepMap[story_info.step]));
                                     res.desc_order_td.append(new Emt('div', '', story_info.story_desc_order));
                                     res.create_date_td.append(new Emt('div', '', story_info.create_time));
@@ -518,7 +429,11 @@
                             story_header.tr.setStoryInfo({
                                 id: 0,
                                 title: 'story描述',
-                                __relat: {create_by: {info: {real_name: '创建人'}}},
+                                __relat: {
+                                    create_by: {info: {real_name: '创建人'}},
+                                    tracker: {label: '跟踪人', info: {real_name: '跟踪人'}}
+                                },
+
                                 story_desc_order: '优先级/大->小',
                                 create_time: '创建时间',
                                 update_time: '修改时间',

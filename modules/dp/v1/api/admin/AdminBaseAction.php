@@ -64,9 +64,10 @@ abstract class AdminBaseAction extends ActionBase
         $this->user->initRoles();
         if (!in_array(RbacRole::superAdmin, $this->user->role_codes, true))
         {
+            $action_codes = $action->getRoleCodes();
             if (count(array_intersect($this->user->role_codes, $action->getRoleCodes())) === 0)
             {
-                throw new AdvError(AdvError::rbac_deny);
+                throw new AdvError(AdvError::rbac_deny, "您没有对应权限：{$this->user->id}/{$action->id}:" . join(',', $action_codes));
             }
         }
     }

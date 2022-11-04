@@ -8,6 +8,8 @@ use models\common\sys\Sys;
 use models\common\ActionBase;
 use models\ext\tool\RSA;
 use modules\dp\v1\api\admin\AdminBaseAction;
+use modules\dp\v1\dao\admin\AdminTokenDao;
+use modules\dp\v1\model\admin\Admin;
 
 class ActionResetPsw extends AdminBaseAction
 {
@@ -17,39 +19,36 @@ class ActionResetPsw extends AdminBaseAction
     {
         $psw1 = $this->inputDataBox->getStringNotNull('psw1');
         $psw2 = $this->inputDataBox->getStringNotNull('psw2');
-        $password = $this->getPwd($psw1);
-        $password2= $this->getPwd($psw2);
-        if ($password !== $password2)
+
+        $pri_key = file_get_contents(__ROOT_DIR__ . '/config/file/web/admin_bg.pri.key');
+        $md5_1   = RSA::de($pri_key, $psw1);
+        if (empty($md5_1))
+        {
+            return $this->dispatcher->createInterruption(AdvError::request_param_verify_fail['detail'], '密码异常', $md5_1);
+        }
+
+        $md5_2 = RSA::de($pri_key, $psw2);
+        if (empty($md5_2))
+        {
+            return $this->dispatcher->createInterruption(AdvError::request_param_verify_fail['detail'], '密码异常', $md5_2);
+        }
+
+
+        if ($md5_1 !== $md5_2)
         {
             throw new AdvError(AdvError::request_param_verify_fail, '两次密码不一样');
         }
 
 
+        $compute_str = substr(md5($md5_1 . $this->user->salt . $this->user->create_time), 2);
 
-        $key    = '<rlvXL^B3YM~u2%|7]m9$IG_o)ADFNd:j*"J5zh&';
-        $db_psw = md5(sha1($password) . $key);
 
-        $this->user->password = $db_psw;
+        $this->user->password    = $compute_str;
+        $this->user->update_time = date('Y-m-d H:i:s', time());
+
         return ['res' => $this->user->update()];
     }
 
 
-    public function getPwd($pwd)
-    {
-        $prikey = $this->getRSAkey();
-        //解密的是md5处理过得密码
-        return RSA::de($prikey, $pwd);
-    }
 
-    public function getRSAkey()
-    {
-        //获取秘钥
-        $prikey = Sys::app()->redis('cache')->get(Sys::app()->params['cache_cfg']['AdminUserPwdKey']['key']);
-        if (!$prikey)
-        {
-            $prikey = file_get_contents('data/upload/adminkl.pri');
-            Sys::app()->redis('cache')->set(Sys::app()->params['cache_cfg']['AdminUserPwdKey']['key'], $prikey);
-        }
-        return $prikey;
-    }
 }

@@ -265,7 +265,7 @@ let hammerYii2Bootstarp = function () {
         }
 
         inputEle.apiHandle.isChange = function () {
-            return inputEle.apiHandle.getInitVal() === inputEle.apiHandle.getVal();
+            return !(inputEle.apiHandle.getInitVal() === inputEle.apiHandle.getVal());
         }
 
         inputEle.apiHandle.__setRemoteItems = function (url, post_data) {
@@ -413,7 +413,7 @@ let hammerYii2Bootstarp = function () {
         }
 
         checkboxs_div.apiHandle.isChange = function () {
-            return JSON.stringify(checkboxs_div.apiHandle.getInitVal()) === JSON.stringify(inputEle.apiHandle.getVal());
+            return !(JSON.stringify(checkboxs_div.apiHandle.getInitVal()) === JSON.stringify(inputEle.apiHandle.getVal()));
         }
         checkboxs_div.apiHandle.setRemoteItems = checkboxs_div.apiHandle.__setRemoteItems;
 

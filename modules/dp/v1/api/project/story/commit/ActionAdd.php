@@ -33,6 +33,8 @@ class ActionAdd extends AdminBaseAction
         $commit_dao->step       = $this->inputDataBox->getStringNotNull('step');
         $commit_dao->detail     = $this->inputDataBox->getString('detail');
         $commit_dao->create_by  = $this->user->id;
+        $tracker                = $this->inputDataBox->getInt('tracker');
+        $story_type             = $this->inputDataBox->getStringNotNull('story_type');
 
         $story_dao = Story::model()->findByPk($commit_dao->story_id);
 
@@ -98,13 +100,28 @@ class ActionAdd extends AdminBaseAction
 
         $commit_dao->insert(true, true);
 
+        $story_change = false;
         if ($commit_dao->step !== 'comment')
         {
             if ($story_dao->step !== $commit_dao->step)
             {
+                $story_change    = true;
                 $story_dao->step = $commit_dao->step;
-                $story_dao->update(true, true);
             }
+        }
+        if ($tracker !== $story_dao->tracker)
+        {
+            $story_change       = true;
+            $story_dao->tracker = $tracker;
+        }
+        if ($story_type = $story_dao->story_type)
+        {
+            $story_change          = true;
+            $story_dao->story_type = $story_type;
+        }
+        if ($story_change)
+        {
+            $story_dao->update(true, true);
         }
 
         return [
