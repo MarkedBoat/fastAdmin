@@ -40,6 +40,7 @@ class ActionAdd extends AdminBaseAction
         $story_dao->title      = $title;
         $story_dao->detail     = $detail;
         $story_dao->create_by  = $this->user->id;
+        $story_dao->step       = 'create_story';
         $story_dao->insert(true, true);
 
         $commit_dao             = new StoryCommit();

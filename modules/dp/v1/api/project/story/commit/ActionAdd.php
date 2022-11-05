@@ -47,7 +47,7 @@ class ActionAdd extends AdminBaseAction
         {
             if (!in_array($story_dao->step, ['create_story', 'confirm'], true))
             {
-                throw new AdvError(AdvError::request_param_error, '一经确认，不能再修改');
+                throw new AdvError(AdvError::request_param_error, '一经确认，不能再修改', [$story_dao->step]);
             }
         }
 
@@ -114,7 +114,7 @@ class ActionAdd extends AdminBaseAction
             $story_change       = true;
             $story_dao->tracker = $tracker;
         }
-        if ($story_type = $story_dao->story_type)
+        if ($story_type !== $story_dao->story_type)
         {
             $story_change          = true;
             $story_dao->story_type = $story_type;
