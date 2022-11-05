@@ -265,7 +265,7 @@
 
                             let tmp_arr = markTree(dataRows, 0, 1);
                             console.log(tmp_arr);
-                            let story_table = new Emt('table');
+                            let story_table = new Emt('table', 'class="table table-bordered table-striped table-hover"');
                             story_table.createRow = function () {
                                 let res = {};
                                 let tr = story_table.insertRow();
@@ -427,18 +427,20 @@
                             };
                             let story_header = story_table.createRow();
                             story_header.tr.setStoryInfo({
-                                id: 0,
-                                title: 'story描述',
+                                id: 'ID',
+                                title: 'story标题',
                                 __relat: {
                                     create_by: {info: {real_name: '创建人'}},
                                     tracker: {label: '跟踪人', info: {real_name: '跟踪人'}}
                                 },
-
                                 story_desc_order: '优先级/大->小',
                                 create_time: '创建时间',
                                 update_time: '修改时间',
+                                step: 'header',
 
                             });
+                            story_header.status_td.innerHTML = '';
+                            story_header.status_td.append(new Emt('div', '', '状态'))
                             story_header.op_td.innerHTML = '';
                             story_header.op_td.append(new Emt('div').addNodes([
                                 new Emt('a', '', '添加子问题', {href: '/admin/project/story/add.html?{"version_id":' + window.serverData.versionInfo.id + '}'})
@@ -493,7 +495,7 @@
 
             .story_row > td > div {
                 display: block;
-                padding: 10px;
+                padding: 5px;
             }
 
             .on_drag_row > td > div {
@@ -512,11 +514,9 @@
             }
 
             .top_lev_story_tr > td > div {
-                margin-top: 10px;
             }
 
             .top_lev_story_last_tr > td > div {
-                margin-bottom: 10px;
             }
 
 
@@ -534,11 +534,17 @@
                 padding: 5px;
             }
 
+            .story_status_header {
+                font-weight: 900;
+                font-size: 1.3em;
+                background: #AAA !important;
+            }
+
             .story_status_feedback, .story_status_pre, .story_status_prod {
                 color: #F00;
             }
 
-            .story_status_create_story {
+            .story_status_create_story > .story_title_td, .story_status_create_story > .story_creator_td, .story_status_create_story > .story_tracker_td, .story_status_create_story > .story_status_td {
                 -color: #F00;
                 font-weight: 900;
             }

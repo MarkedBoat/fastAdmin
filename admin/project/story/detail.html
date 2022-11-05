@@ -257,8 +257,6 @@
                     let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
                     let upload_file_modal = hammerYii2Bootstarp1.createModal({title: '上传文件'});
 
-                    let storys_input_div = Emt('div');
-                    let display_storys_type = hammerYii2Bootstarp1.createSelect({items: [{text: '树形', val: 'tree'}, {text: '优先级', val: 'sort'}]});
 
                     let story_title_h3 = new Emt('h3', '', '', {innerHTML: '[ ' + window.serverData.storyInfo.id + ' ] ' + window.serverData.storyInfo.title});
                     let story_detail_div = new Emt('div', '', '', {innerHTML: window.serverData.storyInfo.detail || '问题描述'});
@@ -385,20 +383,17 @@
                             //  new Emt('pre', '', JSON.stringify(window.serverData.storyInfo, null, 4))
                         ]),
                         storys_root_div.addNodes([
-                            new Emt('h4', '', '父story:'),
+                            new Emt('h5', '', '父story:'),
                             parent_story_div,
                             new Emt('p'),
-                            new Emt('h4', '', '子story列表:'),
+                            new Emt('h5', '', '子story列表:'),
                             new Emt('div').addNodes([
-                                storys_input_div.addNodes([
-                                    new Emt('label', '', '展示方式:').addNode(display_storys_type)
-                                ]),
-                                new Emt('p'),
+
                                 storys_list_div
                             ])
 
                         ]),
-                        new Emt('h4', '', '历史提交:'),
+                        new Emt('h4', '', '变动历史:'),
                         commits_div
                     ]);
 
@@ -793,9 +788,7 @@
                         });
                     };
                     flush_story_list();
-                    display_storys_type.addEventListener('change', function () {
-                        flush_story_list();
-                    });
+
 
                     let rander_storys_list = function (dataRows) {
                         storys_list_div.innerHTML = '';
@@ -803,7 +796,7 @@
 
                         let tmp_arr = markTree(dataRows, window.serverData.storyInfo.id, 1);
                         console.log('markTree', tmp_arr);
-                        let story_table = new Emt('table');
+                        let story_table = new Emt('table','class="table table-bordered table-striped table-hover"');
                         story_table.createRow = function () {
                             let res = {};
                             let tr = story_table.insertRow();
@@ -832,7 +825,7 @@
                             tr.setStoryInfo = function (story_info) {
                                 tr.apiHandle = {data: story_info};
                                 res.id_td.append(new Emt('div', '', story_info.id));
-                                res.title_td.append(new Emt('div', '', (display_storys_type.apiHandle.getVal() === 'tree' ? ('--->').repeat(story_info.lev - 1) : '') + story_info.title));
+                                res.title_td.append(new Emt('div', '', story_info.title));
                                 res.creator_td.append(new Emt('div', '', story_info.__relat.create_by.info.real_name));
                                 res.status_td.append(new Emt('div', '', window.serverData.storyCommitMap[story_info.step]));
                                 res.desc_order_td.append(new Emt('div', '', story_info.story_desc_order));
@@ -849,17 +842,18 @@
                         };
                         let story_header = story_table.createRow();
                         story_header.tr.setStoryInfo({
-                            id: 0,
-                            title: 'story描述',
+                            id: 'ID',
+                            title: '标题',
                             __relat: {create_by: {info: {real_name: '创建人'}}},
-                            story_desc_order: '优先级/大->小',
+                            story_desc_order: '优先级',
                             create_time: '创建时间',
                             update_time: '修改时间',
-
+                            step:'header',
                         });
+                        story_header.status_td.textContent = '状态';
                         story_header.op_td.innerHTML = '';
                         story_header.op_td.append(new Emt('div').addNodes([
-                            new Emt('a', '', '添加子问题', {href: '/admin/project/story/add.html?{"parent_story_id":' + window.serverData.storyInfo.id + '}'})
+                            new Emt('a', '', '添加子问题', {target: '_blank', href: '/admin/project/story/add.html?{"parent_story_id":' + window.serverData.storyInfo.id + '}'})
                         ]));
 
 
@@ -873,16 +867,12 @@
                             }
                         };
 
-                        if (display_storys_type.apiHandle.getVal() === 'tree') {
-                            tmp_arr.forEach(function (story_info) {
-                                story_table.appendStoryRowAsTree(story_info);
-                            });
-                        } else {
-                            dataRows.forEach(function (story_info) {
-                                let res = story_table.createRow();
-                                res.tr.setStoryInfo(story_info);
-                            })
-                        }
+
+                        dataRows.forEach(function (story_info) {
+                            let res = story_table.createRow();
+                            res.tr.setStoryInfo(story_info);
+                        });
+
                         storys_list_div.addNode(story_table);
 
                     };
@@ -970,6 +960,20 @@
                 border-radius: 4px;
             }
 
+            h5 {
+                padding-top: 10px;
+                padding-bottom: 10px;
+                color: #AAA;
+                font-weight: 900;
+                padding-left: 20px;
+            }
+
+
+            h5 + div {
+                margin-left: 20px;
+
+            }
+
             .storys_list_div {
                 -padding: 20px;
             }
@@ -977,6 +981,7 @@
             .short_info_div {
                 padding-left: 20px;
                 padding-top: 10px;
+                min-height: 3em;
             }
 
             .short_info_div > span {
