@@ -126,7 +126,7 @@
                             data: {table_name: 'd_project', attr: {id: window.serverData.project_id}},
                             type: 'json',
                             success: function (res_request_data) {
-                                if (res_request_data.code && res_request_data.code === 'ok' && res_request_data.data && res_request_data.data.rowsTotal === "1") {
+                                if (res_request_data.code && res_request_data.code === 'ok' && res_request_data.data && res_request_data.data.rowsTotal === 1) {
                                     window.serverData.projectInfo = res_request_data.data.dataRows[0];
                                     getTableInfo();
                                 }

@@ -329,11 +329,11 @@ class DbTable extends DbTableDao
         $page_total = ceil($count / $this->limit_size);
         if ($this->debug)
         {
-            return ['rowsTotal' => $count, 'pageTotal' => $page_total, 'pageIndex' => $this->page_index, 'pageSize' => $this->limit_size, 'sql' => $sql, 'bind' => $bind, 'dataRows' => $list];
+            return ['rowsTotal' => intval($count), 'pageTotal' => $page_total, 'pageIndex' => $this->page_index, 'pageSize' => $this->limit_size, 'sql' => $sql, 'bind' => $bind, 'dataRows' => $list];
         }
         else
         {
-            return ['rowsTotal' => $count, 'pageTotal' => $page_total, 'pageIndex' => $this->page_index, 'pageSize' => $this->limit_size, 'dataRows' => $list];
+            return ['rowsTotal' => intval($count), 'pageTotal' => $page_total, 'pageIndex' => $this->page_index, 'pageSize' => $this->limit_size, 'dataRows' => $list];
         }
     }
 

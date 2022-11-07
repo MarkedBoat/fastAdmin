@@ -15,7 +15,6 @@
             <div id="bg_menus_div" class="navbar-brand menus_root">story:</div>
             <div id="w0-collapse" class="collapse navbar-collapse">
                 <ul id="w1" class="navbar-nav navbar-right nav">
-                    <li><a href="/admin/dbdata/tables.html">story:</a></li>
                 </ul>
             </div>
         </div>
@@ -38,7 +37,7 @@
 
             <div class="panel panel-primary">
                 <div class="panel-heading">
-                    <h3 class="page-header" id="h1">story:</h3>
+                    <h3 class="page-header" id="h1">添加STORY</h3>
                 </div>
                 <div class="panel-body">
                     <p id="subject_detail"></p>
@@ -53,14 +52,6 @@
 
         </div>
         <script>
-            let storys_condtion = {
-                page: {index: 1, size: 1000},
-                attr: {
-                    story_id: 0,
-                },
-                table_name: 'd_story',
-                sort: {story_desc_order: 'desc'}
-            };
 
             let markTree = function (data_rows, parent_story_id, lev) {
                 console.log('树第N:', data_rows, parent_story_id);
@@ -74,43 +65,161 @@
                 });
                 return story_infos;
             };
+
+            //{
+            // project_id_selectInput:
+            // version_id_selectInput:
+            // callbackFun
+            // }
+            let flushStoryItems = function (opt) {
+                let search_data = {
+                    page_index: 1, page_size: 1000,
+                    attr: {},
+                    sort: {story_desc_order: 'desc'},
+                    project_id: '#',
+                    version_id: '#',
+                };
+
+                search_data.project_id = opt.project_id_selectInput.apiHandle.getVal();
+
+                search_data.version_id = opt.version_id_selectInput.apiHandle.getVal();
+
+
+                kl.ajax({
+                    url: '/dp/v1/project/story/list?user_token=' + utk,
+                    data: search_data,
+                    type: 'json',
+                    success: function (res_request_data) {
+                        if (res_request_data.status) {
+                            if (res_request_data.status === 200) {
+                                opt.callbackFun(res_request_data.data.dataRows);
+                            } else {
+                                alert('错误:' + (res_request_data.msg || '未知'))
+                            }
+                        } else {
+                            console.log(res_request_data.status);
+                            alert('请求结果异常')
+                        }
+                    },
+                    error: function (res_request_data) {
+                        console.log(res_request_data);
+                        alert('网络异常');
+                    }
+                });
+            };
+
             domLoaded(function () {
                     let utk = '';
                     let role_infos = [];
                     bg_init(function () {
                         utk = window.utk;
 
-
-                        kl.ajax({
-                            url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
-                            data: {table_name: 'bg_rbac_role', page_index: 1, page_size: 1000},
-                            type: 'json',
-                            success: function (res_request_data) {
-                                if (res_request_data.code && res_request_data.code === 'ok') {
-                                    res_request_data.data.dataRows.forEach((role_info) => {
-                                        role_infos.push({val: role_info.role_code, text: role_info.role_name});
-                                    })
-                                }
-                            },
-                            error: function (res_request_data) {
-                            }
-                        });
-                        window.serverData.parentStoryInfo = {id: 0};
-                        window.serverData.versionInfo = {id: 0};
-                        window.serverData.projectInfo = {id: 0};
-
-                        let getVersionInfo = function (version_id) {
+                        let getRoleList = function (fun) {
                             kl.ajax({
                                 url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
-                                data: {table_name: 'd_version', attr: {id: version_id}},
+                                data: {table_name: 'bg_rbac_role', page_index: 1, page_size: 1000},
+                                type: 'json',
+                                success: function (res_request_data) {
+                                    if (res_request_data.code && res_request_data.code === 'ok') {
+                                        res_request_data.data.dataRows.forEach((role_info) => {
+                                            role_infos.push({val: role_info.role_code, text: role_info.role_name});
+                                        });
+                                        fun();
+                                    }
+                                },
+                                error: function (res_request_data) {
+                                }
+                            });
+                        };
+
+
+                        let getAdminList = function (fun) {
+                            kl.ajax({
+                                url: '/dp/v1/project/items?user_token=' + utk,
+                                data: {item_code: 'admin'},
+                                type: 'json',
+                                success: function (res_request_data) {
+                                    if (typeof res_request_data.forEach === "function") {
+                                        window.serverData.admin = {items: res_request_data, map: {}};
+                                        res_request_data.forEach(function (adminInfo) {
+                                            window.serverData.admin.map[adminInfo.val] = adminInfo.text;
+                                        });
+                                        fun();
+                                    } else {
+                                        alert('获取表信息 请求结果异常');
+                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
+                                    }
+                                },
+                                error: function (res_request_data) {
+                                    console.log(res_request_data);
+                                    alert('获取表信息 网络异常');
+                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                                }
+                            });
+                        };
+
+                        let getStoryTableConfigInfo = function (fun) {
+                            kl.ajax({
+                                url: '/dp/v1/admin/dbdata/info?user_token=' + utk,
+                                data: {table_name: 'd_story'},
+                                type: 'json',
+                                success: function (res_request_data) {
+                                    if (res_request_data.status) {
+                                        if (res_request_data.status === 200) {
+
+                                            window.serverData.storyTable = {
+                                                allColumn: {map: {}, items: res_request_data.data.columns},
+                                                status: {map: {}, items: []},
+                                                storyType: {map: {}, items: []},
+                                            };
+
+                                            res_request_data.data.columns.forEach(function (colInfo) {
+                                                window.serverData.storyTable.allColumn.map[colInfo.column_name] = colInfo;
+                                            });
+                                            window.serverData.storyTable.status.items = window.serverData.storyTable.allColumn.map.step.val_range;
+                                            window.serverData.storyTable.status.items.forEach(function (itemInfo) {
+                                                window.serverData.storyTable.status.map[itemInfo.val] = itemInfo.text;
+                                            });
+                                            window.serverData.storyTable.storyType.items = window.serverData.storyTable.allColumn.map.story_type.val_range;
+                                            window.serverData.storyTable.storyType.items.forEach(function (itemInfo) {
+                                                window.serverData.storyTable.storyType.map[itemInfo.val] = itemInfo.text;
+                                            });
+                                            fun();
+                                        } else {
+                                            alert(' 获取表信息 错误:' + (res_request_data.message || '未知'));
+                                            throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                                        }
+                                    } else {
+                                        alert('获取表信息 请求结果异常');
+                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
+                                    }
+                                },
+                                error: function (res_request_data) {
+                                    console.log(res_request_data);
+                                    alert('获取表信息 网络异常');
+                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                                }
+                            });
+                        };
+
+                        let getUnTimeOverVersionInfos = function (fun) {
+                            kl.ajax({
+                                url: '/dp/v1/project/version/list?user_token=' + utk,
+                                data: {isSkipTimeOver: 'yes'},
                                 type: 'json',
                                 success: function (version_info_res) {
-                                    if (version_info_res.code && version_info_res.code === 'ok' && version_info_res.data && version_info_res.data.rowsTotal === "1") {
-
-                                        window.serverData.versionInfo = version_info_res.data.dataRows[0];
-                                        getProjectInfo(window.serverData.versionInfo.project_id);
+                                    if (!kl.isUndefined(version_info_res, 'data.list') && typeof version_info_res.data.list.forEach === 'function') {
+                                        window.serverData.version = {list: version_info_res.data.list, items: [], map: {}};
+                                        window.serverData.version.list.forEach((versionInfo) => {
+                                            window.serverData.version.items.push({text: versionInfo.title, val: versionInfo.id});
+                                            window.serverData.version.map[versionInfo.id] = versionInfo;
+                                        });
+                                        fun();
                                     } else {
-                                        alert('请求版本信息 数据异常');
+                                        alert('请求versions 数据异常');
                                     }
                                 },
                                 error: function (version_info_res) {
@@ -119,69 +228,21 @@
                                 }
                             });
                         };
-                        let getProjectInfo = function (project_id) {
-                            kl.ajax({
-                                url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
-                                data: {table_name: 'd_project', attr: {id: project_id}},
-                                type: 'json',
-                                success: function (project_info_res) {
-                                    if (project_info_res.code && project_info_res.code === 'ok' && project_info_res.data && project_info_res.data.rowsTotal === "1") {
 
-                                        window.serverData.projectInfo = project_info_res.data.dataRows[0];
-                                        content();
-                                    } else {
-                                        alert('请求项目信息 数据异常');
-                                    }
-                                },
-                                error: function (version_info_res) {
-                                    console.log(version_info_res);
-                                    alert('请求项目信息 网络错误');
-                                }
+
+                        getAdminList(() => {
+                            getStoryTableConfigInfo(() => {
+                                getUnTimeOverVersionInfos(function () {
+                                    content();
+                                });
                             });
-                        };
-
-                        let getParentStoryInfo = function (parent_story_id) {
-                            kl.ajax({
-                                url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
-                                data: {table_name: 'd_story', attr: {id: parent_story_id}},
-                                type: 'json',
-                                success: function (parent_story_info_res) {
-                                    if (parent_story_info_res.code && parent_story_info_res.code === 'ok' && parent_story_info_res.data && parent_story_info_res.data.rowsTotal === "1") {
-                                        window.serverData.parentStoryInfo = parent_story_info_res.data.dataRows[0];
-                                        getVersionInfo(window.serverData.parentStoryInfo.version_id);
-                                    } else {
-                                        alert('请求父story信息 数据异常');
-                                    }
-                                },
-                                error: function (parent_story_info_res) {
-                                    console.log(parent_story_info_res);
-                                    alert('请求父story信息 网络错误');
-                                }
-                            });
-                        };
-
-
-                        if (window.serverData.parent_story_id === undefined) {
-                            if (window.serverData.version_id === undefined) {
-                                if (window.serverData.project_id === undefined) {
-                                    alert('项目 && 版本 && 父story 信息都为空，不可使用');
-                                    return false;
-                                } else {
-                                    getProjectInfo(window.serverData.project_id);
-                                }
-                            } else {
-                                getVersionInfo(window.serverData.version_id);
-                            }
-
-                        } else {
-                            getParentStoryInfo(window.serverData.parent_story_id);
-                        }
+                        });
 
                     });
 
 
                     content = function () {
-                        kl.id('h1').textContent = kl.id('h1').textContent + ':' + window.serverData.parentStoryInfo.id + '/' + window.serverData.parentStoryInfo.title;
+                        //  kl.id('h1').textContent = kl.id('h1').textContent + ':' + window.serverData.parentStoryInfo.id + '/' + window.serverData.parentStoryInfo.title;
                         //  document.title = '目标版本:' + serverData.table.title + '/' + serverData.table.table_name;
 
 
@@ -197,31 +258,15 @@
                         let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
                         let upload_file_modal = hammerYii2Bootstarp1.createModal({title: '上传文件'});
 
-                        let display_storys_type = hammerYii2Bootstarp1.createSelect({items: [{text: '树形', val: 'tree'}, {text: '优先级', val: 'sort'}]});
                         root.addNodes([
-                            project_detail_div.addNodes([
-                                new Emt('h1', '', '项目描述'),
-                                new Emt('pre', '', JSON.stringify(window.serverData.projectInfo, null, 4)),
-                                new Emt('div').addNode(new Emt('a', '', window.serverData.projectInfo.title, {href: '/admin/project/detail.html?{"project_id":' + window.serverData.projectInfo.id + '}'}))
-                            ]),
-                            version_detail_div.addNodes([
-                                new Emt('h1', '', '目标版本'),
-                                new Emt('pre', '', JSON.stringify(window.serverData.versionInfo, null, 4)),
-                                new Emt('div').addNode(new Emt('a', '', window.serverData.versionInfo.title, {href: '/admin/project/version/detail.html?{"version_id":' + window.serverData.versionInfo.id + '}'}))
-                            ]),
+
                             storys_root_div.addNodes([
                                 new Emt('h1', '', '父story:'),
-                                new Emt('pre', '', JSON.stringify(window.serverData.parentStoryInfo, null, 4)),
+                                new Emt('pre', '',),
                                 parent_story_div,
                                 new Emt('p'),
                             ])
                         ]);
-
-                        if (window.serverData.parentStoryInfo.id === false) {
-                            parent_story_div.textContent = '无父级';
-                        } else {
-                            parent_story_div.addNode(new Emt('a', '', window.serverData.parentStoryInfo.title, {href: '/admin/project/story/detail.html?{"story_id":' + window.serverData.parentStoryInfo.id + '}'}));
-                        }
 
 
                         let form_edit = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
@@ -229,23 +274,24 @@
 
 
                         form_edit.apiHandle.addGroupPreCreate().setLabelText('项目').setIndexKey('project_id').create('select');
-                        form_edit.apiHandle.ele.input.project_id.apiHandle.setInitVal(window.serverData.projectInfo.id);
+                        form_edit.apiHandle.ele.input.project_id.apiHandle.setInitVal('#');
                         form_edit.apiHandle.ele.input.project_id.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'project'});
 
                         form_edit.apiHandle.addGroupPreCreate().setLabelText('目标版本').setIndexKey('version_id').create('select');
-                        form_edit.apiHandle.ele.input.version_id.apiHandle.setInitVal(window.serverData.versionInfo.id);
-                        form_edit.apiHandle.ele.input.version_id.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'version', project_id: window.serverData.projectInfo.id});
-                        form_edit.apiHandle.ele.input.project_id.addEventListener('change', function () {
-                            form_edit.apiHandle.ele.input.version_id.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'version', project_id: form_edit.apiHandle.ele.input.project_id.apiHandle.getVal()});
-                        });
-
+                        form_edit.apiHandle.ele.input.version_id.apiHandle.setItems(window.serverData.version.items);
+                        form_edit.apiHandle.ele.input.version_id.apiHandle.setInitVal(0);
 
                         form_edit.apiHandle.addGroupPreCreate().setLabelText('父级story').setIndexKey('parent_story_id').create('select');
-                        form_edit.apiHandle.ele.input.parent_story_id.apiHandle.setInitVal(window.serverData.parentStoryInfo.id);
-                        form_edit.apiHandle.ele.input.parent_story_id.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'story', version_id: window.serverData.versionInfo.id});
-                        form_edit.apiHandle.ele.input.version_id.addEventListener('change', function () {
-                            form_edit.apiHandle.ele.input.parent_story_id.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'story', version_id: form_edit.apiHandle.ele.input.version_id.apiHandle.getVal()});
-                        });
+                        form_edit.apiHandle.ele.input.parent_story_id.apiHandle.setInitVal('0');
+
+
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('类型').setIndexKey('storyType').create('select');
+                        form_edit.apiHandle.ele.input.storyType.apiHandle.setItems(window.serverData.storyTable.storyType.items);
+                        form_edit.apiHandle.ele.input.storyType.apiHandle.setInitVal('story');
+
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('跟踪人').setIndexKey('tracker').create('select');
+                        form_edit.apiHandle.ele.input.tracker.apiHandle.setItems(window.serverData.admin.items);
+                        form_edit.apiHandle.ele.input.tracker.apiHandle.setInitVal('#');
 
 
                         form_edit.apiHandle.addGroupPreCreate().setLabelText('story标题').setPlaceHolder('标题').setIndexKey('title').setNameVar('title').create('text');
@@ -347,31 +393,24 @@
                                 project_id: form_edit.apiHandle.ele.input.project_id.apiHandle.getVal(),
                                 version_id: form_edit.apiHandle.ele.input.version_id.apiHandle.getVal(),
                                 story_id: form_edit.apiHandle.ele.input.parent_story_id.apiHandle.getVal(),
+                                story_type: form_edit.apiHandle.ele.input.storyType.apiHandle.getVal(),
+                                tracker: form_edit.apiHandle.ele.input.tracker.apiHandle.getVal(),
                                 title: form_edit.apiHandle.ele.input.title.apiHandle.getVal(),
                                 detail: detail_edit_textarea.value,
-                                create_by: window.adminInfo.user_id,
                             };
                             if (attr.title.length < 5) {
                                 alert('标题过短');
                                 return false;
                             }
                             console.log(btn, this, form_edit.apiHandle, attr);
-                            // return false;
                             kl.ajax({
                                 url: '/dp/v1/project/story/add?user_token=' + utk,
                                 //attr: form,
-                                data: {
-                                    project_id: form_edit.apiHandle.ele.input.project_id.apiHandle.getVal(),
-                                    version_id: form_edit.apiHandle.ele.input.version_id.apiHandle.getVal(),
-                                    story_id: form_edit.apiHandle.ele.input.parent_story_id.apiHandle.getVal(),
-                                    title: form_edit.apiHandle.ele.input.title.apiHandle.getVal(),
-                                    detail: detail_edit_textarea.value,
-                                    create_by: window.adminInfo.user_id,
-                                },
+                                data:attr,
                                 type: 'json',
                                 success: function (save_story_res) {
                                     if (save_story_res.status) {
-                                        if (kl.isUndefined(save_story_res,'data.story.id')) {
+                                        if (kl.isUndefined(save_story_res, 'data.story.id')) {
                                             alert('错误:' + (save_story_res.msg || '未知'))
                                         } else {
                                             location.href = 'https://dev.aiqingyinghang.com:2051/admin/project/story/detail.html?{"story_id":' + save_story_res.data.story.id + '}';
@@ -387,6 +426,24 @@
                                 }
                             })
                         }).create('button');
+
+
+                        [form_edit.apiHandle.ele.input.version_id, form_edit.apiHandle.ele.input.project_id].forEach((selectInput) => {
+                            selectInput.addEventListener('click', function () {
+                                flushStoryItems({
+                                    project_id_selectInput: form_edit.apiHandle.ele.input.project_id,
+                                    version_id_selectInput: form_edit.apiHandle.ele.input.version_id,
+                                    callbackFun: (storyDataRows) => {
+                                        let tmp_items = [];
+                                        storyDataRows.forEach((storyInfo) => {
+                                            tmp_items.push({val: storyInfo.id, text: storyInfo.title});
+                                        });
+                                        form_edit.apiHandle.ele.input.parent_story_id.apiHandle.setItems(tmp_items);
+                                        form_edit.apiHandle.ele.input.parent_story_id.apiHandle.setInitVal('0');
+                                    }
+                                });
+                            });
+                        });
 
 
                     }

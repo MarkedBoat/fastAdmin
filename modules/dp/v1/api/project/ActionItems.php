@@ -59,7 +59,7 @@ class ActionItems extends AdminBaseAction
         {
             throw new AdvError(AdvError::request_param_error, "{$item_code} 没有对应的处理方法");
         }
-        $list = [['val' => 0, 'text' => '不选']];
+        $list = [['val' => '#', 'text' => '不选']];
 
         foreach ($daos as $dao)
         {
@@ -80,7 +80,7 @@ class ActionItems extends AdminBaseAction
     {
         $project_id = $this->inputDataBox->getInt('project_id');
 
-        return $project_id ? Version::model()->findAllByWhere(['project_id' => $project_id, 'is_ok' => Opt::YES]) : [];
+        return $project_id ? Version::model()->findAllByWhere(['project_id' => $project_id, 'is_ok' => Opt::YES]) : Version::model()->findAllByWhere(['is_ok' => Opt::YES]);
     }
 
     public function getStorys()

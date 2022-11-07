@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>目标版本</title>
+    <title>INDEX</title>
     <link href="/static/file/admin/css/bootstrap.css" rel="stylesheet">
     <link href="/static/file/admin/css/site.css" rel="stylesheet">
     <link href="/static/file/admin/css/bg.css" rel="stylesheet">
@@ -13,10 +13,10 @@
     <nav id="w0" class="navbar-inverse navbar-fixed-top navbar">
         <div class="container">
             <div class="navbar-header"></div>
-            <div id="bg_menus_div" class="navbar-brand menus_root">目标版本</div>
+            <div id="bg_menus_div" class="navbar-brand menus_root">INDEX</div>
             <div id="w0-collapse" class="collapse navbar-collapse">
                 <ul id="w1" class="navbar-nav navbar-right nav">
-                    <li><a href="/admin/dbdata/tables.html">目标版本</a></li>
+                    <li><a href="/admin/dbdata/tables.html">INDEX</a></li>
                 </ul>
             </div>
         </div>
@@ -37,7 +37,7 @@
 
             <div class="panel panel-primary">
                 <div class="panel-heading">
-                    <h3 class="page-header" id="h1">目标版本</h3>
+                    <h3 class="page-header" id="h1">INDEX</h3>
                 </div>
                 <div class="panel-body">
                     <p id="subject_detail"></p>
@@ -52,16 +52,7 @@
 
         </div>
         <script>
-            let storys_condtion = {
-                    page_index: 1, page_size: 1000,
 
-                    attr: {
-                        version_id: 0,
-                    },
-                    table_name: 'd_story',
-                    sort: {story_desc_order: 'desc'}
-                }
-            ;
 
             let markTree = function (data_rows, parent_story_id, lev) {
                 console.log('树第N:', data_rows, parent_story_id);
@@ -97,6 +88,83 @@
                             }
                         });
 
+                        let getAdminList = function (fun) {
+                            kl.ajax({
+                                url: '/dp/v1/project/items?user_token=' + utk,
+                                data: {item_code: 'admin'},
+                                type: 'json',
+                                success: function (res_request_data) {
+                                    if (typeof res_request_data.forEach === "function") {
+                                        window.serverData.admin = {list: res_request_data, map: {}};
+                                        res_request_data.forEach(function (adminInfo) {
+                                            window.serverData.admin.map[adminInfo.val] = adminInfo.text;
+                                        });
+                                        fun();
+                                    } else {
+                                        alert('获取表信息 请求结果异常');
+                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
+                                    }
+                                },
+                                error: function (res_request_data) {
+                                    console.log(res_request_data);
+                                    alert('获取表信息 网络异常');
+                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                                }
+                            });
+                        };
+                        let getProjectList = function (fun) {
+                            kl.ajax({
+                                url: '/dp/v1/project/items?user_token=' + utk,
+                                data: {item_code: 'project'},
+                                type: 'json',
+                                success: function (res_request_data) {
+                                    if (typeof res_request_data.forEach === "function") {
+                                        window.serverData.project = {list: res_request_data, map: {}};
+                                        res_request_data.forEach(function (projectItem) {
+                                            window.serverData.project.map[projectItem.val] = projectItem.text;
+                                        });
+                                        fun();
+                                    } else {
+                                        alert('获取表信息 请求结果异常');
+                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
+                                    }
+                                },
+                                error: function (res_request_data) {
+                                    console.log(res_request_data);
+                                    alert('获取表信息 网络异常');
+                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                                }
+                            });
+                        };
+
+                        let getVersionList = function (fun) {
+                            kl.ajax({
+                                url: '/dp/v1/project/items?user_token=' + utk,
+                                data: {item_code: 'version', 'project_id': '#'},
+                                type: 'json',
+                                success: function (res_request_data) {
+                                    if (typeof res_request_data.forEach === "function") {
+                                        window.serverData.version = {list: res_request_data, map: {}};
+                                        res_request_data.forEach(function (versoinItem) {
+                                            window.serverData.version.map[versoinItem.val] = versoinItem.text;
+                                        });
+                                        fun();
+                                    } else {
+                                        alert('获取表信息 请求结果异常');
+                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
+                                    }
+                                },
+                                error: function (res_request_data) {
+                                    console.log(res_request_data);
+                                    alert('获取表信息 网络异常');
+                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                                }
+                            });
+                        };
+
 
                         let getStoryTableInfo = function (fun) {
                             kl.ajax({
@@ -106,15 +174,25 @@
                                 success: function (res_request_data) {
                                     if (res_request_data.status) {
                                         if (res_request_data.status === 200) {
-                                            window.serverData.storyColumnMap = {};
-                                            window.serverData.storyStepMap = {};
-                                            res_request_data.data.columns.forEach(function (colInfo) {
-                                                window.serverData.storyColumnMap[colInfo.column_name] = colInfo;
-                                            });
-                                            window.serverData.storyColumnMap.step.val_range.forEach(function (itemInfo) {
-                                                window.serverData.storyStepMap[itemInfo.val] = itemInfo.text;
-                                            });
 
+                                            window.serverData.storyTable = {
+                                                allColumn: {map: {}, items: res_request_data.data.columns},
+                                                status: {map: {}, items: []},
+                                                storyType: {map: {}, items: []},
+                                            };
+
+                                            res_request_data.data.columns.forEach(function (colInfo) {
+                                                window.serverData.storyTable.allColumn.map[colInfo.column_name] = colInfo;
+                                            });
+                                            window.serverData.storyTable.status.items = window.serverData.storyTable.allColumn.map.step.val_range;
+                                            window.serverData.storyTable.status.items.forEach(function (itemInfo) {
+                                                window.serverData.storyTable.status.map[itemInfo.val] = itemInfo.text;
+                                            });
+                                            window.serverData.storyTable.storyType.items = window.serverData.storyTable.allColumn.map.story_type.val_range;
+                                            window.serverData.storyTable.storyType.items.forEach(function (itemInfo) {
+                                                window.serverData.storyTable.storyType.map[itemInfo.val] = itemInfo.text;
+                                            });
+                                            console.log('xxxxxxxx', window.serverData.storyTable);
                                             fun();
                                         } else {
                                             alert(' 获取表信息 错误:' + (res_request_data.message || '未知'));
@@ -136,28 +214,25 @@
                         };
 
 
-                        getStoryTableInfo(function () {
-                            kl.ajax({
-                                url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
-                                data: {table_name: 'd_version', attr: {id: window.serverData.version_id}},
-                                type: 'json',
-                                success: function (res_request_data) {
-                                    if (res_request_data.code && res_request_data.code === 'ok' && res_request_data.data && res_request_data.data.rowsTotal === 1) {
-                                        window.serverData.versionInfo = res_request_data.data.dataRows[0];
-                                        storys_condtion.attr.version_id = serverData.versionInfo.id;
-                                        content();
-                                    }
-                                },
-                                error: function (res_request_data) {
-                                }
-                            });
-                        })
+                        getAdminList(() => {
+                            getProjectList(() => {
+                                getVersionList(() => {
+                                    getStoryTableInfo(() => {
+                                        content()
+                                    })
+                                })
+                            })
+                        });
+
                     });
 
 
                     content = function () {
                         //  kl.id('h1').textContent = kl.id('h1').textContent + '/' + serverData.table.title + '/ ' + window.serverData.table_name;
                         //  document.title = '目标版本:' + serverData.table.title + '/' + serverData.table.table_name;
+
+                        let selected_story_ids = [];
+                        let story_tr_handles = [];
 
 
                         let raw_root = kl.id('content_div');
@@ -170,7 +245,23 @@
 
                         let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
 
+                        let select_all_btn = hammerYii2Bootstarp1.createButton({text: '全选'}).apiHandle.size.set('lg');
+                        let unselect_all_btn = hammerYii2Bootstarp1.createButton({text: '取消全选'}).apiHandle.size.set('lg');
+
                         let storys_input_div = Emt('div');
+
+                        let selectInto_project_btn = hammerYii2Bootstarp1.createButton({text: '将勾选中的story 添加至指定项目'}).apiHandle.size.set('lg');
+                        let selectInto_project_select = hammerYii2Bootstarp1.createSelect({items: window.serverData.project.list});
+                        let selectInto_version_btn = hammerYii2Bootstarp1.createButton({text: '将勾选中的story 添加至指定目标版本'}).apiHandle.size.set('lg');
+                        let selectInto_version_select = hammerYii2Bootstarp1.createSelect({items: window.serverData.version.list});
+
+                        let moveOut_from_project_btn = hammerYii2Bootstarp1.createButton({text: '将勾选中的story 从项目中移出'}).apiHandle.size.set('lg');
+                        let moveOut_from_version_btn = hammerYii2Bootstarp1.createButton({text: '将勾选中的story 从目标版本中移出'}).apiHandle.size.set('lg');
+
+
+                        let project_select = hammerYii2Bootstarp1.createSelect({items: window.serverData.project.list});
+                        let version_select = hammerYii2Bootstarp1.createSelect({items: window.serverData.version.list});
+
                         let display_storys_type = hammerYii2Bootstarp1.createSelect({items: [{text: '树形', val: 'tree'}, {text: '优先级', val: 'sort'}]});
                         let story_step_select = hammerYii2Bootstarp1.createSelect({}).apiHandle.setInitVal('');
                         story_step_select.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'story_step'});
@@ -184,12 +275,31 @@
 
                         root.addNodes([
                             detail_root_div.addNodes([
-                                new Emt('h1', '', '目标版本详情'),
-                                new Emt('pre', '', JSON.stringify(window.serverData.versionInfo, null, 4))
+                                new Emt('h4', '', '添加至'),
+                                new Emt('div').addNodes([
+                                    selectInto_project_btn,
+                                    new Emt('label', '', '项目:').addNode(selectInto_project_select),
+                                ]),
+                                new Emt('div').addNodes([
+                                    selectInto_version_btn,
+                                    new Emt('label', '', '目标版本:').addNode(selectInto_version_select),]),
+
+                                new Emt('h4', '', '移出'),
+                                new Emt('div').addNodes([
+                                    moveOut_from_project_btn,
+                                    moveOut_from_version_btn,
+                                ])
+
                             ]),
                             storys_root_div.addNodes([
                                 new Emt('h1', '', 'story列表'),
                                 storys_input_div.addNodes([
+                                    new Emt('p').addNodes([
+                                        select_all_btn,
+                                        unselect_all_btn
+                                    ]),
+                                    new Emt('label', '', '项目:').addNode(project_select),
+                                    new Emt('label', '', '目标版本:').addNode(version_select),
                                     new Emt('label', '', '展示方式:').addNode(display_storys_type),
                                     new Emt('label', '', 'story状态:').addNode(story_step_select),
                                     new Emt('label', '', '创建人:').addNode(create_by_select),
@@ -212,25 +322,28 @@
 
                             let search_data = {
                                 page_index: 1, page_size: 1000,
-                                attr: {
-                                    version_id: storys_condtion.attr.version_id,
-                                },
-                                table_name: 'd_story',
-                                sort: {story_desc_order: 'desc'}
+                                attr: {},
+                                sort: {story_desc_order: 'desc'},
+                                project_id: '#',
+                                version_id: '#',
                             };
 
+                            search_data.project_id = project_select.apiHandle.getVal();
 
-                            if (story_step_select.apiHandle.getVal() && story_step_select.apiHandle.getVal() != 0) {
+                            search_data.version_id = version_select.apiHandle.getVal();
+
+
+                            if (story_step_select.apiHandle.getVal() && story_step_select.apiHandle.getVal() !== '#') {
                                 search_data.attr.step = story_step_select.apiHandle.getVal();
                             }
-                            if (create_by_select.apiHandle.getVal() && create_by_select.apiHandle.getVal() != 0) {
+                            if (create_by_select.apiHandle.getVal() && create_by_select.apiHandle.getVal() !== '#') {
                                 search_data.attr.create_by = create_by_select.apiHandle.getVal();
                             }
-                            if (tracker_select.apiHandle.getVal() && tracker_select.apiHandle.getVal() != 0) {
+                            if (tracker_select.apiHandle.getVal() && tracker_select.apiHandle.getVal() !== '#') {
                                 search_data.attr.tracker = tracker_select.apiHandle.getVal();
                             }
                             kl.ajax({
-                                url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
+                                url: '/dp/v1/project/story/list?user_token=' + utk,
                                 data: search_data,
                                 type: 'json',
                                 success: function (res_request_data) {
@@ -251,18 +364,10 @@
                                 }
                             });
                         };
-                        flush_story_list();
-                        [display_storys_type, tracker_select, create_by_select, story_step_select].forEach((select_ele) => {
-                            select_ele.addEventListener('change', function () {
-                                flush_story_list();
-                            });
-                        });
-
-
                         let rander_storys_list = function (dataRows) {
                             storys_list_div.innerHTML = '';
 
-
+                            story_tr_handles = [];
                             let tmp_arr = markTree(dataRows, 0, 1);
                             console.log(tmp_arr);
                             let story_table = new Emt('table', 'class="table table-bordered table-striped table-hover"');
@@ -276,6 +381,7 @@
                                 res.title_td = tr.insertCell();
                                 res.creator_td = tr.insertCell();
                                 res.tracker_td = tr.insertCell();
+                                res.type_td = tr.insertCell();
                                 res.status_td = tr.insertCell();
                                 res.desc_order_td = tr.insertCell();
                                 res.create_date_td = tr.insertCell();
@@ -287,27 +393,42 @@
                                 res.title_td.className = "story_title_td";
                                 res.creator_td.className = "story_creator_td";
                                 res.tracker_td.className = "story_tracker_td";
+                                res.type_td.className = "story_type_td";
                                 res.status_td.className = "story_status_td";
                                 res.desc_order_td.className = "story_desc_order_td";
                                 res.create_date_td.className = "story_create_date_td";
                                 res.update_date_td.className = "story_update_date_td";
                                 res.op_td.className = "story_op_td";
+                                res.selectCheckbox = new Emt('input', 'type="checkbox"');
 
 
                                 tr.setStoryInfo = function (story_info) {
                                     tr.apiHandle = {data: story_info};
-                                    res.id_td.append(new Emt('div', '', story_info.id));
+                                    if (story_info.id !== 'ID') {
+                                        res.id_td.append(
+                                            new Emt('div').addNodes([
+                                                new Emt('label').addNodes([
+                                                    res.selectCheckbox,
+                                                    new Emt('span', '', story_info.id)
+                                                ])
+                                            ])
+                                        );
+                                    } else {
+                                        res.id_td.append(new Emt('div', '', story_info.id));
+                                    }
+
                                     res.title_td.append(new Emt('div', '', (display_storys_type.apiHandle.getVal() === 'tree' ? ('--->').repeat(story_info.lev - 1) : '') + story_info.title));
                                     res.creator_td.append(new Emt('div', '', story_info.__relat.create_by.info.real_name));
                                     res.tracker_td.append(new Emt('div', '', story_info.__relat.tracker.label ? story_info.__relat.tracker.info.real_name : '#'));
+                                    res.type_td.append(new Emt('div', '', window.serverData.storyTable.storyType.map[story_info.story_type]));
 
-                                    res.status_td.append(new Emt('div', '', serverData.storyStepMap[story_info.step]));
+                                    res.status_td.append(new Emt('div', '', window.serverData.storyTable.status.map[story_info.step]));
                                     res.desc_order_td.append(new Emt('div', '', story_info.story_desc_order));
                                     res.create_date_td.append(new Emt('div', '', story_info.create_time));
                                     res.update_date_td.append(new Emt('div', '', story_info.update_time ? story_info.update_time : '#'));
                                     res.op_td.append(new Emt('div').addNodes([
                                         new Emt('a', '', '查看', {target: '_blank', href: '/admin/project/story/detail.html?{"story_id":' + story_info.id + '}'}),
-                                        new Emt('a', '', '添加子问题', {target: '_blank', href: '/admin/project/story/add.html?{"parent_story_id":' + story_info.id + '}'})
+                                        new Emt('a', '', '添加子问题', {target: '_blank', href: '/admin/project/story/add.html?{"parent_story_id":' + story_info.id + '}'}),
                                     ]));
                                     if (story_info.lev === 1) {
                                         tr.classList.add('top_lev_story_tr');
@@ -318,6 +439,7 @@
                                     tr.classList.add('story_status_' + story_info.step);
 
                                 };
+
 
                                 tr.addEventListener('dragstart', function (e) {
                                     console.log('dragstart', e.target);
@@ -437,18 +559,20 @@
                                 create_time: '创建时间',
                                 update_time: '修改时间',
                                 step: 'header',
-
                             });
+                            story_header.type_td.innerHTML = '';
+                            story_header.type_td.append(new Emt('div', '', '归类'));
                             story_header.status_td.innerHTML = '';
-                            story_header.status_td.append(new Emt('div', '', '状态'))
+                            story_header.status_td.append(new Emt('div', '', '状态'));
                             story_header.op_td.innerHTML = '';
                             story_header.op_td.append(new Emt('div').addNodes([
-                                new Emt('a', '', '添加子问题', {href: '/admin/project/story/add.html?{"version_id":' + window.serverData.versionInfo.id + '}'})
+                                new Emt('a', '', '添加子问题', {href: '/admin/project/story/add.html?{"version_id":' + 0 + '}'})
                             ]));
 
 
                             story_table.appendStoryRowAsTree = function (story_info) {
                                 let res = story_table.createRow();
+                                story_tr_handles.push(res);
                                 res.tr.setStoryInfo(story_info);
                                 if (story_info.nodes.length > 0) {
                                     story_info.nodes.forEach(function (story_info2) {
@@ -470,7 +594,147 @@
                             storys_list_div.addNode(story_table);
 
                         };
+                        flush_story_list();
+                        [project_select, version_select, display_storys_type, tracker_select, create_by_select, story_step_select].forEach((select_ele) => {
+                            select_ele.addEventListener('change', function () {
+                                flush_story_list();
+                            });
+                        });
 
+                        select_all_btn.addEventListener('click', function () {
+                            story_tr_handles.forEach((tr_handle) => {
+                                tr_handle.selectCheckbox.checked = true;
+                            });
+                        });
+                        unselect_all_btn.addEventListener('click', function () {
+                            story_tr_handles.forEach((tr_handle) => {
+                                tr_handle.selectCheckbox.checked = false;
+                            });
+
+                        });
+
+
+                        selectInto_project_btn.addEventListener('click', function () {
+                            let project_id = selectInto_project_select.apiHandle.getVal();
+                            if (project_id === '#') {
+                                alert('不能进行此操作');
+                                return false;
+                            }
+                            let story_ids = [];
+                            story_tr_handles.forEach((tr_handle) => {
+                                if (tr_handle.selectCheckbox.checked) {
+                                    story_ids.push(tr_handle.tr.apiHandle.data.id);
+                                }
+                            });
+
+                            kl.ajax({
+                                url: '/dp/v1/project/story/addToProject?user_token=' + utk,
+                                data: {
+                                    project_id: project_id,
+                                    story_ids: story_ids
+                                },
+                                type: 'json',
+                                success: function (tmp_res) {
+                                    alert('已经添加至项目');
+                                    //flush_story_list();
+                                },
+                                error: function (res_save_column) {
+                                    alert('报错了');
+                                }
+                            });
+
+                        });
+                        selectInto_version_btn.addEventListener('click', function () {
+                            let version_id = selectInto_version_select.apiHandle.getVal();
+                            if (version_id === '#') {
+                                alert('不能进行此操作');
+                                return false;
+                            }
+                            let story_ids = [];
+                            story_tr_handles.forEach((tr_handle) => {
+                                if (tr_handle.selectCheckbox.checked) {
+                                    story_ids.push(tr_handle.tr.apiHandle.data.id);
+                                }
+                            });
+
+                            kl.ajax({
+                                url: '/dp/v1/project/story/addToVersion?user_token=' + utk,
+                                data: {
+                                    version_id: version_id,
+                                    story_ids: story_ids
+                                },
+                                type: 'json',
+                                success: function (tmp_res) {
+                                    alert('已经添加至目标版本');
+                                    //flush_story_list();
+                                },
+                                error: function (res_save_column) {
+                                    alert('报错了');
+                                }
+                            });
+
+                        });
+                        moveOut_from_project_btn.addEventListener('click', function () {
+                            let project_id = project_select.apiHandle.getVal();
+                            if (project_id === '#') {
+                                alert('不能进行此操作');
+                                return false;
+                            }
+                            let story_ids = [];
+                            story_tr_handles.forEach((tr_handle) => {
+                                if (tr_handle.selectCheckbox.checked) {
+                                    story_ids.push(tr_handle.tr.apiHandle.data.id);
+                                }
+                            });
+
+                            kl.ajax({
+                                url: '/dp/v1/project/story/moveOutFromProject?user_token=' + utk,
+                                data: {
+                                    project_id: project_id,
+                                    story_ids: story_ids
+                                },
+                                type: 'json',
+                                success: function (tmp_res) {
+                                    alert('已经从项目中移出');
+                                    flush_story_list();
+                                },
+                                error: function (res_save_column) {
+                                    alert('报错了');
+                                }
+                            });
+
+                        });
+
+                        moveOut_from_version_btn.addEventListener('click', function () {
+                            let version_id = version_select.apiHandle.getVal();
+                            if (version_id === '#' || version_id === '0') {
+                                alert('不能进行此操作');
+                                return false;
+                            }
+                            let story_ids = [];
+                            story_tr_handles.forEach((tr_handle) => {
+                                if (tr_handle.selectCheckbox.checked) {
+                                    story_ids.push(tr_handle.tr.apiHandle.data.id);
+                                }
+                            });
+
+                            kl.ajax({
+                                url: '/dp/v1/project/story/moveOutFromVersion?user_token=' + utk,
+                                data: {
+                                    version_id: version_id,
+                                    story_ids: story_ids
+                                },
+                                type: 'json',
+                                success: function (tmp_res) {
+                                    alert('已经从目标版本内移出');
+                                    flush_story_list();
+                                },
+                                error: function (res_save_column) {
+                                    alert('报错了');
+                                }
+                            });
+
+                        });
 
                         window.dragedEle = false;
 
@@ -560,6 +824,19 @@
             .story_status_del {
                 color: #AAA;
                 text-decoration: line-through;
+            }
+
+            .story_id_td > div > label > input[type="checkbox"] {
+
+            }
+            .story_id_td > div > label > input[type="checkbox"]:checked + span {
+                background: #000;
+                color: #FFF;
+
+            }
+
+            .story_id_td > div > label > input[type="checkbox"]:checked {
+
             }
         </style>
     </div>

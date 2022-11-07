@@ -216,7 +216,7 @@
                             data: {table_name: 'd_story', attr: {id: window.serverData.story_id}},
                             type: 'json',
                             success: function (res_request_data) {
-                                if (res_request_data.code && res_request_data.code === 'ok' && res_request_data.data && res_request_data.data.rowsTotal === "1") {
+                                if (res_request_data.code && res_request_data.code === 'ok' && res_request_data.data && res_request_data.data.rowsTotal === 1) {
                                     window.serverData.storyInfo = res_request_data.data.dataRows[0];
                                     storys_condtion.attr.story_id = serverData.storyInfo.id;
                                     content();
@@ -796,7 +796,7 @@
 
                         let tmp_arr = markTree(dataRows, window.serverData.storyInfo.id, 1);
                         console.log('markTree', tmp_arr);
-                        let story_table = new Emt('table','class="table table-bordered table-striped table-hover"');
+                        let story_table = new Emt('table', 'class="table table-bordered table-striped table-hover"');
                         story_table.createRow = function () {
                             let res = {};
                             let tr = story_table.insertRow();
@@ -848,7 +848,7 @@
                             story_desc_order: '优先级',
                             create_time: '创建时间',
                             update_time: '修改时间',
-                            step:'header',
+                            step: 'header',
                         });
                         story_header.status_td.textContent = '状态';
                         story_header.op_td.innerHTML = '';
@@ -932,8 +932,9 @@
             .story_commit_div {
                 border-left: 1px solid #000;
                 margin-top: 10px;
-                margin-bottom: 40px;
+                -margin-bottom: 40px;
                 padding: 10px;
+                background: #f9f9f9;
             }
 
             .story_commit_detail_div {

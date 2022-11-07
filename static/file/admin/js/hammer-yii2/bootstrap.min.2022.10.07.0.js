@@ -138,15 +138,15 @@ let hammerYii2Bootstarp = function () {
 
     bootstrap_hanndle.createButton = function (input_param) {
         let init_config = input_param || {};
-        let btn_ele = new Emt(init_config.tagName || 'button').setAttrsByStr('class="btn btn-default" ', input_param.title || '按钮文字');
+        let btn_ele = new Emt(init_config.tagName || 'button').setAttrsByStr('class="btn btn-default" ', input_param.text || '按钮文字');
         btn_ele.apiHandle = {
             ele: {root: btn_ele}
         };
         if (init_config.type) {
             btn_ele.setAttribute('type', init_config.type);
         }
-        if (init_config.contentText) {
-            btn_ele.textContent = init_config.contentText;
+        if (init_config.text) {
+            btn_ele.textContent = init_config.text;
         }
 
 
@@ -159,7 +159,7 @@ let hammerYii2Bootstarp = function () {
                 btn_ele.classList.add('btn-' + color_key);
             }
             btn_ele.classList.add('btn-' + color_key);
-            opts.color.items.forEach(function (color) {
+            btn_ele.apiHandle.color.items.forEach(function (color) {
                 if (color_key !== color) {
                     btn_ele.classList.remove('btn-' + color);
                 }
@@ -172,7 +172,7 @@ let hammerYii2Bootstarp = function () {
                 btn_ele.classList.add('btn-' + size_key);
             }
             btn_ele.classList.add('btn-' + size_key);
-            opts.size.items.forEach(function (size) {
+            btn_ele.apiHandle.size.items.forEach(function (size) {
                 if (size_key !== size) {
                     btn_ele.classList.remove('btn-' + size_key);
                 }
@@ -344,15 +344,22 @@ let hammerYii2Bootstarp = function () {
                 select_input_ele.add(new Option(item.text, item.val));
             });
         }
-        select_input_ele.apiHandle = {ele: {root: select_input_ele}};
+        select_input_ele.apiHandle = {ele: {root: select_input_ele, options: []}};
         bootstrap_hanndle.__initInputEle(select_input_ele, input_param);
         select_input_ele.apiHandle.addItem = function (text, val) {
-            select_input_ele.add(new Option(text, val));
+            let new_opt = new Option(text, val);
+            select_input_ele.apiHandle.ele.options.push(new_opt);
+            select_input_ele.add(new_opt);
         }
         select_input_ele.apiHandle.setItems = function (items) {
+            select_input_ele.apiHandle.ele.options.forEach((old_opt) => {
+                old_opt.remove();
+            })
             select_input_ele.apiHandle.items = items;
             select_input_ele.apiHandle.items.forEach(function (item) {
-                select_input_ele.add(new Option(item.text, item.val));
+                let new_opt = new Option(item.text, item.val);
+                select_input_ele.apiHandle.ele.options.push(new_opt);
+                select_input_ele.add(new_opt);
             })
         }
 
@@ -460,6 +467,8 @@ let hammerYii2Bootstarp = function () {
         }
         tmp.setContentText = function (contentText) {
             tmp.param.contentText = contentText;
+            tmp.param.text = contentText;
+
             return tmp;
         }
 
