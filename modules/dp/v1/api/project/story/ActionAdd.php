@@ -11,6 +11,7 @@ use modules\dp\v1\api\admin\AdminBaseAction;
 use modules\dp\v1\dao\admin\rbac\RbacRoleDao;
 use modules\dp\v1\dao\project\ProjectStoryDao;
 use modules\dp\v1\dao\project\StoryDao;
+use modules\dp\v1\dao\project\StoryVersionDao;
 use modules\dp\v1\dao\project\VersionStoryDao;
 use modules\dp\v1\model\admin\dbdata\DbColumn;
 use modules\dp\v1\model\admin\dbdata\DbTable;
@@ -48,16 +49,10 @@ class ActionAdd extends AdminBaseAction
         $res                   = $story_dao->insert(true, true);
 
 
-        $project_story_dao             = ProjectStoryDao::model();
-        $project_story_dao->project_id = $project_id;
-        $project_story_dao->story_id   = $story_dao->id;
-        $project_res                   = $project_story_dao->insert(false);
-
-
-        $version_story_dao             = VersionStoryDao::model();
-        $version_story_dao->version_id = $version_id;
-        $version_story_dao->story_id   = $story_dao->id;
-        $version_res                   = $version_story_dao->insert(false);
+        $sv_dao             = StoryVersionDao::model();
+        $sv_dao->version_id = $version_id;
+        $sv_dao->story_id   = $story_dao->id;
+        $version_res        = $sv_dao->insert(false);
 
 
         $commit_dao             = new StoryCommit();

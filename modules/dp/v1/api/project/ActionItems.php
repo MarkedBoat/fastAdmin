@@ -10,6 +10,7 @@ use models\common\sys\Sys;
 use modules\dp\v1\api\admin\AdminBaseAction;
 use modules\dp\v1\dao\admin\dbdata\DbColumnDao;
 use modules\dp\v1\dao\admin\rbac\RbacRoleDao;
+use modules\dp\v1\dao\project\StoryCommitStepDao;
 use modules\dp\v1\dao\project\StoryDao;
 use modules\dp\v1\model\admin\Admin;
 use modules\dp\v1\model\admin\dbdata\DbColumn;
@@ -105,5 +106,17 @@ class ActionItems extends AdminBaseAction
         }
         return $list;
     }
+
+    public function getCommitSteps()
+    {
+        $daos = StoryCommitStepDao::model()->findAllByWhere(['is_ok' => Opt::YES]);
+        $list = [];
+        foreach ($daos as $dao)
+        {
+            $list[] = ['val' => $dao->item_code, 'text' => $dao->title];
+        }
+        return $list;
+    }
+
 
 }

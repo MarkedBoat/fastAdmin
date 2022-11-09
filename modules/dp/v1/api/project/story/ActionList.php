@@ -10,7 +10,9 @@ use models\common\sys\Sys;
 use modules\dp\v1\api\admin\AdminBaseAction;
 use modules\dp\v1\dao\admin\rbac\RbacRoleDao;
 use modules\dp\v1\dao\project\ProjectStoryDao;
+use modules\dp\v1\dao\project\ProjectVersionStoryDao;
 use modules\dp\v1\dao\project\StoryDao;
+use modules\dp\v1\dao\project\StoryVersionDao;
 use modules\dp\v1\dao\project\VersionStoryDao;
 use modules\dp\v1\model\admin\dbdata\DbColumn;
 use modules\dp\v1\model\admin\dbdata\DbTable;
@@ -44,24 +46,22 @@ class ActionList extends AdminBaseAction
         $page_size  = $this->inputDataBox->tryGetInt('page_size');
         $sort_map   = $this->inputDataBox->tryGetArray('sort');
 
-        $project_story_ids = $project_id === '#' ? false : array_map(function ($dao) { return $dao->story_id; }, ProjectStoryDao::model()->findAllByWhere(['is_ok' => Opt::YES, 'project_id' => intval($project_id)]));
-        $version_story_ids = $version_id === '#' ? false : array_map(function ($dao) { return $dao->story_id; }, VersionStoryDao::model()->findAllByWhere(['is_ok' => Opt::YES, 'version_id' => intval($version_id)]));
-        if ($project_story_ids !== false && $version_story_ids !== false)
-        {
-            $attr['id'] = array_intersect($project_story_ids, $version_story_ids);
-        }
-        else if ($project_story_ids === false && $version_story_ids !== false)
-        {
-            $attr['id'] = $version_story_ids;
-        }
-        else if ($version_story_ids === false && $project_story_ids !== false)
-        {
-            $attr['id'] = $project_story_ids;
-        }
-        if (isset($attr['id']) && count($attr['id']) === 0)
-        {
-            return ['rowsTotal' => 0, 'pageTotal' => 0, 'pageIndex' => $page_index, 'pageSize' => $page_size, 'dataRows' => [], 'msg' => 'project_id 和 version 交下来 空数据'];
+        $version_story_ids = $version_id === '#' ? false : array_map(function ($dao) { return $dao->story_id; }, StoryVersionDao::model()->findAllByWhere(['is_ok' => Opt::YES, 'version_id' => intval($version_id)]));
 
+        if ($version_story_ids !== false)
+        {
+            if (count($version_story_ids))
+            {
+                $attr['id'] = $version_story_ids;
+            }
+            else
+            {
+                return ['rowsTotal' => 0, 'pageTotal' => 0, 'pageIndex' => $page_index, 'pageSize' => $page_size, 'dataRows' => [], 'msg' => 'project_id 和 version 交下来 空数据'];
+            }
+        }
+        if ($project_id !== '#')
+        {
+            $attr['project_id'] = $project_id;
         }
 
         $dbtable = new DbTable();

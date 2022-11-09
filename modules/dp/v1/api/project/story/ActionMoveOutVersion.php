@@ -9,6 +9,8 @@ use models\common\opt\Opt;
 use models\common\sys\Sys;
 use modules\dp\v1\api\admin\AdminBaseAction;
 use modules\dp\v1\dao\admin\rbac\RbacRoleDao;
+use modules\dp\v1\dao\project\ProjectStoryDao;
+use modules\dp\v1\dao\project\StoryDao;
 use modules\dp\v1\dao\project\StoryVersionDao;
 use modules\dp\v1\dao\project\VersionStoryDao;
 use modules\dp\v1\model\admin\dbdata\DbColumn;
@@ -20,7 +22,7 @@ use modules\dp\v1\model\project\StoryCommit;
 use modules\dp\v1\model\project\Version;
 
 
-class ActionAddToVersion extends AdminBaseAction
+class ActionMoveOutVersion extends AdminBaseAction
 {
     public $requestMethods = ['POST', 'GET'];
     public $dataSource     = 'REQUEST';
@@ -50,22 +52,18 @@ class ActionAddToVersion extends AdminBaseAction
         $sv_model  = StoryVersionDao::model();
         $sv_tn     = $sv_model->getTableName();
         $sv_models = $sv_model->findAllByWhere(['story_id' => $story_ids]);
+
         /** @var  $sv_models_map_map StoryVersionDao[][] */
         $sv_models_map_map = [];
-        foreach ($sv_models as $curr_sv_model)
+        foreach ($sv_models as $sv_model_1)
         {
-            if (!isset($sv_models_map_map[$curr_sv_model->story_id]))
+            if (!isset($sv_models_map_map[$sv_model_1->story_id]))
             {
-                $sv_models_map_map[$curr_sv_model->story_id] = [];
+                $sv_models_map_map[$sv_model_1->story_id] = [];
             }
-            $sv_models_map_map[$curr_sv_model->story_id][$curr_sv_model->version_id] = $curr_sv_model;
+            $sv_models_map_map[$sv_model_1->story_id][$sv_model_1->version_id] = $sv_model_1;
         }
-
-        //已经分到项目了，现在挪到为0项目的？  应该禁止
-        //版本只能只是在项目下才能操作
-        //在不同的项目，目标版本都是未跟踪
-        //理想目标应该是story 只能存在于一个项目，但是有多个目标版，每个目标版本有个快照，在关闭目标版本的时候，保留快照
-        //但是这个目标版本，是谁的呢？ 跨项目公用？ 还是各个项目各有一个？共用吧，反正story 有pid ，沿用vresion & story
+        Sys::app()->addLog([$sv_models_map_map], 'xxxxxx');
 
 
         $update_sv_ok_ids   = [];
@@ -87,47 +85,96 @@ class ActionAddToVersion extends AdminBaseAction
             if (isset($sv_models_map_map[$story_id]))
             {
                 $sv_version_map = $sv_models_map_map[$story_id];
+
                 if (isset($sv_version_map[$version_id]))
                 {
-                    if ($sv_version_map[$version_id]->is_ok !== Opt::YES)
+                    //移出当前目标版本
+                    if ($sv_version_map[$version_id]->is_ok === Opt::YES)
                     {
-                        $update_sv_ok_ids[]           = $sv_version_map[$version_id]->id;
-                        $record[$story_id]['version'] = 'open';
-                        $commit_infos[]               = ['story_id' => $story_id, 'type' => 'version_change', 'data' => ['type' => 'in', 'version_id' => $version_id]];
+
+                        $update_sv_deny_ids[]         = $sv_version_map[$version_id]->id;
+                        $record[$story_id]['version'] = 'shutdown';
+                        $commit_infos[]               = ['story_id' => $story_id, 'type' => 'version_change', 'data' => ['type' => 'out', 'version_id' => $version_id]];
                     }
                     else
                     {
-                        $record[$story_id]['version'] = 'keep_open';
+                        $record[$story_id]['version'] = 'keep_shutdown';
                     }
                 }
                 else
                 {
-                    $insert_sv_sqls[]             = "insert ignore into {$sv_tn} set story_id={$story_id},version_id={$version_id},is_ok=1";
-                    $record[$story_id]['version'] = 'add_open';
-                    $commit_infos[]               = ['story_id' => $story_id, 'type' => 'version_change', 'data' => ['type' => 'in', 'version_id' => $version_id]];
+                    $record[$story_id]['version'] = 'not_found_version';
                 }
-                if (isset($sv_version_map[0]))
+                //瞅一下  除了【未跟踪】之外，还有没有活着的
+                $has_open = false;
+                foreach ($sv_version_map as $fetch_version_id => $curr_sv_model)
                 {
-                    if ($sv_version_map[0]->is_ok === Opt::YES)
+                    if ($fetch_version_id === $version_id)
                     {
-                        $update_sv_deny_ids[]         = $sv_version_map[0]->id;
-                        $record[$story_id]['version'] = 'shutdown';
-                        $commit_infos[]               = ['story_id' => $story_id, 'type' => 'version_change', 'data' => ['type' => 'out', 'version_id' => $version_id]];
+                        continue;
+                    }
+                    if ($fetch_version_id === 0)
+                    {
+                        continue;
+                    }
+                    if ($curr_sv_model->is_ok === Opt::YES)
+                    {
+                        $has_open = true;
+                        break;
+                    }
 
+                }
+
+                if ($has_open === false)
+                {
+                    //如果没有或者的目标版本，那么  【未跟踪】 就要打开
+                    if (isset($sv_version_map[0]))
+                    {
+                        if ($sv_version_map[0]->is_ok === Opt::YES)
+                        {
+                            $record[$story_id]['unversion'] = 'keep_open';
+                        }
+                        else
+                        {
+                            $update_sv_ok_ids[]           = $sv_version_map[0]->id;
+                            $record[$story_id]['version'] = 'open';
+                            $commit_infos[]               = ['story_id' => $story_id, 'type' => 'version_change', 'data' => ['type' => 'in', 'version_id' => 0]];
+                        }
                     }
                     else
                     {
-                        $record[$story_id]['unversion'] = 'keep_shutdown';
+                        //最简单，直接插入
+                        $insert_sv_sqls[]               = "insert ignore into {$sv_tn} set story_id={$story_id},version_id=0,is_ok=1";
+                        $record[$story_id]['unversion'] = 'open';
+                        $commit_infos[]                 = ['story_id' => $story_id, 'type' => 'version_change', 'data' => ['type' => 'in', 'version_id' => 0]];
                     }
                 }
+                else
+                {
+                    //还有活着的目标版本，那么  【未跟踪】 就要关闭
+                    if (isset($sv_version_map[0]))
+                    {
+                        if ($sv_version_map[0]->is_ok === Opt::YES)
+                        {
+                            $update_sv_deny_ids[]         = $sv_version_map[0]->id;
+                            $record[$story_id]['version'] = 'shutdown';
+                            $commit_infos[]               = ['story_id' => $story_id, 'type' => 'version_change', 'data' => ['type' => 'out', 'version_id' => 0]];
+                        }
+                        else
+                        {
+                            $record[$story_id]['unversion'] = 'keep_shutdown';
+                        }
+                    }
+                    else
+                    {
+                        $record[$story_id]['unversion'] = 'keep_shutdown_not_found';
+                    }
+                }
+
             }
             else
             {
-                //最简单，直接插入
-                $insert_sv_sqls[]             = "insert ignore into {$sv_tn} set story_id={$story_id},version_id={$version_id},is_ok=1";
-                $record[$story_id]['version'] = 'add_open';
-                $commit_infos[]               = ['story_id' => $story_id, 'type' => 'version_change', 'data' => ['type' => 'in', 'version_id' => $version_id]];
-
+                $record[$story_id]['version'] = 'not_found_version_and_story';
             }
 
         }
@@ -140,6 +187,7 @@ class ActionAddToVersion extends AdminBaseAction
 
         if (count($update_sv_deny_ids))
         {
+            Sys::app()->addLog($update_sv_deny_ids, '$update_sv_deny_ids');
             $tmp_str = join(',', $update_sv_deny_ids);
             $sv_model->getDbConnect()->setText("update {$sv_tn} set is_ok=2 where id in ({$tmp_str})")->execute();
         }
@@ -176,6 +224,5 @@ class ActionAddToVersion extends AdminBaseAction
         ];
 
     }
-
 
 }

@@ -250,8 +250,8 @@
 
                         let storys_input_div = Emt('div');
 
-                        let selectInto_project_btn = hammerYii2Bootstarp1.createButton({text: '将勾选中的story 添加至指定项目'}).apiHandle.size.set('lg');
-                        let selectInto_project_select = hammerYii2Bootstarp1.createSelect({items: window.serverData.project.list});
+                        let move_project_btn = hammerYii2Bootstarp1.createButton({text: '将勾选中的story 【转移】到指定项目'}).apiHandle.size.set('lg');
+                        let move_project_select = hammerYii2Bootstarp1.createSelect({items: window.serverData.project.list});
                         let selectInto_version_btn = hammerYii2Bootstarp1.createButton({text: '将勾选中的story 添加至指定目标版本'}).apiHandle.size.set('lg');
                         let selectInto_version_select = hammerYii2Bootstarp1.createSelect({items: window.serverData.version.list});
 
@@ -277,8 +277,8 @@
                             detail_root_div.addNodes([
                                 new Emt('h4', '', '添加至'),
                                 new Emt('div').addNodes([
-                                    selectInto_project_btn,
-                                    new Emt('label', '', '项目:').addNode(selectInto_project_select),
+                                    move_project_btn,
+                                    new Emt('label', '', '项目:').addNode(move_project_select),
                                 ]),
                                 new Emt('div').addNodes([
                                     selectInto_version_btn,
@@ -614,8 +614,8 @@
                         });
 
 
-                        selectInto_project_btn.addEventListener('click', function () {
-                            let project_id = selectInto_project_select.apiHandle.getVal();
+                        move_project_btn.addEventListener('click', function () {
+                            let project_id = move_project_select.apiHandle.getVal();
                             if (project_id === '#') {
                                 alert('不能进行此操作');
                                 return false;
@@ -628,15 +628,19 @@
                             });
 
                             kl.ajax({
-                                url: '/dp/v1/project/story/addToProject?user_token=' + utk,
+                                url: '/dp/v1/project/story/moveToProject?user_token=' + utk,
                                 data: {
                                     project_id: project_id,
                                     story_ids: story_ids
                                 },
                                 type: 'json',
                                 success: function (tmp_res) {
-                                    alert('已经添加至项目');
-                                    //flush_story_list();
+                                    if (kl.isUndefined(tmp_res, 'data.changed')) {
+                                        alert('转移至指定项目错误:' + (tmp_res.msg || '未知'));
+                                    } else {
+                                        alert('已经转移到指定项目');
+                                        flush_story_list();
+                                    }
                                 },
                                 error: function (res_save_column) {
                                     alert('报错了');
@@ -665,8 +669,12 @@
                                 },
                                 type: 'json',
                                 success: function (tmp_res) {
-                                    alert('已经添加至目标版本');
-                                    //flush_story_list();
+                                    if (kl.isUndefined(tmp_res, 'data.changed')) {
+                                        alert('添加至目标版本错误:' + (tmp_res.msg || '未知'));
+                                    } else {
+                                        alert('已经添加至目标版本');
+                                        // flush_story_list();
+                                    }
                                 },
                                 error: function (res_save_column) {
                                     alert('报错了');
@@ -719,15 +727,19 @@
                             });
 
                             kl.ajax({
-                                url: '/dp/v1/project/story/moveOutFromVersion?user_token=' + utk,
+                                url: '/dp/v1/project/story/moveOutVersion?user_token=' + utk,
                                 data: {
                                     version_id: version_id,
                                     story_ids: story_ids
                                 },
                                 type: 'json',
                                 success: function (tmp_res) {
-                                    alert('已经从目标版本内移出');
-                                    flush_story_list();
+                                    if (kl.isUndefined(tmp_res, 'data.changed')) {
+                                        alert('从目标版本内移出错误:' + (tmp_res.msg || '未知'));
+                                    } else {
+                                        alert('已经从目标版本内移出');
+                                        // flush_story_list();
+                                    }
                                 },
                                 error: function (res_save_column) {
                                     alert('报错了');
@@ -829,6 +841,7 @@
             .story_id_td > div > label > input[type="checkbox"] {
 
             }
+
             .story_id_td > div > label > input[type="checkbox"]:checked + span {
                 background: #000;
                 color: #FFF;
