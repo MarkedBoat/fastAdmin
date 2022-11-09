@@ -110,10 +110,19 @@
 
             domLoaded(function () {
                     let utk = '';
+
+
                     let role_infos = [];
                     bg_init(function () {
                         utk = window.utk;
+                        window.serverData.dataLib = {
+                            admin: {items: [], list: [], map: {}},
+                            commitType: {items: [], list: [], map: {}},
+                            role: {items: [], list: [], map: {}},
+                            storyType: {items: [], list: [], map: {}},
+                            storyTableConfig: {}
 
+                        };
                         let getRoleList = function (fun) {
                             kl.ajax({
                                 url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
@@ -159,6 +168,33 @@
                             });
                         };
 
+                        let getCommitTypeList = function (fun) {
+                            kl.ajax({
+                                url: '/dp/v1/project/items?user_token=' + utk,
+                                data: {item_code: 'commit_type'},
+                                type: 'json',
+                                success: function (res_request_data) {
+                                    if (typeof res_request_data.forEach === "function") {
+                                        window.serverData.dataLib.commitType.items = res_request_data;
+                                        window.serverData.dataLib.commitType.items.forEach(function (commitTypeItem) {
+                                            window.serverData.dataLib.commitType.map[commitTypeItem.val] = commitTypeItem.text;
+                                        });
+                                        fun();
+                                    } else {
+                                        alert('获取表信息 请求结果异常');
+                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
+                                    }
+                                },
+                                error: function (res_request_data) {
+                                    console.log(res_request_data);
+                                    alert('获取表信息 网络异常');
+                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                                }
+                            });
+                        };
+
+
                         let getStoryTableConfigInfo = function (fun) {
                             kl.ajax({
                                 url: '/dp/v1/admin/dbdata/info?user_token=' + utk,
@@ -168,23 +204,17 @@
                                     if (res_request_data.status) {
                                         if (res_request_data.status === 200) {
 
-                                            window.serverData.storyTable = {
-                                                allColumn: {map: {}, items: res_request_data.data.columns},
-                                                status: {map: {}, items: []},
-                                                storyType: {map: {}, items: []},
-                                            };
-
                                             res_request_data.data.columns.forEach(function (colInfo) {
-                                                window.serverData.storyTable.allColumn.map[colInfo.column_name] = colInfo;
+                                                window.serverData.dataLib.storyTableConfig[colInfo.column_name] = colInfo;
                                             });
-                                            window.serverData.storyTable.status.items = window.serverData.storyTable.allColumn.map.step.val_range;
-                                            window.serverData.storyTable.status.items.forEach(function (itemInfo) {
-                                                window.serverData.storyTable.status.map[itemInfo.val] = itemInfo.text;
+
+                                            //标准
+                                            window.serverData.dataLib.storyType.items = window.serverData.dataLib.storyTableConfig.story_type.val_range;
+                                            window.serverData.dataLib.storyType.items.forEach(function (storyTypItem) {
+                                                window.serverData.dataLib.storyType.map[storyTypItem.val] = storyTypItem.text;
                                             });
-                                            window.serverData.storyTable.storyType.items = window.serverData.storyTable.allColumn.map.story_type.val_range;
-                                            window.serverData.storyTable.storyType.items.forEach(function (itemInfo) {
-                                                window.serverData.storyTable.storyType.map[itemInfo.val] = itemInfo.text;
-                                            });
+
+
                                             fun();
                                         } else {
                                             alert(' 获取表信息 错误:' + (res_request_data.message || '未知'));
@@ -229,14 +259,16 @@
                             });
                         };
 
-
-                        getAdminList(() => {
-                            getStoryTableConfigInfo(() => {
-                                getUnTimeOverVersionInfos(function () {
-                                    content();
+                        getCommitTypeList(() => {
+                            getAdminList(() => {
+                                getStoryTableConfigInfo(() => {
+                                    getUnTimeOverVersionInfos(function () {
+                                        content();
+                                    });
                                 });
                             });
                         });
+
 
                     });
 
@@ -286,7 +318,7 @@
 
 
                         form_edit.apiHandle.addGroupPreCreate().setLabelText('类型').setIndexKey('storyType').create('select');
-                        form_edit.apiHandle.ele.input.storyType.apiHandle.setItems(window.serverData.storyTable.storyType.items);
+                        form_edit.apiHandle.ele.input.storyType.apiHandle.setItems(window.serverData.dataLib.storyType.items);
                         form_edit.apiHandle.ele.input.storyType.apiHandle.setInitVal('story');
 
                         form_edit.apiHandle.addGroupPreCreate().setLabelText('跟踪人').setIndexKey('tracker').create('select');
@@ -406,7 +438,7 @@
                             kl.ajax({
                                 url: '/dp/v1/project/story/add?user_token=' + utk,
                                 //attr: form,
-                                data:attr,
+                                data: attr,
                                 type: 'json',
                                 success: function (save_story_res) {
                                     if (save_story_res.status) {

@@ -255,7 +255,6 @@
                         let selectInto_version_btn = hammerYii2Bootstarp1.createButton({text: '将勾选中的story 添加至指定目标版本'}).apiHandle.size.set('lg');
                         let selectInto_version_select = hammerYii2Bootstarp1.createSelect({items: window.serverData.version.list});
 
-                        let moveOut_from_project_btn = hammerYii2Bootstarp1.createButton({text: '将勾选中的story 从项目中移出'}).apiHandle.size.set('lg');
                         let moveOut_from_version_btn = hammerYii2Bootstarp1.createButton({text: '将勾选中的story 从目标版本中移出'}).apiHandle.size.set('lg');
 
 
@@ -286,7 +285,6 @@
 
                                 new Emt('h4', '', '移出'),
                                 new Emt('div').addNodes([
-                                    moveOut_from_project_btn,
                                     moveOut_from_version_btn,
                                 ])
 
@@ -682,36 +680,7 @@
                             });
 
                         });
-                        moveOut_from_project_btn.addEventListener('click', function () {
-                            let project_id = project_select.apiHandle.getVal();
-                            if (project_id === '#') {
-                                alert('不能进行此操作');
-                                return false;
-                            }
-                            let story_ids = [];
-                            story_tr_handles.forEach((tr_handle) => {
-                                if (tr_handle.selectCheckbox.checked) {
-                                    story_ids.push(tr_handle.tr.apiHandle.data.id);
-                                }
-                            });
 
-                            kl.ajax({
-                                url: '/dp/v1/project/story/moveOutFromProject?user_token=' + utk,
-                                data: {
-                                    project_id: project_id,
-                                    story_ids: story_ids
-                                },
-                                type: 'json',
-                                success: function (tmp_res) {
-                                    alert('已经从项目中移出');
-                                    flush_story_list();
-                                },
-                                error: function (res_save_column) {
-                                    alert('报错了');
-                                }
-                            });
-
-                        });
 
                         moveOut_from_version_btn.addEventListener('click', function () {
                             let version_id = version_select.apiHandle.getVal();

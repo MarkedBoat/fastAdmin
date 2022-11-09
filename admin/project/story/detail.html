@@ -88,7 +88,7 @@
                 step_div.addNodes([
                     new Emt('div', 'class="short_info_div"').addNodes([
                         new Emt('span', 'class="id_span"', '#' + commitInfo.id),
-                        new Emt('span', 'class="status_span"', '' + window.serverData.storyCommitMap[commitInfo.step]),
+                        new Emt('span', 'class="status_span"', '' + window.serverData.dataLib.commitType.map[commitInfo.step]),
                         new Emt('span', 'class="create_span"', commitInfo.__relat.create_by.info.real_name + '/' + commitInfo.create_time),
                         reply_div,
                     ]),
@@ -106,7 +106,7 @@
                     reply_div.addNodes([new Emt('a', '', '父commit', {href: '#story_commit_div_' + commitInfo.reply_id})]);
                     if (pageData.commit_map[commitInfo.reply_id]) {
                         pageData.commit_map[commitInfo.reply_id].apiHandle.ele.replies_div.addNodes([
-                            new Emt('a', '', '#' + commitInfo.id + '/' + commitInfo.__relat.create_by.info.real_name + '/' + commitInfo.create_time + '[' + window.serverData.storyCommitMap[commitInfo.step] + ']', {href: '#story_commit_div_' + commitInfo.id})
+                            new Emt('a', '', '#' + commitInfo.id + '/' + commitInfo.__relat.create_by.info.real_name + '/' + commitInfo.create_time + '[' + window.serverData.dataLib.commitType.map[commitInfo.step] + ']', {href: '#story_commit_div_' + commitInfo.id})
                         ]);
                     }
 
@@ -119,7 +119,14 @@
                 let role_infos = [];
                 bg_init(function () {
                     utk = window.utk;
+                    window.serverData.dataLib = {
+                        admin: {items: [], list: [], map: {}},
+                        commitType: {items: [], list: [], map: {}},
+                        role: {items: [], list: [], map: {}},
+                        storyType: {items: [], list: [], map: {}},
+                        storyTableConfig: {}
 
+                    };
 
                     kl.ajax({
                         url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
@@ -162,6 +169,33 @@
                             }
                         });
                     };
+
+                    let getCommitTypeList = function (fun) {
+                        kl.ajax({
+                            url: '/dp/v1/project/items?user_token=' + utk,
+                            data: {item_code: 'commit_type'},
+                            type: 'json',
+                            success: function (res_request_data) {
+                                if (typeof res_request_data.forEach === "function") {
+                                    window.serverData.dataLib.commitType.items = res_request_data;
+                                    window.serverData.dataLib.commitType.items.forEach(function (commitTypeItem) {
+                                        window.serverData.dataLib.commitType.map[commitTypeItem.val] = commitTypeItem.text;
+                                    });
+                                    fun();
+                                } else {
+                                    alert('获取表信息 请求结果异常');
+                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
+                                }
+                            },
+                            error: function (res_request_data) {
+                                console.log(res_request_data);
+                                alert('获取表信息 网络异常');
+                                throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                            }
+                        });
+                    };
+
                     let getStoryTableInfo = function (fun) {
                         kl.ajax({
                             url: '/dp/v1/admin/dbdata/info?user_token=' + utk,
@@ -170,24 +204,15 @@
                             success: function (res_request_data) {
                                 if (res_request_data.status) {
                                     if (res_request_data.status === 200) {
-                                        window.serverData.storyColumnMap = {};
-                                        window.serverData.storyCommitMap = {};
 
                                         res_request_data.data.columns.forEach(function (colInfo) {
-                                            window.serverData.storyColumnMap[colInfo.column_name] = colInfo;
-                                        });
-                                        window.serverData.storyColumnMap.step.val_range.forEach(function (itemInfo) {
-                                            window.serverData.storyCommitMap[itemInfo.val] = itemInfo.text;
+                                            window.serverData.dataLib.storyTableConfig[colInfo.column_name] = colInfo;
                                         });
 
-                                        window.serverData.storyCommit = {map: {}, items: window.serverData.storyColumnMap.step.val_range};
-                                        window.serverData.storyCommit.items.forEach(function (itemInfo) {
-                                            window.serverData.storyCommit.map[itemInfo.val] = itemInfo.text;
-                                        });
-
-                                        window.serverData.storyType = {map: {}, items: window.serverData.storyColumnMap.story_type.val_range};
-                                        window.serverData.storyType.items.forEach(function (itemInfo) {
-                                            window.serverData.storyType.map[itemInfo.val] = itemInfo.text;
+                                        //标准
+                                        window.serverData.dataLib.storyType.items = window.serverData.dataLib.storyTableConfig.story_type.val_range;
+                                        window.serverData.dataLib.storyType.items.forEach(function (storyTypItem) {
+                                            window.serverData.dataLib.storyType.map[storyTypItem.val] = storyTypItem.text;
                                         });
 
                                         fun();
@@ -226,15 +251,17 @@
                             }
                         });
                     };
-                    getAdminList(
-                        function () {
-                            getStoryTableInfo(
-                                function () {
-                                    getStoryRowInfo()
-                                }
-                            )
-                        }
-                    );
+                    getCommitTypeList(() => {
+                        getAdminList(
+                            function () {
+                                getStoryTableInfo(
+                                    function () {
+                                        getStoryRowInfo()
+                                    }
+                                )
+                            }
+                        );
+                    });
 
 
                 });
@@ -342,12 +369,12 @@
                     new_commit_form.apiHandle.ele.input.tracker.parentElement.className = 'col-sm-3';
 
                     new_commit_form.apiHandle.addGroupPreCreate().setLabelText('类型').setIndexKey('story_type').create('select');
-                    new_commit_form.apiHandle.ele.input.story_type.apiHandle.setItems(window.serverData.storyType.items);
+                    new_commit_form.apiHandle.ele.input.story_type.apiHandle.setItems(window.serverData.dataLib.storyType.items);
                     new_commit_form.apiHandle.ele.input.story_type.apiHandle.setInitVal(window.serverData.storyInfo.story_type);
                     new_commit_form.apiHandle.ele.input.story_type.parentElement.className = 'col-sm-3';
 
                     new_commit_form.apiHandle.addGroupPreCreate().setLabelText('状态').setIndexKey('step').create('select');
-                    new_commit_form.apiHandle.ele.input.step.apiHandle.setItems(window.serverData.storyCommit.items);
+                    new_commit_form.apiHandle.ele.input.step.apiHandle.setItems(window.serverData.dataLib.commitType.items);
                     new_commit_form.apiHandle.ele.input.step.apiHandle.setInitVal('comment');
 
 
@@ -376,7 +403,7 @@
                             ]),
                             new Emt('div', 'class="short_info_div"').addNodes([
                                 new Emt('span', 'class="create_span"', '创建:' + window.serverData.storyInfo.__relat.create_by.info.real_name + '/' + window.serverData.storyInfo.create_time),
-                                new Emt('span', 'class="status_span"', '状态:' + window.serverData.storyCommitMap[window.serverData.storyInfo.step]),
+                                new Emt('span', 'class="status_span"', '状态:' + window.serverData.dataLib.commitType.map[window.serverData.storyInfo.step]),
                             ])
 
 
@@ -653,8 +680,8 @@
                         }
 
                         if (new_commit_form.apiHandle.ele.input.story_type.apiHandle.isChange()) {
-                            let old_type = (window.serverData.storyType.map[window.serverData.storyInfo.story_type] || '') + '(' + window.serverData.storyInfo.story_type + ')';
-                            let new_type = (window.serverData.storyType.map[attr.story_type] || '') + '(' + attr.story_type.toString() + ')';
+                            let old_type = (window.serverData.dataLib.storyType.map[window.serverData.storyInfo.story_type] || '') + '(' + window.serverData.storyInfo.story_type + ')';
+                            let new_type = (window.serverData.dataLib.storyType.map[attr.story_type] || '') + '(' + attr.story_type.toString() + ')';
 
                             attr.detail = attr.detail + "\n 更换story类型  原类型:" + old_type + " 新类型: " + new_type + "\n";
                         }
@@ -827,7 +854,7 @@
                                 res.id_td.append(new Emt('div', '', story_info.id));
                                 res.title_td.append(new Emt('div', '', story_info.title));
                                 res.creator_td.append(new Emt('div', '', story_info.__relat.create_by.info.real_name));
-                                res.status_td.append(new Emt('div', '', window.serverData.storyCommitMap[story_info.step]));
+                                res.status_td.append(new Emt('div', '', window.serverData.dataLib.commitType.map[story_info.step]));
                                 res.desc_order_td.append(new Emt('div', '', story_info.story_desc_order));
                                 res.create_date_td.append(new Emt('div', '', story_info.create_time));
                                 res.update_date_td.append(new Emt('div', '', story_info.update_time ? story_info.update_time : '#'));

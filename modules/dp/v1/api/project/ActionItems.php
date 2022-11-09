@@ -56,6 +56,10 @@ class ActionItems extends AdminBaseAction
         {
             $item_list = $this->getAdmins();
         }
+        else if ($item_code === 'commit_type')
+        {
+            $item_list = $this->getCommitTypes();
+        }
         else
         {
             throw new AdvError(AdvError::request_param_error, "{$item_code} 没有对应的处理方法");
@@ -107,7 +111,7 @@ class ActionItems extends AdminBaseAction
         return $list;
     }
 
-    public function getCommitSteps()
+    public function getCommitTypes()
     {
         $daos = StoryCommitStepDao::model()->findAllByWhere(['is_ok' => Opt::YES]);
         $list = [];
