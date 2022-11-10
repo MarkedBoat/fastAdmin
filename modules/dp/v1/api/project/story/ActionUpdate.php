@@ -44,7 +44,7 @@ class ActionUpdate extends AdminBaseAction
         $commit_dao->reply_id   = 0;
         $commit_dao->used_hours = 0;
         $commit_dao->step       = 'update_story';
-        $commit_dao->detail     = json_encode(array_diff($new_attrs, $old_attrs));
+        $commit_dao->detail     = json_encode(['new' => $new_attrs, 'old' => $old_attrs]);
         $commit_dao->create_by  = $this->user->id;
         $commit_dao->insert(true, true);
 

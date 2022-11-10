@@ -72,12 +72,25 @@
                 return story_infos;
             };
 
+            let markTreePre = function (index, total) {
+                let tmp_div = new Emt(
+                    'div', 'class="tree_pre_div"'
+                );
+                tmp_div.classList.add('tree_pre_div');
+
+                return tmp_div;
+            };
+
 
             let markStoryStepDiv = function (commitInfo) {
                 console.log('markStoryStepDiv', commitInfo);
                 let step_div = new Emt('div', 'class="story_commit_div"',);
                 let reply_div = new Emt('div', '', '', {});
                 step_div.setAttribute('id', 'story_commit_div_' + commitInfo.id);
+
+                if (commitInfo.step === 'create_story') {
+
+                }
 
                 let reply_this_btn = new Emt('button', 'type="button" class="reply_commit_btn"', '回复当前');
                 if (commitInfo.detail.length > 0) {
@@ -960,7 +973,7 @@
                 border-left: 1px solid #000;
                 margin-top: 10px;
                 -margin-bottom: 40px;
-                padding: 10px;
+                padding-bottom: 10px;
                 background: #f9f9f9;
             }
 
@@ -1010,24 +1023,29 @@
                 padding-left: 20px;
                 padding-top: 10px;
                 min-height: 3em;
+                font-size: 6px;
             }
 
             .short_info_div > span {
                 display: block;
                 float: left;
-                background: #CCC;
+                -background: #CCC;
                 border-radius: 4px;
                 margin-right: 5px;
-                padding: 5px;
+                -padding: 5px;
             }
 
             .reply_commit_btn {
                 display: block;
                 float: left;
-                background: #CCC;
+                -background: #CCC;
                 border-radius: 4px;
                 margin-right: 5px;
-                padding: 2.5px;
+                -padding: 2.5px;
+
+                padding: unset;
+                font-size: 6px;
+                border: unset;
             }
 
             .img_small_size {
