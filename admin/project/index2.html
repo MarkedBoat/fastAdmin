@@ -54,22 +54,23 @@
         <script>
 
 
-            let markTree = function (data_rows, parent_story_id, lev) {
+            let makeTree = function (data_rows, parent_story_id, lev) {
                 console.log('树第N:', data_rows, parent_story_id);
                 let story_infos = [];
-                data_rows.forEach(function (story_info) {
+                data_rows.forEach(function (story_info, tmp_i) {
                     if (story_info.story_id == parent_story_id) {
                         story_info.lev = lev;
                         story_info.asIndex = story_infos.length;
-                        story_info.nodes = markTree(data_rows, story_info.id, lev + 1);
+                        story_info.nodes = makeTree(data_rows, story_info.id, lev + 1);
                         story_info.nodesCount = story_info.nodes.length;
                         story_infos.push(story_info);
+                        data_rows[tmp_i].isTreeNode = true;
                     }
                 });
                 return story_infos;
             };
 
-            let markTreePre = function (deep, index, total) {
+            let makeTreePre = function (deep, index, total) {
                 let tmp_div = new Emt(
                     'div', 'class="tree_pre_div"'
                 );
@@ -177,9 +178,9 @@
                             tr.apiHandle.title_td.append(title_div);
                             tr.apiHandle.creator_td.append(new Emt('div', '', story_info.__relat.create_by.info.real_name));
                             tr.apiHandle.tracker_td.append(new Emt('div', '', story_info.__relat.tracker.label ? story_info.__relat.tracker.info.real_name : '#'));
-                            tr.apiHandle.type_td.append(new Emt('div', '', window.serverData.storyTable.storyType.map[story_info.story_type]));
+                            tr.apiHandle.type_td.append(new Emt('div', '', window.serverData.dataLib.storyType.map[story_info.story_type]));
 
-                            tr.apiHandle.status_td.append(new Emt('div', '', window.serverData.storyTable.status.map[story_info.step]));
+                            tr.apiHandle.status_td.append(new Emt('div', '', window.serverData.dataLib.commitType.map[story_info.step] || story_info.step));
                             tr.apiHandle.desc_order_td.append(new Emt('div', '', story_info.story_desc_order));
                             tr.apiHandle.create_date_td.append(new Emt('div', '', story_info.create_time));
                             tr.apiHandle.update_date_td.append(new Emt('div', '', story_info.update_time ? story_info.update_time : '#'));
@@ -276,6 +277,8 @@
                         story_table.apiHandle.tr.list.forEach((tr) => {
                             tr.remove();
                         });
+                        story_table.apiHandle.tr.list = [];
+                        story_table.apiHandle.tr.map = {};
                     };
                     story_table.appendStoryRowAsTree = function (story_info) {
                         let tr = story_table.createRow();
@@ -319,14 +322,28 @@
                     };
                     let rander_storys_list = function (dataRows, display_type) {
                         story_table.clearRows();
-                        let tmp_arr = markTree(dataRows, 0, 1);
-                        console.log(tmp_arr);
+                        let tmp_arr = makeTree(dataRows, 0, 1);
+                        console.log('makeTree', tmp_arr, dataRows);
 
                         if (display_type === 'tree') {
                             tmp_arr.forEach(function (story_info, tmp_i) {
                                 story_info.isTop = true;
                                 story_info.listIndex = tmp_i;
                                 story_table.appendStoryRowAsTree(story_info);
+                            });
+                            dataRows.forEach((story_info) => {
+                                if (story_info.isTreeNode === undefined) {
+                                    story_info.lev = 1;
+                                    story_info.asIndex = 0;
+                                    story_info.nodes = [];
+                                    story_info.nodesCount = 0;
+                                    story_info.isTop = true;
+                                    story_info.listIndex = 0;
+                                    story_info.title = '[ ' + story_info.story_id + ' ] ' + story_info.title;
+                                    story_table.appendStoryRowAsTree(story_info);
+                                }
+
+
                             });
                             let status_val = story_table.apiHandle.filterEleMap.story_step_select.apiHandle.getVal();
                             status_val = status_val && status_val !== '#' ? status_val : false;
@@ -339,17 +356,17 @@
                             story_table.apiHandle.tr.list.forEach((tr) => {
                                 tr.apiHandle.storyBody.classList.add('not_important');
                                 let tmp_ar = {
-                                    status: status_val === false ? 1 : 0,
-                                    createBy: createBy_val === false ? 1 : 0,
-                                    tracker: tracker_val === false ? 1 : 0,
+                                    status: (status_val.length === 0 || (status_val.length === 1 && status_val[0] === '#')) ? 1 : 0,
+                                    createBy: (createBy_val.length === 0 || (createBy_val.length === 1 && createBy_val[0] === '#')) ? 1 : 0,
+                                    tracker: (tracker_val.length === 0 || (tracker_val.length === 1 && tracker_val[0] === '#')) ? 1 : 0,
                                 };
-                                if (tr.apiHandle.data.step === status_val) {
+                                if (status_val.indexOf(tr.apiHandle.data.step) !== -1) {
                                     tmp_ar.status = 1;
                                 }
-                                if (tr.apiHandle.data.create_by === createBy_val) {
+                                if (createBy_val.indexOf(tr.apiHandle.data.create_by) !== -1) {
                                     tmp_ar.createBy = 1;
                                 }
-                                if (tr.apiHandle.data.tracker === tracker_val) {
+                                if (tracker_val.indexOf(tr.apiHandle.data.tracker) !== -1) {
                                     tmp_ar.tracker = 1;
                                 }
                                 console.log(tmp_ar);
@@ -370,6 +387,14 @@
 
                     bg_init(function () {
                         utk = window.utk;
+
+                        window.serverData.dataLib = {
+                            admin: {items: [], list: [], map: {}},
+                            commitType: {items: [], list: [], map: {}},
+                            role: {items: [], list: [], map: {}},
+                            storyType: {items: [], list: [], map: {}},
+                            storyTableConfig: {}
+                        };
 
 
                         kl.ajax({
@@ -398,6 +423,12 @@
                                         res_request_data.forEach(function (adminInfo) {
                                             window.serverData.admin.map[adminInfo.val] = adminInfo.text;
                                         });
+
+                                        window.serverData.dataLib.admin.items = res_request_data;
+                                        window.serverData.dataLib.admin.items.forEach(function (adminItem) {
+                                            window.serverData.dataLib.admin.map[adminItem.val] = adminItem.text;
+                                        });
+
                                         fun();
                                     } else {
                                         alert('获取表信息 请求结果异常');
@@ -412,6 +443,34 @@
                                 }
                             });
                         };
+
+                        let getCommitTypeList = function (fun) {
+                            kl.ajax({
+                                url: '/dp/v1/project/items?user_token=' + utk,
+                                data: {item_code: 'commit_type'},
+                                type: 'json',
+                                success: function (res_request_data) {
+                                    if (typeof res_request_data.forEach === "function") {
+                                        window.serverData.dataLib.commitType.items = res_request_data;
+                                        window.serverData.dataLib.commitType.items.forEach(function (commitTypeItem) {
+                                            window.serverData.dataLib.commitType.map[commitTypeItem.val] = commitTypeItem.text;
+                                        });
+                                        fun();
+                                    } else {
+                                        alert('获取表信息 请求结果异常');
+                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
+                                    }
+                                },
+                                error: function (res_request_data) {
+                                    console.log(res_request_data);
+                                    alert('获取表信息 网络异常');
+                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                                }
+                            });
+                        };
+
+
                         let getProjectList = function (fun) {
                             kl.ajax({
                                 url: '/dp/v1/project/items?user_token=' + utk,
@@ -474,24 +533,17 @@
                                     if (res_request_data.status) {
                                         if (res_request_data.status === 200) {
 
-                                            window.serverData.storyTable = {
-                                                allColumn: {map: {}, items: res_request_data.data.columns},
-                                                status: {map: {}, items: []},
-                                                storyType: {map: {}, items: []},
-                                            };
-
                                             res_request_data.data.columns.forEach(function (colInfo) {
-                                                window.serverData.storyTable.allColumn.map[colInfo.column_name] = colInfo;
+                                                window.serverData.dataLib.storyTableConfig[colInfo.column_name] = colInfo;
                                             });
-                                            window.serverData.storyTable.status.items = window.serverData.storyTable.allColumn.map.step.val_range;
-                                            window.serverData.storyTable.status.items.forEach(function (itemInfo) {
-                                                window.serverData.storyTable.status.map[itemInfo.val] = itemInfo.text;
+
+                                            //标准
+                                            window.serverData.dataLib.storyType.items = window.serverData.dataLib.storyTableConfig.story_type.val_range;
+                                            window.serverData.dataLib.storyType.items.forEach(function (storyTypItem) {
+                                                window.serverData.dataLib.storyType.map[storyTypItem.val] = storyTypItem.text;
                                             });
-                                            window.serverData.storyTable.storyType.items = window.serverData.storyTable.allColumn.map.story_type.val_range;
-                                            window.serverData.storyTable.storyType.items.forEach(function (itemInfo) {
-                                                window.serverData.storyTable.storyType.map[itemInfo.val] = itemInfo.text;
-                                            });
-                                            console.log('xxxxxxxx', window.serverData.storyTable);
+
+
                                             fun();
                                         } else {
                                             alert(' 获取表信息 错误:' + (res_request_data.message || '未知'));
@@ -516,8 +568,10 @@
                         getAdminList(() => {
                             getProjectList(() => {
                                 getVersionList(() => {
-                                    getStoryTableInfo(() => {
-                                        content()
+                                    getCommitTypeList(() => {
+                                        getStoryTableInfo(() => {
+                                            content()
+                                        })
                                     })
                                 })
                             })
@@ -561,16 +615,17 @@
                         let version_select = hammerYii2Bootstarp1.createSelect({items: window.serverData.version.list});
 
                         let display_storys_type = hammerYii2Bootstarp1.createSelect({items: [{text: '树形', val: 'tree'}, {text: '优先级', val: 'sort'}]});
-                        let story_step_select = hammerYii2Bootstarp1.createSelect({}).apiHandle.setInitVal('');
-                        story_step_select.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'story_step'});
 
-                        let create_by_select = hammerYii2Bootstarp1.createSelect({}).apiHandle.setInitVal('');
-                        create_by_select.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'admin'});
+                        let story_step_select = hammerYii2Bootstarp1.createMultipleSelect({}).apiHandle.setItems(window.serverData.dataLib.commitType.items).setAttrs({}).apiHandle.setInitVal([]);
 
-                        let tracker_select = hammerYii2Bootstarp1.createSelect({}).apiHandle.setInitVal('');
-                        tracker_select.apiHandle.setRemoteItems('/dp/v1/project/items?user_token=' + utk, {item_code: 'admin'});
 
+                        let create_by_select = hammerYii2Bootstarp1.createMultipleSelect({}).apiHandle.setItems(window.serverData.dataLib.admin.items).setAttrs({}).apiHandle.setInitVal([]);
+
+                        let tracker_select = hammerYii2Bootstarp1.createMultipleSelect({}).apiHandle.setItems(window.serverData.dataLib.admin.items).setAttrs({}).apiHandle.setInitVal([]);
+
+                        // story_table.apiHandle.filterEleMap.story_step_select = story_step_select;
                         story_table.apiHandle.filterEleMap.story_step_select = story_step_select;
+
                         story_table.apiHandle.filterEleMap.create_by_select = create_by_select;
                         story_table.apiHandle.filterEleMap.tracker_select = tracker_select;
 
@@ -602,6 +657,7 @@
                                     new Emt('label', '', '目标版本:').addNode(version_select),
                                     new Emt('label', '', '展示方式:').addNode(display_storys_type),
                                     new Emt('label', '', 'story状态:').addNode(story_step_select),
+
                                     new Emt('label', '', '创建人:').addNode(create_by_select),
                                     new Emt('label', '', '跟踪人:').addNode(tracker_select),
 
@@ -742,13 +798,13 @@
                         });
 
                         select_all_btn.addEventListener('click', function () {
-                            story_tr_handles.forEach((tr_handle) => {
-                                tr_handle.selectCheckbox.checked = true;
+                            story_table.apiHandle.tr.list.forEach((tr) => {
+                                tr.apiHandle.selectCheckbox.checked = true;
                             });
                         });
                         unselect_all_btn.addEventListener('click', function () {
-                            story_tr_handles.forEach((tr_handle) => {
-                                tr_handle.selectCheckbox.checked = false;
+                            story_table.apiHandle.tr.list.forEach((tr) => {
+                                tr.apiHandle.selectCheckbox.checked = false;
                             });
 
                         });
@@ -761,11 +817,12 @@
                                 return false;
                             }
                             let story_ids = [];
-                            story_tr_handles.forEach((tr_handle) => {
-                                if (tr_handle.selectCheckbox.checked) {
-                                    story_ids.push(tr_handle.tr.apiHandle.data.id);
+                            story_table.apiHandle.tr.list.forEach((tr) => {
+                                if (tr.apiHandle.selectCheckbox.checked) {
+                                    story_ids.push(tr.apiHandle.data.id);
                                 }
                             });
+
 
                             kl.ajax({
                                 url: '/dp/v1/project/story/moveToProject?user_token=' + utk,
@@ -795,9 +852,9 @@
                                 return false;
                             }
                             let story_ids = [];
-                            story_tr_handles.forEach((tr_handle) => {
-                                if (tr_handle.selectCheckbox.checked) {
-                                    story_ids.push(tr_handle.tr.apiHandle.data.id);
+                            story_table.apiHandle.tr.list.forEach((tr) => {
+                                if (tr.apiHandle.selectCheckbox.checked) {
+                                    story_ids.push(tr.apiHandle.data.id);
                                 }
                             });
 
@@ -813,7 +870,7 @@
                                         alert('添加至目标版本错误:' + (tmp_res.msg || '未知'));
                                     } else {
                                         alert('已经添加至目标版本');
-                                        // flush_story_list();
+                                        flush_story_list('mysql');
                                     }
                                 },
                                 error: function (res_save_column) {
@@ -831,9 +888,9 @@
                                 return false;
                             }
                             let story_ids = [];
-                            story_tr_handles.forEach((tr_handle) => {
-                                if (tr_handle.selectCheckbox.checked) {
-                                    story_ids.push(tr_handle.tr.apiHandle.data.id);
+                            story_table.apiHandle.tr.list.forEach((tr) => {
+                                if (tr.apiHandle.selectCheckbox.checked) {
+                                    story_ids.push(tr.apiHandle.data.id);
                                 }
                             });
 
@@ -849,7 +906,7 @@
                                         alert('从目标版本内移出错误:' + (tmp_res.msg || '未知'));
                                     } else {
                                         alert('已经从目标版本内移出');
-                                        // flush_story_list();
+                                        flush_story_list('mysql');
                                     }
                                 },
                                 error: function (res_save_column) {

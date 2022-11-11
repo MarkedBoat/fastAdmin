@@ -368,6 +368,70 @@ let hammerYii2Bootstarp = function () {
         return select_input_ele;
     }
 
+
+    bootstrap_hanndle.createMultipleSelect = function (input_param) {
+        let select_input_ele = new Emt('select').setAttrs({multiple: 'multiple'}).setPros({id: bootstrap_hanndle.getEleRandId('select_input')});
+        if (input_param && input_param.items && typeof input_param.items.forEach === "function") {
+            input_param.items.forEach(function (item) {
+                select_input_ele.add(new Option(item.text, item.val));
+            });
+        }
+        select_input_ele.apiHandle = {ele: {root: select_input_ele, options: []}};
+        bootstrap_hanndle.__initInputEle(select_input_ele, input_param);
+        select_input_ele.apiHandle.addItem = function (text, val) {
+            let new_opt = new Option(text, val);
+            select_input_ele.apiHandle.ele.options.push(new_opt);
+            select_input_ele.add(new_opt);
+        }
+        select_input_ele.apiHandle.setItems = function (items) {
+            select_input_ele.apiHandle.ele.options.forEach((old_opt) => {
+                old_opt.remove();
+            })
+            select_input_ele.apiHandle.items = items;
+            select_input_ele.apiHandle.items.forEach(function (item) {
+                let new_opt = new Option(item.text, item.val);
+                select_input_ele.apiHandle.ele.options.push(new_opt);
+                select_input_ele.add(new_opt);
+            })
+            select_input_ele.setAttrs({size: 1});
+            return select_input_ele;
+        }
+
+        select_input_ele.apiHandle.getVal = function () {
+            let vals = [];
+            for (let i = 0; i < select_input_ele.options.length; i++) {
+                if (select_input_ele.options[i].selected) {
+                    vals.push(select_input_ele.options[i].value);
+                }
+            }
+            return vals;
+        }
+
+        select_input_ele.apiHandle.__setVal = function (vals) {
+            for (let i = 0; i < select_input_ele.options.length; i++) {
+                if (vals.indexOf(select_input_ele.options[i].value) === -1) {
+                    select_input_ele.options[i].selected = false;
+                } else {
+                    select_input_ele.options[i].selected = true;
+                }
+            }
+        }
+
+        select_input_ele.addEventListener('focus', function () {
+            select_input_ele.setAttrs({size: select_input_ele.apiHandle.items.length});
+        });
+        select_input_ele.addEventListener('focusout', function () {
+            select_input_ele.setAttrs({size: 1});
+        });
+
+
+        select_input_ele.apiHandle.setRemoteItems = select_input_ele.apiHandle.__setRemoteItems;
+
+
+        return select_input_ele;
+    }
+
+
     bootstrap_hanndle.createCheckBoxs = function (input_param) {
         let checkboxs_div = new Emt('div', 'class="xxxx"');
 

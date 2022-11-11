@@ -87,38 +87,76 @@ class ActionAddToVersion extends AdminBaseAction
             if (isset($sv_models_map_map[$story_id]))
             {
                 $sv_version_map = $sv_models_map_map[$story_id];
-                if (isset($sv_version_map[$version_id]))
+                if ($version_id !== 0)
                 {
-                    if ($sv_version_map[$version_id]->is_ok !== Opt::YES)
+                    if (isset($sv_version_map[$version_id]))
                     {
-                        $update_sv_ok_ids[]           = $sv_version_map[$version_id]->id;
-                        $record[$story_id]['version'] = 'open';
-                        $commit_infos[]               = ['story_id' => $story_id, 'type' => 'version_change', 'data' => ['type' => 'in', 'version_id' => $version_id]];
+                        if ($sv_version_map[$version_id]->is_ok !== Opt::YES)
+                        {
+                            $update_sv_ok_ids[]           = $sv_version_map[$version_id]->id;
+                            $record[$story_id]['version'] = 'open';
+                            $commit_infos[]               = ['story_id' => $story_id, 'type' => 'version_change', 'data' => ['type' => 'in', 'version_id' => $version_id]];
+                        }
+                        else
+                        {
+                            $record[$story_id]['version'] = 'keep_open';
+                        }
                     }
                     else
                     {
-                        $record[$story_id]['version'] = 'keep_open';
+                        $insert_sv_sqls[]             = "insert ignore into {$sv_tn} set story_id={$story_id},version_id={$version_id},is_ok=1";
+                        $record[$story_id]['version'] = 'add_open';
+                        $commit_infos[]               = ['story_id' => $story_id, 'type' => 'version_change', 'data' => ['type' => 'in', 'version_id' => $version_id]];
+                    }
+                    if (isset($sv_version_map[0]))
+                    {
+                        if ($sv_version_map[0]->is_ok === Opt::YES)
+                        {
+                            $update_sv_deny_ids[]         = $sv_version_map[0]->id;
+                            $record[$story_id]['version'] = 'shutdown';
+                            $commit_infos[]               = ['story_id' => $story_id, 'type' => 'version_change', 'data' => ['type' => 'out', 'version_id' => $version_id]];
+
+                        }
+                        else
+                        {
+                            $record[$story_id]['unversion'] = 'keep_shutdown';
+                        }
                     }
                 }
                 else
                 {
-                    $insert_sv_sqls[]             = "insert ignore into {$sv_tn} set story_id={$story_id},version_id={$version_id},is_ok=1";
-                    $record[$story_id]['version'] = 'add_open';
-                    $commit_infos[]               = ['story_id' => $story_id, 'type' => 'version_change', 'data' => ['type' => 'in', 'version_id' => $version_id]];
-                }
-                if (isset($sv_version_map[0]))
-                {
-                    if ($sv_version_map[0]->is_ok === Opt::YES)
-                    {
-                        $update_sv_deny_ids[]         = $sv_version_map[0]->id;
-                        $record[$story_id]['version'] = 'shutdown';
-                        $commit_infos[]               = ['story_id' => $story_id, 'type' => 'version_change', 'data' => ['type' => 'out', 'version_id' => $version_id]];
 
+                    foreach ($sv_version_map as $sv_version_id => $sv)
+                    {
+                        if ($sv_version_id !== 0)
+                        {
+                            $update_sv_deny_ids[]         = $sv->id;
+                            $record[$story_id]['version'] = 'shutdown';
+                            $commit_infos[]               = ['story_id' => $story_id, 'type' => 'version_change', 'data' => ['type' => 'out', 'version_id' => $sv_version_id]];
+                        }
+                    }
+
+                    if (isset($sv_version_map[0]))
+                    {
+                        if ($sv_version_map[0]->is_ok === Opt::YES)
+                        {
+                            $record[$story_id]['unversion'] = 'keep_open';
+                        }
+                        else
+                        {
+                            $update_sv_ok_ids[]           = $sv_version_map[0]->id;
+                            $record[$story_id]['version'] = 'open';
+                            $commit_infos[]               = ['story_id' => $story_id, 'type' => 'version_change', 'data' => ['type' => 'in', 'version_id' => 0]];
+                        }
                     }
                     else
                     {
-                        $record[$story_id]['unversion'] = 'keep_shutdown';
+                        $insert_sv_sqls[]             = "insert ignore into {$sv_tn} set story_id={$story_id},version_id=0,is_ok=1";
+                        $record[$story_id]['version'] = 'add_open';
+                        $commit_infos[]               = ['story_id' => $story_id, 'type' => 'version_change', 'data' => ['type' => 'in', 'version_id' => 0]];
                     }
+
+
                 }
             }
             else
