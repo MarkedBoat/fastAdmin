@@ -33,8 +33,9 @@ class ActionList extends AdminBaseAction
     {
 
 
-        $project_id = $this->inputDataBox->getStringNotNull('project_id');
-        $version_id = $this->inputDataBox->getStringNotNull('version_id');
+        $project_id        = $this->inputDataBox->getStringNotNull('project_id');
+        $version_id        = $this->inputDataBox->getStringNotNull('version_id');
+        $track_versoin_his = $this->inputDataBox->getStringNotNull('track_version_his') === 'yes';
 
 
         $db         = 'dev_bg';
@@ -46,19 +47,31 @@ class ActionList extends AdminBaseAction
         $page_size  = $this->inputDataBox->tryGetInt('page_size');
         $sort_map   = $this->inputDataBox->tryGetArray('sort');
 
-        $version_story_ids = $version_id === '#' ? false : array_map(function ($dao) { return $dao->story_id; }, StoryVersionDao::model()->findAllByWhere(['is_ok' => Opt::YES, 'version_id' => intval($version_id)]));
-
-        if ($version_story_ids !== false)
+        if ($track_versoin_his)
         {
-            if (count($version_story_ids))
+            $version_story_ids = $version_id === '#' ? false : array_map(function ($dao) { return $dao->story_id; }, StoryVersionDao::model()->findAllByWhere(['is_ok' => Opt::YES, 'version_id' => intval($version_id)]));
+
+            if ($version_story_ids !== false)
             {
-                $attr['id'] = $version_story_ids;
-            }
-            else
-            {
-                return ['rowsTotal' => 0, 'pageTotal' => 0, 'pageIndex' => $page_index, 'pageSize' => $page_size, 'dataRows' => [], 'msg' => 'project_id 和 version 交下来 空数据'];
+                if (count($version_story_ids))
+                {
+                    $attr['id'] = $version_story_ids;
+                }
+                else
+                {
+                    return ['rowsTotal' => 0, 'pageTotal' => 0, 'pageIndex' => $page_index, 'pageSize' => $page_size, 'dataRows' => [], 'msg' => 'project_id 和 version 交下来 空数据'];
+                }
             }
         }
+        else
+        {
+            if ($version_id !== '#')
+            {
+                $attr['version_id'] = $version_id;
+            }
+        }
+
+
         if ($project_id !== '#')
         {
             $attr['project_id'] = $project_id;

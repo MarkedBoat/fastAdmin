@@ -41,11 +41,21 @@ class ActionAddToVersion extends AdminBaseAction
         }
         /** @var  $story_model_map Story[] */
         $story_model_map = [];
+        $diff_story_ids  = [];
         foreach ($story_models as $story_model)
         {
             $story_model_map[$story_model->id] = $story_model;
+            if ($story_model->version_id !== $version_id)
+            {
+                $diff_story_ids[] = $story_model->id;
+            }
         }
         $version_dao = Version::model()->findByPk($version_id);
+
+        if (strtotime($version_dao->end_date) < time())
+        {
+            throw new AdvError(AdvError::request_param_verify_fail, "目标版本[{$version_dao->title}]已经结束，不支持本操作");
+        }
 
         $sv_model  = StoryVersionDao::model();
         $sv_tn     = $sv_model->getTableName();
@@ -168,6 +178,15 @@ class ActionAddToVersion extends AdminBaseAction
 
             }
 
+        }
+
+        Sys::app()->addLog($diff_story_ids,'$diff_story_ids');
+        if (count($diff_story_ids))
+        {
+            $tmp_ids_str = join(',', $diff_story_ids);
+            $story_dao   = Story::model();
+            $story_tn    = $story_dao->getTableName();
+            $story_dao->getDbConnect()->setText("update {$story_tn} set version_id={$version_id} where id  in ({$tmp_ids_str})")->execute();
         }
 
         if (count($update_sv_ok_ids))

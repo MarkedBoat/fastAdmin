@@ -26,7 +26,7 @@
         <script src="/static/file/admin/js/string/string.js"></script>
         <script src="/static/file/admin/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
         <script src="/static/file/admin/js/hammer-yii2/datagrid/datagrid.min.2022.10.07.0.js"></script>
-        <script src="/static/file/admin/js/bg.js"></script>
+        <script src="/static/file/admin/js/bg.js?t=3"></script>
 
         <div class="site-index">
 
@@ -124,6 +124,7 @@
                         tr.apiHandle.type_td = new Emt('div', 'class="story_type_td"');
                         tr.apiHandle.status_td = new Emt('div', 'class="story_status_td"');
                         tr.apiHandle.desc_order_td = new Emt('div', 'class="story_desc_order_td"');
+                        tr.apiHandle.version_td = new Emt('div', 'class="story_version_td"');
                         tr.apiHandle.create_date_td = new Emt('div', 'class="story_create_date_td"');
                         tr.apiHandle.update_date_td = new Emt('div', 'class="story_update_date_td"');
                         tr.apiHandle.op_td = new Emt('div', 'class="story_op_td"');
@@ -145,6 +146,7 @@
                                         tr.apiHandle.type_td,
                                         tr.apiHandle.status_td,
                                         tr.apiHandle.desc_order_td,
+                                        tr.apiHandle.version_td,
                                         tr.apiHandle.create_date_td,
                                         tr.apiHandle.update_date_td,
                                         tr.apiHandle.op_td
@@ -182,6 +184,7 @@
 
                             tr.apiHandle.status_td.append(new Emt('div', '', window.serverData.dataLib.commitType.map[story_info.step] || story_info.step));
                             tr.apiHandle.desc_order_td.append(new Emt('div', '', story_info.story_desc_order));
+                            tr.apiHandle.version_td.append(new Emt('div', '', window.serverData.version.map[story_info.version_id] || story_info.version_id));
                             tr.apiHandle.create_date_td.append(new Emt('div', '', story_info.create_time));
                             tr.apiHandle.update_date_td.append(new Emt('div', '', story_info.update_time ? story_info.update_time : '#'));
                             tr.apiHandle.op_td.append(new Emt('div').addNodes([
@@ -262,6 +265,8 @@
                         story_header.apiHandle.status_td.append(new Emt('div', '', '状态'));
                         story_header.apiHandle.tracker_td.append(new Emt('div', '', '跟踪人'));
                         story_header.apiHandle.creator_td.append(new Emt('div', '', '创建人'));
+                        story_header.apiHandle.version_td.append(new Emt('div', '', '当前目标版本'));
+
                         story_header.apiHandle.create_date_td.append(new Emt('div', '', '创建时间'));
                         story_header.apiHandle.update_date_td.append(new Emt('div', '', '更新时间'));
 
@@ -614,8 +619,9 @@
                         let project_select = hammerYii2Bootstarp1.createSelect({items: window.serverData.project.list});
                         let version_select = hammerYii2Bootstarp1.createSelect({items: window.serverData.version.list});
 
-                        let display_storys_type = hammerYii2Bootstarp1.createSelect({items: [{text: '树形', val: 'tree'}, {text: '优先级', val: 'sort'}]});
-
+                        let storys_display_type_select = hammerYii2Bootstarp1.createSelect({items: [{text: '树形', val: 'tree'}, {text: '优先级', val: 'sort'}]});
+                        let version_his_checkbox = new Emt('input', 'type="checkbox"', {});
+                        version_his_checkbox.checked = true;
                         let story_step_select = hammerYii2Bootstarp1.createMultipleSelect({}).apiHandle.setItems(window.serverData.dataLib.commitType.items).setAttrs({}).apiHandle.setInitVal([]);
 
 
@@ -653,11 +659,11 @@
                                         select_all_btn,
                                         unselect_all_btn
                                     ]),
+                                    new Emt('label', '', '展示方式:').addNode(storys_display_type_select),
+                                    new Emt('label', '', '跟踪版本历史:').addNode(version_his_checkbox),
                                     new Emt('label', '', '项目:').addNode(project_select),
                                     new Emt('label', '', '目标版本:').addNode(version_select),
-                                    new Emt('label', '', '展示方式:').addNode(display_storys_type),
                                     new Emt('label', '', 'story状态:').addNode(story_step_select),
-
                                     new Emt('label', '', '创建人:').addNode(create_by_select),
                                     new Emt('label', '', '跟踪人:').addNode(tracker_select),
 
@@ -677,7 +683,7 @@
                         window.dragedEle = false;
 
                         ondrop = function (onDropedTr, dragedTr) {
-                            if (display_storys_type.apiHandle.getVal() === 'tree') {
+                            if (storys_display_type_select.apiHandle.getVal() === 'tree') {
                                 kl.ajax({
                                     url: '/dp/v1/project/story/tree?user_token=' + utk,
                                     data: {
@@ -750,7 +756,7 @@
 
                             search_data.version_id = version_select.apiHandle.getVal();
 
-                            if (display_storys_type.apiHandle.getVal() !== 'tree') {
+                            if (storys_display_type_select.apiHandle.getVal() !== 'tree') {
                                 if (story_step_select.apiHandle.getVal() && story_step_select.apiHandle.getVal() !== '#') {
                                     search_data.attr.step = story_step_select.apiHandle.getVal();
                                 }
@@ -761,7 +767,7 @@
                                     search_data.attr.tracker = tracker_select.apiHandle.getVal();
                                 }
                             }
-
+                            search_data.track_version_his = version_his_checkbox.checked === true ? 'yes' : 'no';
                             kl.ajax({
                                 url: '/dp/v1/project/story/list?user_token=' + utk,
                                 data: search_data,
@@ -769,7 +775,7 @@
                                 success: function (res_request_data) {
                                     if (res_request_data.status) {
                                         if (res_request_data.status === 200) {
-                                            rander_storys_list(res_request_data.data.dataRows, display_storys_type.apiHandle.getVal());
+                                            rander_storys_list(res_request_data.data.dataRows, storys_display_type_select.apiHandle.getVal());
                                         } else {
                                             alert('错误:' + (res_request_data.msg || '未知'))
                                         }
@@ -786,7 +792,7 @@
                         };
 
                         flush_story_list('sql');
-                        [project_select, version_select, display_storys_type].forEach((select_ele) => {
+                        [project_select, version_select, storys_display_type_select, version_his_checkbox].forEach((select_ele) => {
                             select_ele.addEventListener('change', function () {
                                 flush_story_list('sql');
                             });
@@ -986,7 +992,11 @@
             }
 
             .story_desc_order_td {
-                width: 3em;
+                width: 4em;
+            }
+
+            .story_version_td {
+                width: 8em;
             }
 
             .story_create_date_td {
