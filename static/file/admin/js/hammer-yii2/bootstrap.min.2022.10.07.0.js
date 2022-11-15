@@ -484,7 +484,7 @@ let hammerYii2Bootstarp = function () {
         }
 
         checkboxs_div.apiHandle.isChange = function () {
-            return !(JSON.stringify(checkboxs_div.apiHandle.getInitVal()) === JSON.stringify(inputEle.apiHandle.getVal()));
+            return !(JSON.stringify(checkboxs_div.apiHandle.getInitVal()) === JSON.stringify(checkboxs_div.apiHandle.getVal()));
         }
         checkboxs_div.apiHandle.setRemoteItems = checkboxs_div.apiHandle.__setRemoteItems;
 

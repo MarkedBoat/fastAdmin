@@ -35,7 +35,7 @@ class ActionList extends AdminBaseAction
 
         $project_id        = $this->inputDataBox->getStringNotNull('project_id');
         $version_id        = $this->inputDataBox->getStringNotNull('version_id');
-        $track_versoin_his = $this->inputDataBox->getStringNotNull('track_version_his') === 'yes';
+        $track_versoin_his = $this->inputDataBox->tryGetString('track_version_his') === 'yes';
 
 
         $db         = 'dev_bg';

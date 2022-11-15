@@ -22,9 +22,10 @@ class ActionAdd extends AdminBaseAction
     {
         //  $this->dispatcher->setOutType(Api::outTypeText);
         //  \models\Api::$hasOutput = true;
-        $db         = 'dev_bg';
-        $table_name = $this->inputDataBox->getStringNotNull('table_name');
-        $attr       = $this->inputDataBox->tryGetArray('attr');
+        $db          = 'dev_bg';
+        $table_name  = $this->inputDataBox->getStringNotNull('table_name');
+        $attr        = $this->inputDataBox->tryGetArray('attr');
+        $update_attr = $this->inputDataBox->tryGetArray('update_attr');
 
         $is_super     = in_array('super_admin', $this->user->role_codes, true);
         $user_roles   = $this->user->role_codes;
@@ -35,6 +36,7 @@ class ActionAdd extends AdminBaseAction
         $bind         = [];
         $select_bind  = [];
         $sets         = [];
+        $update       = [];
         $pk           = '';
         if ($is_super || array_intersect($user_roles, $table_model->read_roles))
         {
@@ -64,6 +66,19 @@ class ActionAdd extends AdminBaseAction
                         $errors[] = "无权操作字段:{$column_model->column_name}";
                     }
                 }
+                if (isset($update_attr[$column_model->column_name]))
+                {
+                    if ($is_super || array_intersect($user_roles, $column_model->add_roles) || (array_intersect($user_roles, $column_model->opt_roles) && in_array($attr[$column_model->column_name], $column_model->val_range)))
+                    {
+                        $update[":update_{$column_model->column_name}"] = "`{$column_model->column_name}`=:{$column_model->column_name}";
+                        $bind[":update_{$column_model->column_name}"]   = $update_attr[$column_model->column_name];
+                    }
+                    else
+                    {
+                        $errors[] = "无权操作字段:{$column_model->column_name}";
+                    }
+                }
+
             }
         }
         else
@@ -82,8 +97,13 @@ class ActionAdd extends AdminBaseAction
         else
         {
 
-            $sets_str   = join(',', $sets);
-            $insert_sql = "insert ignore into  {$table_name} set {$sets_str} ";
+            $sets_str                = join(',', $sets);
+            $on_duplicate_key_update = '';
+            if (count($update))
+            {
+                $on_duplicate_key_update = ' on duplicate key update ' . join(',', $sets);
+            }
+            $insert_sql = "insert ignore into  {$table_name} set {$sets_str} {$on_duplicate_key_update}";
             $insert_cmd = $db_table->getDbConnect()->setText($insert_sql);
             $res        = $insert_cmd->bindArray($bind)->execute();
             if (empty($res))
