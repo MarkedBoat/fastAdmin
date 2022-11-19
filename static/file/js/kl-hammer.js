@@ -18,7 +18,7 @@ let KL = function () {
         let tmp_ar = attr_path.split('.');
         return tmp_ar.reduce(function (base_var, attr) {
             // console.log(base_var, attr, base_var[attr], 'xxxx');
-            return base_var === undefined || typeof base_var[attr] === 'undefined' ? undefined : base_var[attr];
+            return base_var === undefined ||  base_var === null || typeof base_var[attr] === 'undefined' ? undefined : base_var[attr];
         }, baseVar) === undefined;
     };
     self.xpathSearch = function (xpath, context) {

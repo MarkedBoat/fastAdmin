@@ -38,7 +38,7 @@ let bg_init = function (page_init_fun) {
 
         if (obj.sub_menus.length > 0) {
             li.addNodes([
-                new Emt('span').setPros({textContent: obj.title})
+                new Emt('span').setPros({textContent: '+' + obj.title})
             ]);
 
             let ul = new Emt('ul');
@@ -54,7 +54,7 @@ let bg_init = function (page_init_fun) {
             li.addNode(ul);
         } else {
             li.addNodes([
-                new Emt('a').setPros({textContent: obj.title, href: obj.opts.link})
+                new Emt('a').setPros({textContent: obj.title, href: kl.isUndefined(obj, 'opts.link') ? '#' : obj.opts.link})
             ]);
         }
         return li;

@@ -79,7 +79,7 @@ class ActionUpdate extends AdminBaseAction
                         }
                     }
                     $is_opt_enable = false;
-                    $val_in_range  = in_array($attr[$column_model->column_name], $column_model->val_range, true);
+                    $val_in_range  = is_null($column_model->val_range) ? false : in_array($attr[$column_model->column_name], $column_model->val_range, true);
                     if ($val_in_range)
                     {
                         if (is_null($column_model->opt_roles))

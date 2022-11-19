@@ -190,7 +190,7 @@
 
                     content = function () {
                         kl.id('h1').textContent = kl.id('h1').textContent + '/' + window.serverData.dataLib.mainTable.table.title + '/ ' + window.serverData.table_name;
-                        document.title = '【列】' + window.serverData.dataLib.mainTable.table.title+ '/' + serverData.table.table_name;
+                        document.title = '【列】' + window.serverData.dataLib.mainTable.table.title + '/' + serverData.table.table_name;
 
 
                         let rolesTable = () => {
@@ -434,7 +434,7 @@
                                         opt_roles: JSON.stringify(rolecodes_map.opt),
                                         add_roles: JSON.stringify(rolecodes_map.add),
                                     },
-                                    table_name: 'bg_db_column',
+                                    table_name: dbdata_column_tableName,
                                 },
                                 type: 'json',
                                 success: function (res_save_column) {
@@ -476,7 +476,7 @@
                             let post_data = {
                                 page: {index: 1, size: 1000},
                                 attr: page_data.filter,
-                                table_name: 'bg_db_column',
+                                table_name: dbdata_column_tableName,
                             };
                             post_data.attr.table_name = window.serverData.table_name;
 
