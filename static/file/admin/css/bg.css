@@ -35,6 +35,7 @@ td > input[type="text"], td > input[type="number"], td > select {
 
 .menus_box li {
     list-style: none;
+    cursor: pointer;
 }
 
 .menus_box {
@@ -46,6 +47,11 @@ td > input[type="text"], td > input[type="number"], td > select {
     color: #FFF !important;
 }
 
+.menus_box a:hover {
+    color: #000 !important;
+    background: #FFF !important;
+}
+
 .menus_root .menus_box {
     display: none;
 }
@@ -54,6 +60,9 @@ td > input[type="text"], td > input[type="number"], td > select {
     display: block;
 }
 
+.hide_child_li > ul {
+    display: none;
+}
 
 /* 数据结构的 */
 .bi_struct, .bi_struct * {

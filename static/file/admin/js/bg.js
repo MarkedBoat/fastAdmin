@@ -34,15 +34,28 @@ let bg_init = function (page_init_fun) {
         console.log(obj);
 
 
-        let li = new Emt('li').addNodes([
-            new Emt('a').setPros({textContent: obj.title, href: obj.opts.link})
-        ]);
+        let li = new Emt('li');
+
         if (obj.sub_menus.length > 0) {
+            li.addNodes([
+                new Emt('span').setPros({textContent: obj.title})
+            ]);
+
             let ul = new Emt('ul');
             obj.sub_menus.forEach(function (sub_info) {
                 ul.addNodes([tmp_list(sub_info)]);
             });
+            li.classList.add('hide_child_li');
+            li.addEventListener('click', function (e) {
+                //e.preventDefault();
+                e.stopPropagation();
+                li.classList.toggle('hide_child_li');
+            });
             li.addNode(ul);
+        } else {
+            li.addNodes([
+                new Emt('a').setPros({textContent: obj.title, href: obj.opts.link})
+            ]);
         }
         return li;
     };

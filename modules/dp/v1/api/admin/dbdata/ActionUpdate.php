@@ -36,8 +36,7 @@ class ActionUpdate extends AdminBaseAction
         $select_bind  = [];
         $sets         = [];
         $wheres       = [];
-
-        if ($is_super || array_intersect($user_roles, $table_model->read_roles))
+        if ($is_super || is_null($table_model->read_roles) || count($table_model->read_roles) === 0 || count(array_intersect($user_roles, $table_model->read_roles)) > 0)
         {
             $column_models = $db_table->getBizTableColumns();
             Sys::app()->addLog($column_models);
@@ -60,13 +59,58 @@ class ActionUpdate extends AdminBaseAction
                 }
                 if (isset($attr[$column_model->column_name]))
                 {
-                    if ($is_super || array_intersect($user_roles, $column_model->add_roles) || (array_intersect($user_roles, $column_model->opt_roles) && in_array($attr[$column_model->column_name], $column_model->val_range)))
+                    $is_add_enable = false;
+                    if (is_null($column_model->add_roles))
+                    {
+                        $is_add_enable = true;
+                    }
+                    else
+                    {
+                        if (is_array($column_model->add_roles))
+                        {
+                            if (count($column_model->add_roles) === 0)
+                            {
+                                $is_add_enable = true;
+                            }
+                            else
+                            {
+                                $is_add_enable = count(array_intersect($user_roles, $column_model->add_roles)) > 0;
+                            }
+                        }
+                    }
+                    $is_opt_enable = false;
+                    $val_in_range  = in_array($attr[$column_model->column_name], $column_model->val_range, true);
+                    if ($val_in_range)
+                    {
+                        if (is_null($column_model->opt_roles))
+                        {
+                            $is_opt_enable = true;
+                        }
+                        else
+                        {
+                            if (is_array($column_model->opt_roles))
+                            {
+                                if (count($column_model->opt_roles) === 0)
+                                {
+                                    $is_opt_enable = true;
+                                }
+                                else
+                                {
+                                    $is_opt_enable = count(array_intersect($user_roles, $column_model->opt_roles)) > 0;
+                                }
+                            }
+                        }
+                    }
+
+
+                    if ($is_super || $is_add_enable || $is_opt_enable)
                     {
                         $sets[":{$column_model->column_name}"] = "`{$column_model->column_name}`=:{$column_model->column_name}";
                         $bind[":{$column_model->column_name}"] = $attr[$column_model->column_name];
                     }
                     else
                     {
+                        // Sys::app()->addLog([$column_model->column_name, $column_model->column_name[$attr[$column_model->column_name],$column_model->val_range], 'xxxxxxx');
                         $errors[] = "无权操作字段:{$column_model->column_name}";
                     }
                 }
