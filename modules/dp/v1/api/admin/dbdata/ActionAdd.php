@@ -27,6 +27,11 @@ class ActionAdd extends AdminBaseAction
         $attr        = $this->inputDataBox->tryGetArray('attr');
         $update_attr = $this->inputDataBox->tryGetArray('update_attr');
 
+        if (isset(Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$table_name]))
+        {
+            $table_name = Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$table_name];
+        }
+
         $is_super     = in_array('super_admin', $this->user->role_codes, true);
         $user_roles   = $this->user->role_codes;
         $user_roles[] = '*';
@@ -70,7 +75,7 @@ class ActionAdd extends AdminBaseAction
                 {
                     if ($is_super || array_intersect($user_roles, $column_model->add_roles) || (array_intersect($user_roles, $column_model->opt_roles) && in_array($attr[$column_model->column_name], $column_model->val_range)))
                     {
-                        $update[":update_{$column_model->column_name}"] = "`{$column_model->column_name}`=:{$column_model->column_name}";
+                        $update[":update_{$column_model->column_name}"] = "`{$column_model->column_name}`=:update_{$column_model->column_name}";
                         $bind[":update_{$column_model->column_name}"]   = $update_attr[$column_model->column_name];
                     }
                     else
@@ -101,7 +106,7 @@ class ActionAdd extends AdminBaseAction
             $on_duplicate_key_update = '';
             if (count($update))
             {
-                $on_duplicate_key_update = ' on duplicate key update ' . join(',', $sets);
+                $on_duplicate_key_update = ' on duplicate key update ' . join(',', $update);
             }
             $insert_sql = "insert ignore into  {$table_name} set {$sets_str} {$on_duplicate_key_update}";
             $insert_cmd = $db_table->getDbConnect()->setText($insert_sql);

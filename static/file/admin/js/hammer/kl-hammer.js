@@ -18,7 +18,7 @@ let KL = function () {
         let tmp_ar = attr_path.split('.');
         return tmp_ar.reduce(function (base_var, attr) {
             // console.log(base_var, attr, base_var[attr], 'xxxx');
-            return base_var === undefined ||  base_var === null || typeof base_var[attr] === 'undefined' ? undefined : base_var[attr];
+            return base_var === undefined || base_var === null || typeof base_var[attr] === 'undefined' ? undefined : base_var[attr];
         }, baseVar) === undefined;
     };
     self.xpathSearch = function (xpath, context) {
@@ -93,7 +93,7 @@ let KL = function () {
                 if (typeof input_data[k] === 'object') {
                     self.data2list(dstList, input_data[k], 1, k);
                 } else {
-                    dstList.push({key:k,val:input_data[k]});
+                    dstList.push({key: k, val: input_data[k]});
                 }
             }
         } else {
@@ -101,7 +101,7 @@ let KL = function () {
                 if (typeof input_data[k] === 'object') {
                     self.data2list(dstList, input_data[k], level + 1, name_root + '[' + k + ']');
                 } else {
-                    dstList.push({key:name_root + '[' + k + ']',val:input_data[k]});
+                    dstList.push({key: name_root + '[' + k + ']', val: input_data[k]});
                 }
             }
         }
@@ -117,30 +117,34 @@ let KL = function () {
         opts.httpOkCodes = opts.httpOkCodes || [];
         request.timeout = (opts.timeout || 30) * 1000;
         request.responseType = opts.responseType || request.responseType;
-        request.addEventListener("load", function () {
-            if (typeof opts.onload === 'function') {
-                opts.onload(request);
-            } else {
-                if (request.status == 200 || opts.httpOkCodes.indexOf(request.status) !== -1) {
-                    let result = request.responseText;
-                    if (opts.type === 'json') {
-                        try {
-                            result = JSON.parse(request.responseText);
-                        } catch (e) {
-                            if (opts.error) {
-                                opts.error('请求结果不能保存为 json');
+        if (opts.async !== true) {
+            request.addEventListener("load", function () {
+                if (typeof opts.onload === 'function') {
+                    opts.onload(request);
+                } else {
+                    if (request.status == 200 || opts.httpOkCodes.indexOf(request.status) !== -1) {
+                        let result = request.responseText;
+                        if (opts.type === 'json') {
+                            try {
+                                result = JSON.parse(request.responseText);
+                            } catch (e) {
+                                if (opts.error) {
+                                    opts.error('请求结果不能保存为 json');
+                                }
                             }
                         }
-                    }
-                    opts.success(result);
-                } else {
-                    if (opts.error) {
-                        opts.error(request.status + ':' + request.statusText);
+                        opts.success(result);
+                    } else {
+                        if (opts.error) {
+                            opts.error(request.status + ':' + request.statusText);
+                        }
                     }
                 }
-            }
 
-        }, false);
+            }, false);
+        }
+
+
         request.addEventListener("error", function () {
             console.log('出错了');
             if (opts.error) opts.error(request.statusText, 'error');
@@ -163,13 +167,43 @@ let KL = function () {
         request.open((opts.method || "POST"), opts.url, true);
         if (opts.isAjax !== false) request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
         //request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-        if (opts.form) {
-            request.send(opts.form);
+        if (opts.async === true) {
+            return new Promise(function (resolve, reject) {
+                if (opts.form) {
+                    request.send(opts.form);
+                } else {
+                    let fromData = new FormData();
+                    self.data2form(fromData, opts.data, 0, '');
+                    request.send(fromData);
+                }
+                request.onload = function () {
+                    if (request.status === 200 || opts.httpOkCodes.indexOf(request.status) !== -1) {
+                        let result = request.responseText;
+                        if (opts.type === 'json') {
+                            try {
+                                result = JSON.parse(request.responseText);
+                            } catch (e) {
+                                return resolve({isOk: false, msg: 'json结构异常', request: {status: request.status, statusText: request.statusText, responseText: request.responseText}});
+                            }
+                        }
+                        //return resolve({isOk: true, result: result});
+                        return resolve({isOk: true, result: result, request: {status: request.status, statusText: request.statusText, responseText: request.responseText}});
+                    } else {
+                        return resolve({isOk: false, msg: '请求异常', request: {status: request.status, statusText: request.statusText, responseText: request.responseText}});
+                        //return reject(request.status + ':' + request.statusText);
+                    }
+                }
+            });
         } else {
-            let fromData = new FormData();
-            self.data2form(fromData, opts.data, 0, '');
-            request.send(fromData);
+            if (opts.form) {
+                request.send(opts.form);
+            } else {
+                let fromData = new FormData();
+                self.data2form(fromData, opts.data, 0, '');
+                request.send(fromData);
+            }
         }
+
 
     };
     self.getStack = function () {

@@ -33,6 +33,29 @@ return array_merge_recursive(include __ROOT_DIR__ . '/config/env/common_param.ph
         'com_project_api'      => [
             'duck_time' => 'https://duck-time.dev.aiqingyinghang.com:2023',
         ],
+        //后台 系统设置
+        'sys_setting'          => [
+            'db' => [
+                'tableNameFakeCode' => [
+                    //user|admin
+                    '$user_admin_tableName'      => 'bg_admin',
+                    //rbac
+                    '$rbac_role_tableName'       => 'bg_rbac_role',
+                    '$rbac_task_tableName'       => 'bg_rbac_task',
+                    '$rbac_action_tableName'     => 'bg_rbac_action',
+                    '$rbac_roleTask_tableName'   => 'bg_rbac_role_task',
+                    '$rbac_taskAction_tableName' => 'bg_rbac_task_action',
+                    '$rbac_menu_tableName'       => 'bg_rbac_menu',
+                    '$rbac_roleMenu_tableName'   => 'bg_rbac_role_menu',
+                    '$rbac_userRole_tableName'   => 'bg_rbac_user_role',
+                    //dbdata
+                    '$dbdata_db_tableName'       => 'bg_db_db',
+                    '$dbdata_table_tableName'    => 'bg_db_table',
+                    '$dbdata_column_tableName'   => 'bg_db_column',
+
+                ],
+            ]
+        ],
 
         'console' => [
             'phpPath'        => '/usr/local/bin/php',

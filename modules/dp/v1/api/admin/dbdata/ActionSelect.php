@@ -29,6 +29,11 @@ class ActionSelect extends AdminBaseAction
         $page_size  = $this->inputDataBox->tryGetInt('page_size');
         $sort_map   = $this->inputDataBox->tryGetArray('sort');
 
+        if (isset(Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$table_name]))
+        {
+            $table_name = Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$table_name];
+        }
+
         $is_super = in_array('super_admin', $this->user->role_codes, true);
 
 

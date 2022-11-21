@@ -26,6 +26,10 @@ class ActionUpdate extends AdminBaseAction
         $table_name = $this->inputDataBox->getStringNotNull('table_name');
         $attr       = $this->inputDataBox->tryGetArray('attr');
 
+        if (isset(Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$table_name]))
+        {
+            $table_name = Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$table_name];
+        }
         $is_super     = in_array('super_admin', $this->user->role_codes, true);
         $user_roles   = $this->user->role_codes;
         $user_roles[] = '*';
