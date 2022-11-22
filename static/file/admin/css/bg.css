@@ -52,6 +52,10 @@ td > input[type="text"], td > input[type="number"], td > select {
     background: #FFF !important;
 }
 
+.menus_root > span {
+    cursor: pointer;
+}
+
 .menus_root .menus_box {
     -display: none;
 }
