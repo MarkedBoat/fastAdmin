@@ -70,16 +70,21 @@ let bg_init = function (page_init_fun) {
                 console.log(res_menu);
                 if (res_menu.status) {
                     if (res_menu.status === 200) {
-                        kl.id('bg_menus_div').append(
-                            new Emt('div', 'class="menus_box"').addNodes([
-                                function (ul) {
-                                    res_menu.data.forEach(function (tree) {
-                                        ul.addNode(tmp_list(tree));
-                                    });
-                                    return ul;
-                                }(new Emt('ul'))
-                            ])
-                        );
+                        let btn = new Emt('span', '', '##导航##');
+                        let menus_box = new Emt('div', 'class="menus_box hide"').addNodes([
+                            function (ul) {
+                                res_menu.data.forEach(function (tree) {
+                                    ul.addNode(tmp_list(tree));
+                                });
+                                return ul;
+                            }(new Emt('ul'))
+                        ]);
+                        kl.id('bg_menus_div').innerHTML = '';
+                        kl.id('bg_menus_div').append(btn);
+                        kl.id('bg_menus_div').append(menus_box);
+                        btn.addEventListener('click', function () {
+                            menus_box.classList.toggle('hide');
+                        });
                         page_init_fun();
                     } else {
                         alert('失败:' + (res_menu.msg || '未知'))

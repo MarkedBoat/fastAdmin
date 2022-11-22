@@ -53,7 +53,7 @@ td > input[type="text"], td > input[type="number"], td > select {
 }
 
 .menus_root .menus_box {
-    display: none;
+    -display: none;
 }
 
 .menus_root:hover .menus_box {
