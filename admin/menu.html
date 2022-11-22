@@ -69,10 +69,10 @@
 
             domLoaded(function () {
                     let utk = '';
-                    let rbac_menu_tableName = 'bg_rbac_menu';
-                    let rbac_roleMenu_tableName = 'bg_rbac_role_menu';
-                    let rbac_role_tableName = 'bg_rbac_role';
-                    let rbac_admin_tableName = 'bg_admin';
+                    let rbac_menu_tableName = '$rbac_menu_tableName';
+                    let rbac_roleMenu_tableName = '$rbac_roleMenu_tableName';
+                    let rbac_role_tableName = '$rbac_role_tableName';
+                    let rbac_admin_tableName = '$user_admin_tableName';
 
 
                     bg_init(function () {
@@ -81,6 +81,7 @@
                         window.serverData.dataLib = {
                             admin: {items: [], list: [], map: {}},
                             role: {items: [], list: [], map: {}},
+                            menu: {items: []},
                             mainTable: {}
                         };
 
@@ -257,7 +258,20 @@
 
                         let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
 
-                        let modal_edit = hammerYii2Bootstarp1.createModal({title: '修改字段设置'});
+
+                        let add_menu_modal = hammerYii2Bootstarp1.createModal({title: '添加导航菜单'});
+                        let add_menu_form = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
+                        add_menu_modal.apiHandle.addBodyChildElements([add_menu_form]);
+
+                        add_menu_form.apiHandle.addGroupPreCreate().setLabelText('父级').setIndexKey('pid').setItems([]).create('select');
+                        add_menu_form.apiHandle.addGroupPreCreate().setLabelText('menu标题').setIndexKey('title').create('text');
+                        add_menu_form.apiHandle.addGroupPreCreate().setLabelText('url/code').setIndexKey('url').create('text');
+                        add_menu_form.apiHandle.addGroupPreCreate().setLabelText('选项 link').setIndexKey('opts_link').create('text');
+                        add_menu_form.apiHandle.addGroupPreCreate().setLabelText('选项 主表').setIndexKey('opts_mainTable').create('text');
+                        add_menu_form.apiHandle.addGroupPreCreate().setLabelText('#').setIndexKey('submitBtn').setContentText('添加菜单').setType('button').create('button');
+
+
+                        let modal_edit = hammerYii2Bootstarp1.createModal({title: '修改导航菜单'});
                         let edit_menu_form = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
                         console.log(modal_edit, modal_edit.apiHandle);
                         modal_edit.apiHandle.addBodyChildElements([edit_menu_form]);
@@ -270,6 +284,8 @@
                         edit_menu_form.apiHandle.addGroupPreCreate().setLabelText('角色').setIndexKey('roles').setItems(window.serverData.dataLib.role.items).create('checkbox_list');
                         edit_menu_form.apiHandle.addGroupPreCreate().setLabelText('#').setIndexKey('submit_btn').setContentText('保存').setType('button').create('button');
 
+
+                        let add_menu_btn = new Emt('button', 'type="button"', '添加菜单');
                         let menus_input_div = Emt('div');
 
 
@@ -282,7 +298,7 @@
                                         new Emt('p').addNodes([]),
                                         new Emt('label', '', 'menu 树:'),
                                     ]),
-                                    new Emt('p'),
+                                    new Emt('p').addNodes([add_menu_btn]),
                                     menus_list_div
                                 ])
                             ])
@@ -326,6 +342,7 @@
                             modal_edit.apiHandle.hide();
 
                             window.serverData.getMenus((dataRows) => {
+                                window.serverData.dataLib.menu.items = [{val: 0, text: '/'}];
                                 rander_tree(dataRows);
                             });
 
@@ -355,14 +372,18 @@
 
                                 menu_div.apiHandle.menus_div = new Emt('div', 'class="menus_div"');
                                 menu_div.apiHandle.edit_btn = new Emt('button', 'type="button"', '修改');
+                                menu_div.apiHandle.add_btn = new Emt('button', 'type="button"', '添加');
+
+
                                 menu_div.addNodes([
                                     menu_div.apiHandle.body_div.addNodes([
                                         menu_div.apiHandle.id_td,
                                         menu_div.apiHandle.title_td,
-                                        menu_div.apiHandle.type_td,
+                                        //     menu_div.apiHandle.type_td,
                                         menu_div.apiHandle.status_td,
                                         menu_div.apiHandle.op_td.addNodes([
-                                            menu_div.apiHandle.edit_btn
+                                            menu_div.apiHandle.edit_btn,
+                                            menu_div.apiHandle.add_btn
                                         ])
                                     ]),
                                     menu_div.apiHandle.menus_div.addNodes([]),
@@ -391,6 +412,12 @@
                                     modal_edit.apiHandle.show();
                                     edit_menu_form.apiHandle.loadMenuInfo(menu_div.apiHandle.data);
                                 });
+                                menu_div.apiHandle.add_btn.addEventListener('click', function () {
+                                    add_menu_form.apiHandle.ele.input.pid.apiHandle.setInitVal(menu_div.apiHandle.data.id);
+                                    add_menu_modal.apiHandle.show();
+                                });
+
+
                                 menu_div.apiHandle.body_div.addEventListener('dragstart', function (e) {
                                     console.log('dragstart', e.target);
                                     window.dragedEle = menu_div.apiHandle.body_div;
@@ -471,6 +498,7 @@
 
 
                             menu_root_div.appendMenuTreeNode = function (menuInfo) {
+                                window.serverData.dataLib.menu.items.push({val: menuInfo.id, text: menuInfo.pathName});
                                 let menu_div = menu_root_div.createMenuDiv();
                                 menu_root_div.apiHandle.menu.list.push(menu_div);
                                 menu_root_div.apiHandle.menu.map[menuInfo.id] = menu_div;
@@ -487,13 +515,17 @@
                                 menu_div.apiHandle.setMenuInfo(menuInfo);
                                 if (menuInfo.nodes.length > 0) {
                                     menuInfo.nodes.forEach(function (menuInfo2, tmp_index) {
+                                        menuInfo2.pathName = menuInfo.pathName + '/' + menuInfo2.title;
                                         menu_root_div.appendMenuTreeNode(menuInfo2);
                                     });
                                 }
                             };
                             tmp_arr.forEach(function (menuInfo) {
+                                menuInfo.pathName = '/' + menuInfo.title;
                                 menu_root_div.appendMenuTreeNode(menuInfo);
                             });
+                            add_menu_form.apiHandle.ele.input.pid.apiHandle.setItems(window.serverData.dataLib.menu.items);
+
                             menus_list_div.addNode(menu_root_div);
 
                         };
@@ -611,6 +643,44 @@
 
                         });
 
+                        add_menu_btn.addEventListener('click', function () {
+                            add_menu_form.apiHandle.ele.input.pid.apiHandle.setInitVal(0);
+                            add_menu_modal.apiHandle.show();
+                        });
+
+                        add_menu_form.apiHandle.ele.input.submitBtn.addEventListener('click', function () {
+                            let res = {
+                                pid: add_menu_form.apiHandle.ele.input.pid.apiHandle.getVal(),
+                                title: add_menu_form.apiHandle.ele.input.title.apiHandle.getVal(),
+                                url: add_menu_form.apiHandle.ele.input.url.apiHandle.getVal(),
+                                opts: JSON.stringify({
+                                    link: add_menu_form.apiHandle.ele.input.opts_link.apiHandle.getVal(),
+                                    main_table: add_menu_form.apiHandle.ele.input.opts_mainTable.apiHandle.getVal()
+                                }),
+                            };
+                            console.log(res);
+                            //return false;
+                            kl.ajax({
+                                url: '/dp/v1/admin/dbdata/add?user_token=' + utk,
+                                data: {
+                                    attr: res,
+                                    table_name: rbac_menu_tableName,
+                                },
+                                type: 'json',
+                                async: true,
+                            }).then(res => {
+                                console.log(res);
+                                if (kl.isUndefined(res, 'result.data.insert.pk')) {
+                                    alert('新增menu失败:' + (kl.isUndefined(res, 'result.msg') ? '未知' : res.result.msg));
+                                } else {
+                                    flush_menu_tree();
+                                    add_menu_modal.apiHandle.hide();
+                                }
+                                return res;
+                            })
+                        });
+
+                        // flush_menu_tree();
                     }
                 }
             );

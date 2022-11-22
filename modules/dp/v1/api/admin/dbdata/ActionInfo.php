@@ -25,6 +25,10 @@ class ActionInfo extends AdminBaseAction
         $db         = 'dev_bg';
         $table_name = $this->inputDataBox->getStringNotNull('table_name');
 
+        if (isset(Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$table_name]))
+        {
+            $table_name = Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$table_name];
+        }
 
         $info                         = DbTable::model()->setTable($db, $table_name)->getInfo();
         $is_super                     = in_array('super_admin', $this->user->role_codes, true);

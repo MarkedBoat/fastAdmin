@@ -60,6 +60,13 @@ class ActionAdd extends AdminBaseAction
                     $pk = $column_model->column_name;
 
                 }
+                if ($column_model->column_name === 'create_by')
+                {
+                    $sets[":{$column_model->column_name}"] = "`{$column_model->column_name}`=:{$column_model->column_name}";
+                    $bind[":{$column_model->column_name}"] = $this->user->id;
+                    continue;
+                }
+
                 if (isset($attr[$column_model->column_name]))
                 {
                     if ($is_super || array_intersect($user_roles, $column_model->add_roles) || (array_intersect($user_roles, $column_model->opt_roles) && in_array($attr[$column_model->column_name], $column_model->val_range)))
@@ -143,7 +150,7 @@ class ActionAdd extends AdminBaseAction
                     ]
                 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                 $log_dao->exec_res       = $res;
-                $log_dao->exect_by       = $this->user->id;
+                $log_dao->exec_by       = $this->user->id;
                 $log_dao->log_struct_ver = '2022-11-21';
                 $log_dao->insert(false);
 

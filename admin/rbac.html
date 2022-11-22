@@ -69,9 +69,6 @@
 
             domLoaded(function () {
                     let utk = '';
-                    let rbac_menu_tableName = 'bg_rbac_menu';
-                    let rbac_roleMenu_tableName = 'bg_rbac_role_menu';
-
 
                     bg_init(function () {
                         utk = window.utk;
@@ -234,29 +231,47 @@
 
                         let actions_div = new Emt('div', 'class="actions_div"');
 
+                        let add_user_btn = new Emt('button', 'type="button"', '添加用户');
+                        let add_role_btn = new Emt('button', 'type="button"', '添加role');
+                        let add_task_btn = new Emt('button', 'type="button"', '添加task');
 
-                        let menus_list_div = new Emt('div');
 
                         let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
 
-                        let modal_edit = hammerYii2Bootstarp1.createModal({title: '修改字段设置'});
-                        let edit_menu_form = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
-                        console.log(modal_edit, modal_edit.apiHandle);
-                        modal_edit.apiHandle.addBodyChildElements([edit_menu_form]);
-                        edit_menu_form.apiHandle.addGroupPreCreate().setIndexKey('id').create('hide');
-                        edit_menu_form.apiHandle.addGroupPreCreate().setLabelText('menu标题').setIndexKey('title').create('text');
-                        edit_menu_form.apiHandle.addGroupPreCreate().setLabelText('url/code').setIndexKey('url').create('text');
-                        edit_menu_form.apiHandle.addGroupPreCreate().setLabelText('选项 link').setIndexKey('opts_link').create('text');
-                        edit_menu_form.apiHandle.addGroupPreCreate().setLabelText('选项 主表').setIndexKey('opts_mainTable').create('text');
-                        edit_menu_form.apiHandle.addGroupPreCreate().setLabelText('启用正常').setIndexKey('isOk').setItems([{val: 1, text: '启用'}, {val: 2, text: '禁用'}]).create('select');
-                        edit_menu_form.apiHandle.addGroupPreCreate().setLabelText('角色').setIndexKey('roles').setItems(window.serverData.dataLib.role.items).create('checkbox_list');
-                        edit_menu_form.apiHandle.addGroupPreCreate().setLabelText('#').setIndexKey('submit_btn').setContentText('保存').setType('button').create('button');
+
+                        let add_role_modal = hammerYii2Bootstarp1.createModal({title: '添加角色'});
+                        let add_role_form = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
+                        add_role_modal.apiHandle.addBodyChildElements([add_role_form]);
+                        add_role_form.apiHandle.addGroupPreCreate().setLabelText('roleCode').setIndexKey('roleCode').create('text');
+                        add_role_form.apiHandle.addGroupPreCreate().setLabelText('角色名').setIndexKey('roleName').create('text');
+                        add_role_form.apiHandle.addGroupPreCreate().setLabelText('#').setIndexKey('submitBtn').setContentText('保存').setType('button').create('button');
+
+                        let add_task_modal = hammerYii2Bootstarp1.createModal({title: '添加任务'});
+                        let add_task_form = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
+                        add_task_modal.apiHandle.addBodyChildElements([add_task_form]);
+                        add_task_form.apiHandle.addGroupPreCreate().setLabelText('taskCode').setIndexKey('taskCode').create('text');
+                        add_task_form.apiHandle.addGroupPreCreate().setLabelText('任务名').setIndexKey('taskName').create('text');
+                        add_task_form.apiHandle.addGroupPreCreate().setLabelText('#').setIndexKey('submitBtn').setContentText('保存').setType('button').create('button');
+
+                        let edit_action_modal = hammerYii2Bootstarp1.createModal({title: '修改action'});
+                        let edit_action_form = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
+                        edit_action_modal.apiHandle.addBodyChildElements([edit_action_form]);
+                        edit_action_form.apiHandle.addGroupPreCreate().setLabelText('actionId').setIndexKey('actionId').create('text');
+                        edit_action_form.apiHandle.addGroupPreCreate().setLabelText('actionUri').setIndexKey('actionUri').create('text');
+                        edit_action_form.apiHandle.addGroupPreCreate().setLabelText('actionCode').setIndexKey('actionCode').create('text');
+                        edit_action_form.apiHandle.addGroupPreCreate().setLabelText('操作名').setIndexKey('actionName').create('text');
+                        edit_action_form.apiHandle.addGroupPreCreate().setLabelText('#').setIndexKey('submitBtn').setContentText('保存').setType('button').create('button');
+                        edit_action_form.apiHandle.ele.input.actionId.readOnly = true;
+                        edit_action_form.apiHandle.ele.input.actionUri.readOnly = true;
 
 
                         root.addNodes([
                             new Emt('div', 'class="users_outer_div"').addNodes([
                                 new Emt('h1', '', '用户'),
                                 users_div,
+                                new Emt('div').addNodes([
+                                    add_user_btn,
+                                ]),
                             ]),
                             new Emt('div', 'class="user_roles_outer_div"').addNodes([
                                 new Emt('h1', '', '用户名下角色'),
@@ -268,6 +283,9 @@
                             new Emt('div', 'class="roles_outer_div"').addNodes([
                                 new Emt('h1', '', '角色列表'),
                                 roles_div,
+                                new Emt('div').addNodes([
+                                    add_role_btn,
+                                ]),
                             ]),
                             new Emt('div', 'class="role_tasks_outer_div"').addNodes([
                                 new Emt('h1', '', '角色名下任务'),
@@ -279,6 +297,9 @@
                             new Emt('div', 'class="tasks_outer_div"').addNodes([
                                 new Emt('h1', '', '任务'),
                                 tasks_div,
+                                new Emt('div').addNodes([
+                                    add_task_btn,
+                                ]),
                             ]),
                             new Emt('div', 'class="task_actions_outer_div"').addNodes([
                                 new Emt('h1', '', '任务名下操作'),
@@ -294,6 +315,29 @@
                             ]),
 
                         ]);
+
+
+                        unauth_task_actions_search_input.filter = function () {
+                            console.log(unauth_task_actions_search_input.value);
+                            let buttons = Object.values(kl.xpathSearch("//div[contains(@class,'unauth_task_actions_div')]//button"));
+
+                            if (unauth_task_actions_search_input.value.length === 0) {
+                                buttons.forEach((button) => {
+                                    button.classList.remove('hide');
+                                });
+                            } else {
+                                buttons.forEach((button) => {
+                                    button.classList.add('hide');
+                                });
+
+                                let button2s = kl.xpathSearch("//div[contains(@class,'unauth_task_actions_div')]//button[contains(text(),'" + unauth_task_actions_search_input.value + "')]");
+                                button2s.forEach((button) => {
+                                    button.classList.remove('hide');
+                                })
+                            }
+
+                        };
+
 
                         let flushUser = async () => {
                             Object.values(users_div.childNodes).forEach((ele) => {
@@ -356,10 +400,16 @@
                             });
                             await window.serverData.flushRbacData('action');
                             window.serverData.dataLib.action.list.forEach((actionInfo) => {
-                                let action_btn = new Emt('button', 'type="button"', actionInfo.id + '/' + (actionInfo.action_code.length === 32 && actionInfo.action_code.indexOf('_') === -1 ? '#' : actionInfo.action_code) + '#' + (actionInfo.action_name.length === 32 && actionInfo.action_name.indexOf('_') === -1 ? '#' : actionInfo.action_name) + '/' + actionInfo.action_uri);
+                                let action_btn = new Emt('button', 'type="button"', actionInfo.id + "\n" + actionInfo.action_name + "\n" + actionInfo.action_code + "\n" + actionInfo.action_uri);
                                 actions_div.addNodes([new Emt('div', 'item_action_div').addNodes([action_btn])]);
                                 action_btn.addEventListener('click', () => {
                                     //flushUserRole(actionInfo.id);
+                                    edit_action_modal.apiHandle.show();
+                                    edit_action_form.apiHandle.ele.input.actionCode.value = actionInfo.action_code;
+                                    edit_action_form.apiHandle.ele.input.actionName.value = actionInfo.action_name;
+                                    edit_action_form.apiHandle.ele.input.actionId.value = actionInfo.id;
+                                    edit_action_form.apiHandle.ele.input.actionUri.value = actionInfo.action_uri;
+
                                 });
                             });
                         };
@@ -457,7 +507,7 @@
 
                             window.serverData.dataLib.action.list.forEach((actionInfo) => {
                                 let task_action_div = new Emt('div');
-                                let task_action_btn = new Emt('button', 'type="button"', actionInfo.id + '/' + actionInfo.action_code + "\n" + actionInfo.action_name + "\n" + actionInfo.action_uri);
+                                let task_action_btn = new Emt('button', 'type="button"', actionInfo.id + "\n" + actionInfo.action_name + "\n" + actionInfo.action_code + "\n" + actionInfo.action_uri);
                                 task_action_div.addNodes([
                                     task_action_btn
                                 ]);
@@ -478,6 +528,7 @@
                                     });
                                 });
                             });
+                            unauth_task_actions_search_input.filter();
 
 
                         };
@@ -489,24 +540,90 @@
 
 
                         unauth_task_actions_search_input.addEventListener('keyup', function () {
-                            console.log(unauth_task_actions_search_input.value);
-                            let buttons = Object.values(kl.xpathSearch("//div[contains(@class,'unauth_task_actions_div')]//button"));
+                            unauth_task_actions_search_input.filter();
+                        });
 
-                            if (unauth_task_actions_search_input.value.length === 0) {
-                                buttons.forEach((button) => {
-                                    button.classList.remove('hide');
-                                });
-                            } else {
-                                buttons.forEach((button) => {
-                                    button.classList.add('hide');
-                                });
+                        add_user_btn.addEventListener('click', function () {
+                            //add_user_modal.apiHandle.show();
+                        });
+                        add_role_btn.addEventListener('click', function () {
+                            add_role_modal.apiHandle.show();
+                        });
+                        add_task_btn.addEventListener('click', function () {
+                            add_task_modal.apiHandle.show();
+                        });
 
-                                let button2s = kl.xpathSearch("//div[contains(@class,'unauth_task_actions_div')]//button[contains(text(),'" + unauth_task_actions_search_input.value + "')]");
-                                button2s.forEach((button) => {
-                                    button.classList.remove('hide');
-                                })
-                            }
 
+                        add_role_form.apiHandle.ele.input.submitBtn.addEventListener('click', function () {
+                            kl.ajax({
+                                url: '/dp/v1/admin/dbdata/add?user_token=' + utk,
+                                data: {
+                                    attr: {
+                                        role_code: add_role_form.apiHandle.ele.input.roleCode.value,
+                                        role_name: add_role_form.apiHandle.ele.input.roleName.value,
+                                    },
+                                    table_name: window.serverData.dataLib.rbacMap.role.tableName,
+                                },
+                                type: 'json',
+                                async: true,
+                            }).then(res => {
+                                console.log(res);
+                                if (kl.isUndefined(res, 'result.data.insert.pk')) {
+                                    alert('新增role失败:' + (kl.isUndefined(res, 'result.msg') ? '未知' : res.result.msg));
+                                } else {
+                                    flushRole();
+                                    add_role_modal.apiHandle.hide();
+                                }
+                                return res;
+                            })
+                        });
+                        add_task_form.apiHandle.ele.input.submitBtn.addEventListener('click', function () {
+                            kl.ajax({
+                                url: '/dp/v1/admin/dbdata/add?user_token=' + utk,
+                                data: {
+                                    attr: {
+                                        task_code: add_task_form.apiHandle.ele.input.taskCode.value,
+                                        task_name: add_task_form.apiHandle.ele.input.taskName.value,
+                                    },
+                                    table_name: window.serverData.dataLib.rbacMap.task.tableName,
+                                },
+                                type: 'json',
+                                async: true,
+                            }).then(res => {
+                                console.log(res);
+                                if (kl.isUndefined(res, 'result.data.insert.pk')) {
+                                    alert('新增task失败:' + (kl.isUndefined(res, 'result.msg') ? '未知' : res.result.msg));
+                                } else {
+                                    flushTask();
+                                    add_task_modal.apiHandle.hide();
+                                }
+                                return res;
+                            })
+
+                        });
+                        edit_action_form.apiHandle.ele.input.submitBtn.addEventListener('click', function () {
+                            kl.ajax({
+                                url: '/dp/v1/admin/dbdata/update?user_token=' + utk,
+                                data: {
+                                    attr: {
+                                        id: edit_action_form.apiHandle.ele.input.actionId.value,
+                                        action_code: edit_action_form.apiHandle.ele.input.actionCode.value,
+                                        action_name: edit_action_form.apiHandle.ele.input.actionName.value,
+                                    },
+                                    table_name: window.serverData.dataLib.rbacMap.action.tableName,
+                                },
+                                type: 'json',
+                                async: true,
+                            }).then(res => {
+                                console.log(res);
+                                if (kl.isUndefined(res, 'result.data.update.res') || res.result.data.update.res === 0) {
+                                    alert('修改action失败:' + (kl.isUndefined(res, 'result.msg') ? '未知' : res.result.msg));
+                                } else {
+                                    flushAction();
+                                    edit_action_modal.apiHandle.hide();
+                                }
+                                return res;
+                            });
                         });
 
 
@@ -582,6 +699,7 @@
             .task_actions_div button, .actions_div button {
                 overflow-wrap: break-word;
                 white-space: pre-wrap;
+                text-align: left;
             }
 
             .item_selected {

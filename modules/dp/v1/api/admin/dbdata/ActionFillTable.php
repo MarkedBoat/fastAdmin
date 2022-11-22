@@ -20,8 +20,12 @@ class ActionFillTable extends AdminBaseAction
         $this->dispatcher->setOutType(Api::outTypeText);
         \models\Api::$hasOutput = true;
 
-        $rows     = DbTable::model()->getDbConnect()->setText("SELECT `table_schema`,`table_name`,table_comment FROM information_schema.Tables WHERE table_schema = 'dev_bg';")->queryAll();
-        $tn       = DbTable::model()->getTableName();
+        $rows = DbTable::model()->getDbConnect()->setText("SELECT `table_schema`,`table_name`,table_comment FROM information_schema.Tables WHERE table_schema = 'dev_bg';")->queryAll();
+        $tn   = DbTable::model()->getTableName();
+        if (isset(Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$tn]))
+        {
+            $tn = Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$tn];
+        }
         $sqls     = [];
         $date_now = date('Y-m-d H:i:s');
         $bind     = [];

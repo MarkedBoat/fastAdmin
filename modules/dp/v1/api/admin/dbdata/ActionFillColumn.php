@@ -23,6 +23,11 @@ class ActionFillColumn extends AdminBaseAction
         $db = 'dev_bg';
         $tn = $this->inputDataBox->getStringNotNull('table');
 
+        if (isset(Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$tn]))
+        {
+            $tn = Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$tn];
+        }
+
         $tn_table    = DbTable::model()->getTableName();
         $tn_col      = DbColumn::model()->getTableName();
         $rows        = DbTable::model()->getDbConnect()->setText("show full columns from {$tn};")->queryAll();

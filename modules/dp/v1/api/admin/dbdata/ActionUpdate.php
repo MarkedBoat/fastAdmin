@@ -169,7 +169,7 @@ class ActionUpdate extends AdminBaseAction
                 ]
             ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             $log_dao->exec_res       = $res;
-            $log_dao->exect_by       = $this->user->id;
+            $log_dao->exec_by       = $this->user->id;
             $log_dao->log_struct_ver = '2022-11-21';
             $log_dao->insert(false);
 
