@@ -8,6 +8,7 @@ use models\common\error\AdvError;
 use models\common\opt\Opt;
 use models\common\sys\Sys;
 use modules\dp\v1\api\admin\AdminBaseAction;
+use modules\dp\v1\dao\admin\dbdata\DbOpLogDao;
 use modules\dp\v1\dao\admin\rbac\RbacRoleDao;
 use modules\dp\v1\model\admin\dbdata\DbColumn;
 use modules\dp\v1\model\admin\dbdata\DbTable;
@@ -40,6 +41,7 @@ class ActionUpdate extends AdminBaseAction
         $select_bind  = [];
         $sets         = [];
         $wheres       = [];
+        $pk_val       = 0;
         if ($is_super || is_null($table_model->read_roles) || count($table_model->read_roles) === 0 || count(array_intersect($user_roles, $table_model->read_roles)) > 0)
         {
             $column_models = $db_table->getBizTableColumns();
@@ -53,6 +55,7 @@ class ActionUpdate extends AdminBaseAction
                         $wheres[":{$column_model->column_name}"]      = "`{$column_model->column_name}`=:{$column_model->column_name}";
                         $bind[":{$column_model->column_name}"]        = $attr[$column_model->column_name];
                         $select_bind[":{$column_model->column_name}"] = $attr[$column_model->column_name];
+                        $pk_val                                       = $attr[$column_model->column_name];
                         continue;
                     }
                     else
@@ -146,6 +149,29 @@ class ActionUpdate extends AdminBaseAction
             $old_info   = $db_table->getDbConnect()->setText($select_sql)->bindArray($select_bind)->queryRow();
             $res        = $db_table->getDbConnect()->setText($update_sql)->bindArray($bind)->execute();
             $new_info   = $db_table->getDbConnect()->setText($select_sql)->bindArray($select_bind)->queryRow();
+
+            $log_dao                 = DbOpLogDao::model();
+            $log_dao->db_name        = $db;
+            $log_dao->table_name     = $table_name;
+            $log_dao->row_pk         = $pk_val;
+            $log_dao->op_type        = 'update';
+            $log_dao->exec_info      = json_encode([
+                'update' => [
+                    'sql'  => $update_sql,
+                    'bind' => $bind,
+                    'res'  => $res
+                ],
+                'select' => [
+                    'sql'  => $select_sql,
+                    'bind' => $select_bind,
+                    'old'  => $old_info,
+                    'new'  => $new_info
+                ]
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            $log_dao->exec_res       = $res;
+            $log_dao->exect_by       = $this->user->id;
+            $log_dao->log_struct_ver = '2022-11-21';
+            $log_dao->insert(false);
 
             return [
                 'update' => [

@@ -8,6 +8,7 @@ use models\common\error\AdvError;
 use models\common\opt\Opt;
 use models\common\sys\Sys;
 use modules\dp\v1\api\admin\AdminBaseAction;
+use modules\dp\v1\dao\admin\dbdata\DbOpLogDao;
 use modules\dp\v1\dao\admin\rbac\RbacRoleDao;
 use modules\dp\v1\model\admin\dbdata\DbColumn;
 use modules\dp\v1\model\admin\dbdata\DbTable;
@@ -104,13 +105,17 @@ class ActionAdd extends AdminBaseAction
 
             $sets_str                = join(',', $sets);
             $on_duplicate_key_update = '';
+            $op_type                 = 'insert';
             if (count($update))
             {
+                $op_type                 = 'insert_update';
                 $on_duplicate_key_update = ' on duplicate key update ' . join(',', $update);
             }
             $insert_sql = "insert ignore into  {$table_name} set {$sets_str} {$on_duplicate_key_update}";
             $insert_cmd = $db_table->getDbConnect()->setText($insert_sql);
             $res        = $insert_cmd->bindArray($bind)->execute();
+
+
             if (empty($res))
             {
                 return $this->dispatcher->createInterruption(AdvError::db_save_error['detail'], AdvError::db_save_error['msg'], [
@@ -120,14 +125,34 @@ class ActionAdd extends AdminBaseAction
             }
             else
             {
-                $pk_val     = $insert_cmd->lastInsertId();
-                $select_sql = "select * from {$table_name}  where `{$pk}`={$pk_val} limit 1";
+                $pk_val      = $insert_cmd->lastInsertId();
+                $select_sql  = "select * from {$table_name}  where `{$pk}`={$pk_val} limit 1";
+                $insert_data = $db_table->getDbConnect()->setText($select_sql)->queryRow();
+
+                $log_dao                 = DbOpLogDao::model();
+                $log_dao->db_name        = $db;
+                $log_dao->table_name     = $table_name;
+                $log_dao->row_pk         = $pk_val;
+                $log_dao->op_type        = $op_type;
+                $log_dao->exec_info      = json_encode([
+                    'insert' => [
+                        'sql'  => $insert_sql,
+                        'bind' => $bind,
+                        'pk'   => $pk_val,
+                        'data' => $insert_data
+                    ]
+                ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                $log_dao->exec_res       = $res;
+                $log_dao->exect_by       = $this->user->id;
+                $log_dao->log_struct_ver = '2022-11-21';
+                $log_dao->insert(false);
+
                 return [
                     'insert' => [
                         'sql'  => $insert_sql,
                         'bind' => $bind,
                         'pk'   => $pk_val,
-                        'data' => $db_table->getDbConnect()->setText($select_sql)->queryRow()
+                        'data' => $insert_data
                     ]
                 ];
             }

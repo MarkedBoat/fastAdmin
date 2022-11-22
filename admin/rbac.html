@@ -376,34 +376,31 @@
                             }
                             await window.serverData.flushRbacData('userRole');
                             let role_ids = window.serverData.dataLib.userRole.map[userId] || [];
-                            if (window.serverData.dataLib.userRole.map[userId] === undefined) {
-                                return false;
-                            } else {
-                                window.serverData.dataLib.role.list.forEach((roleInfo) => {
-                                    let user_role_div = new Emt('div');
-                                    let user_role_btn = new Emt('button', 'type="button"', roleInfo.id + '/' + roleInfo.role_code + '/' + roleInfo.role_name);
-                                    user_role_div.addNodes([
-                                        user_role_btn
+
+                            window.serverData.dataLib.role.list.forEach((roleInfo) => {
+                                let user_role_div = new Emt('div');
+                                let user_role_btn = new Emt('button', 'type="button"', roleInfo.id + '/' + roleInfo.role_code + '/' + roleInfo.role_name);
+                                user_role_div.addNodes([
+                                    user_role_btn
+                                ]);
+                                let isAdd = true;
+                                if (role_ids.indexOf(roleInfo.id) === -1) {
+                                    unauth_user_roles_div.addNodes([
+                                        user_role_div
                                     ]);
-                                    let isAdd = true;
-                                    if (role_ids.indexOf(roleInfo.id) === -1) {
-                                        unauth_user_roles_div.addNodes([
-                                            user_role_div
-                                        ]);
-                                    } else {
-                                        authed_user_roles_div.addNodes([
-                                            user_role_div
-                                        ]);
-                                        isAdd = false;
-                                    }
-                                    user_role_btn.addEventListener('click', () => {
-                                        window.serverData.changeRelation(isAdd, 'userRole', {user_id: userId, role_id: roleInfo.id}, () => {
-                                            flushUserRole(userId);
-                                        });
+                                } else {
+                                    authed_user_roles_div.addNodes([
+                                        user_role_div
+                                    ]);
+                                    isAdd = false;
+                                }
+                                user_role_btn.addEventListener('click', () => {
+                                    window.serverData.changeRelation(isAdd, 'userRole', {user_id: userId, role_id: roleInfo.id}, () => {
+                                        flushUserRole(userId);
                                     });
                                 });
+                            });
 
-                            }
                         };
                         let flushRoleTask = async (roleId) => {
                             Object.values(unauth_role_tasks_div.childNodes).forEach((ele) => {
@@ -418,34 +415,31 @@
                             }
                             await window.serverData.flushRbacData('roleTask');
                             let role_ids = window.serverData.dataLib.roleTask.map[roleId] || [];
-                            if (window.serverData.dataLib.roleTask.map[roleId] === undefined) {
-                                return false;
-                            } else {
-                                window.serverData.dataLib.task.list.forEach((taskInfo) => {
-                                    let role_task_div = new Emt('div');
-                                    let role_task_btn = new Emt('button', 'type="button"', taskInfo.id + '/' + taskInfo.task_code + '/' + taskInfo.task_name);
-                                    role_task_div.addNodes([
-                                        role_task_btn
+
+                            window.serverData.dataLib.task.list.forEach((taskInfo) => {
+                                let role_task_div = new Emt('div');
+                                let role_task_btn = new Emt('button', 'type="button"', taskInfo.id + '/' + taskInfo.task_code + '/' + taskInfo.task_name);
+                                role_task_div.addNodes([
+                                    role_task_btn
+                                ]);
+                                let isAdd = true;
+                                if (role_ids.indexOf(taskInfo.id) === -1) {
+                                    unauth_role_tasks_div.addNodes([
+                                        role_task_div
                                     ]);
-                                    let isAdd = true;
-                                    if (role_ids.indexOf(taskInfo.id) === -1) {
-                                        unauth_role_tasks_div.addNodes([
-                                            role_task_div
-                                        ]);
-                                    } else {
-                                        authed_role_tasks_div.addNodes([
-                                            role_task_div
-                                        ]);
-                                        isAdd = false;
-                                    }
-                                    role_task_btn.addEventListener('click', () => {
-                                        window.serverData.changeRelation(isAdd, 'roleTask', {role_id: roleId, task_id: taskInfo.id}, () => {
-                                            flushRoleTask(roleId);
-                                        });
+                                } else {
+                                    authed_role_tasks_div.addNodes([
+                                        role_task_div
+                                    ]);
+                                    isAdd = false;
+                                }
+                                role_task_btn.addEventListener('click', () => {
+                                    window.serverData.changeRelation(isAdd, 'roleTask', {role_id: roleId, task_id: taskInfo.id}, () => {
+                                        flushRoleTask(roleId);
                                     });
                                 });
+                            });
 
-                            }
                         };
                         let flushTaskAction = async (taskId) => {
                             Object.values(unauth_task_actions_div.childNodes).forEach((ele) => {
@@ -460,34 +454,32 @@
                             }
                             await window.serverData.flushRbacData('taskAction');
                             let role_ids = window.serverData.dataLib.taskAction.map[taskId] || [];
-                            if (window.serverData.dataLib.taskAction.map[taskId] === undefined) {
-                                return false;
-                            } else {
-                                window.serverData.dataLib.action.list.forEach((actionInfo) => {
-                                    let task_action_div = new Emt('div');
-                                    let task_action_btn = new Emt('button', 'type="button"', actionInfo.id + '/' + actionInfo.action_code + "\n" + actionInfo.action_name + "\n" + actionInfo.action_uri);
-                                    task_action_div.addNodes([
-                                        task_action_btn
+
+                            window.serverData.dataLib.action.list.forEach((actionInfo) => {
+                                let task_action_div = new Emt('div');
+                                let task_action_btn = new Emt('button', 'type="button"', actionInfo.id + '/' + actionInfo.action_code + "\n" + actionInfo.action_name + "\n" + actionInfo.action_uri);
+                                task_action_div.addNodes([
+                                    task_action_btn
+                                ]);
+                                let isAdd = true;
+                                if (role_ids.indexOf(actionInfo.id) === -1) {
+                                    unauth_task_actions_div.addNodes([
+                                        task_action_div
                                     ]);
-                                    let isAdd = true;
-                                    if (role_ids.indexOf(actionInfo.id) === -1) {
-                                        unauth_task_actions_div.addNodes([
-                                            task_action_div
-                                        ]);
-                                    } else {
-                                        authed_task_actions_div.addNodes([
-                                            task_action_div
-                                        ]);
-                                        isAdd = false;
-                                    }
-                                    task_action_btn.addEventListener('click', () => {
-                                        window.serverData.changeRelation(isAdd, 'taskAction', {task_id: taskId, action_id: actionInfo.id}, () => {
-                                            flushTaskAction(taskId);
-                                        });
+                                } else {
+                                    authed_task_actions_div.addNodes([
+                                        task_action_div
+                                    ]);
+                                    isAdd = false;
+                                }
+                                task_action_btn.addEventListener('click', () => {
+                                    window.serverData.changeRelation(isAdd, 'taskAction', {task_id: taskId, action_id: actionInfo.id}, () => {
+                                        flushTaskAction(taskId);
                                     });
                                 });
+                            });
 
-                            }
+
                         };
 
                         flushUser();
@@ -584,7 +576,7 @@
 
             .unauth_items_div button {
                 color: #FFF;
-                background: #DDD;
+                background: #666;
             }
 
             .task_actions_div button, .actions_div button {
