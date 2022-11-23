@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>导航菜单管理</title>
+    <link href="/static/_dp/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/_dp/css/site.css" rel="stylesheet">
+    <link href="/static/_dp/css/bg.css" rel="stylesheet">
+</head>
+<body>
+<div class="wrap">
+    <nav id="w0" class="navbar-inverse navbar-fixed-top navbar">
+        <div class="container">
+            <div class="navbar-header"></div>
+            <div id="bg_menus_div" class="navbar-brand menus_root">导航菜单管理</div>
+            <div id="w0-collapse" class="collapse navbar-collapse">
+                <ul id="w1" class="navbar-nav navbar-right nav">
+                    <li><a href="/admin/dbdata/tables.html">INDEX</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
+        <script src="/static/_dp/js/string/string.js"></script>
+        <script src="/static/_dp/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
+        <script src="/static/_dp/js/bg.js"></script>
+
+        <div class="site-index">
+
+            <div>
+
+            </div>
+
+
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="page-header" id="h1">导航菜单管理</h3>
+                </div>
+                <div class="panel-body">
+                    <p id="subject_detail"></p>
+                </div>
+            </div>
+
+
+            <div class="body-content" id="content_div">
+
+
+            </div>
+
+        </div>
+        <script>
+
+            let markTree = function (data_rows, pid, lev) {
+                console.log('树N:', data_rows, pid);
+                let menuInfos = [];
+                data_rows.forEach(function (menuInfo) {
+                    if (menuInfo.pid == pid) {
+                        menuInfo.lev = lev;
+                        menuInfo.nodes = markTree(data_rows, menuInfo.id, lev + 1);
+                        menuInfos.push(menuInfo);
+                    }
+                });
+                return menuInfos;
+            };
+
+
+            domLoaded(function () {
+                    let utk = '';
+                    let rbac_menu_tableName = '$rbac_menu_tableName';
+                    let rbac_roleMenu_tableName = '$rbac_roleMenu_tableName';
+                    let rbac_role_tableName = '$rbac_role_tableName';
+                    let rbac_admin_tableName = '$user_admin_tableName';
+
+
+                    bg_init(function () {
+                        utk = window.utk;
+
+                        window.serverData.dataLib = {
+                            admin: {items: [], list: [], map: {}},
+                            role: {items: [], list: [], map: {}},
+                            menu: {items: []},
+                            mainTable: {}
+                        };
+
+
+                        let getRoles = (fun) => {
+                            kl.ajax({
+                                url: '/_dp/v1/dbdata/select?user_token=' + utk,
+                                data: {table_name: rbac_role_tableName, page_index: 1, page_size: 1000},
+                                type: 'json',
+                                success: function (res_request_data) {
+                                    if (res_request_data.code && res_request_data.code === 'ok') {
+                                        window.serverData.dataLib.role.list = res_request_data.data.dataRows;
+                                        window.serverData.dataLib.role.list.forEach((roleInfo) => {
+                                            window.serverData.dataLib.role.items.push({val: roleInfo.id, text: roleInfo.role_name});
+                                            window.serverData.dataLib.role.map[roleInfo.id] = roleInfo.real_name;
+                                        });
+                                        fun();
+                                    } else {
+                                        alert('获取菜单列表:结构异常');
+                                    }
+                                },
+                                error: function (res_request_data) {
+                                    alert('获取菜单列表:网络错误' + res_request_data);
+                                }
+                            });
+                        };
+
+
+                        window.serverData.getMenus = (fun) => {
+                            kl.ajax({
+                                url: '/_dp/v1/dbdata/select?user_token=' + utk,
+                                data: {table_name: rbac_menu_tableName, page_index: 1, page_size: 1000},
+                                type: 'json',
+                                success: function (res_request_data) {
+                                    if (res_request_data.code && res_request_data.code === 'ok') {
+                                        getMenuRoles((relationDataRows) => {
+                                            let menuDataRows = res_request_data.data.dataRows;
+                                            let indexMap = {};
+                                            menuDataRows.forEach((dataRow, dataRowIndex) => {
+                                                menuDataRows[dataRowIndex].relats = [];
+                                                menuDataRows[dataRowIndex].menus = [];
+                                                indexMap[dataRow.id] = dataRowIndex;
+                                            });
+                                            relationDataRows.forEach((relationDataRow) => {
+                                                if (indexMap[relationDataRow.menu_id] !== undefined) {
+                                                    if (menuDataRows[indexMap[relationDataRow.menu_id]] === undefined) {
+                                                        console.log(relationDataRow, indexMap[relationDataRow.menu_id]);
+                                                        throw 'xxx';
+                                                    } else {
+                                                        menuDataRows[indexMap[relationDataRow.menu_id]].relats.push(relationDataRow);
+                                                    }
+                                                }
+                                            });
+                                            console.log('menuDataRows ok', menuDataRows, relationDataRows, indexMap);
+                                            fun(menuDataRows);
+                                        });
+                                    } else {
+                                        alert('获取菜单列表:结构异常');
+                                    }
+                                },
+                                error: function (error_info) {
+                                    alert('获取菜单列表:网络错误' + error_info);
+                                }
+                            });
+                        };
+
+                        let getMenuRoles = (fun) => {
+                            kl.ajax({
+                                url: '/_dp/v1/dbdata/select?user_token=' + utk,
+                                data: {table_name: rbac_roleMenu_tableName, page_index: 1, page_size: 1000},
+                                type: 'json',
+                                success: function (res_request_data) {
+                                    if (res_request_data.code && res_request_data.code === 'ok') {
+                                        fun(res_request_data.data.dataRows);
+                                    } else {
+                                        alert('获取 Menu-Role 列表:结构异常');
+                                    }
+                                },
+                                error: function (error_info) {
+                                    alert('获取 Menu-Role 列表:网络错误' + error_info);
+                                }
+                            });
+                        };
+
+                        let getAdmins = (fun) => {
+                            kl.ajax({
+                                url: '/_dp/v1/dbdata/select?user_token=' + utk,
+                                data: {table_name: rbac_admin_tableName, page_index: 1, page_size: 1000},
+                                type: 'json',
+                                success: function (res_request_data) {
+                                    if (res_request_data.code && res_request_data.code === 'ok') {
+                                        window.serverData.dataLib.admin.list = res_request_data.data.dataRows;
+                                        window.serverData.dataLib.admin.list.forEach(function (adminInfo) {
+                                            window.serverData.dataLib.admin.map[adminInfo.id] = adminInfo.real_name;
+                                        });
+                                        fun();
+                                    } else {
+                                        alert('获取admin列表:结构异常');
+                                    }
+                                },
+                                error: function (res_request_data) {
+                                    alert('获取admin列表:网络错误' + res_request_data);
+                                }
+                            });
+                        };
+
+
+                        let getMainTableInfo = function (fun) {
+                            kl.ajax({
+                                url: '/_dp/v1/dbdata/info?user_token=' + utk,
+                                data: {table_name: rbac_menu_tableName},
+                                type: 'json',
+                                success: function (res_request_data) {
+                                    if (res_request_data.status) {
+                                        if (res_request_data.status === 200) {
+
+                                            window.serverData.dataLib.mainTable = {
+                                                __column: {map: {}, items: res_request_data.data.columns},
+                                                linkType: {map: {}, items: []},
+                                                isOk: {map: {}, items: []},
+                                            };
+
+                                            res_request_data.data.columns.forEach(function (colInfo) {
+                                                window.serverData.dataLib.mainTable.__column.map[colInfo.column_name] = colInfo;
+                                            });
+                                            window.serverData.dataLib.mainTable.linkType.items = window.serverData.dataLib.mainTable.__column.map.is_backend.val_range;
+                                            window.serverData.dataLib.mainTable.linkType.items.forEach(function (itemInfo) {
+                                                window.serverData.dataLib.mainTable.linkType.map[itemInfo.val] = itemInfo.text;
+                                            });
+
+                                            window.serverData.dataLib.mainTable.isOk.items = window.serverData.dataLib.mainTable.__column.map.is_ok.val_range;
+                                            window.serverData.dataLib.mainTable.isOk.items.forEach(function (itemInfo) {
+                                                window.serverData.dataLib.mainTable.isOk.map[itemInfo.val] = itemInfo.text;
+                                            });
+                                            fun();
+                                        } else {
+                                            alert(' 获取表信息 错误:' + (res_request_data.message || '未知'));
+
+                                        }
+                                    } else {
+                                        alert('获取表信息 请求结果异常');
+                                    }
+                                },
+                                error: function (res_request_data) {
+                                    console.log(res_request_data);
+                                    alert('获取表信息 网络异常');
+                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
+                                }
+                            });
+                        };
+
+
+                        getRoles(() => {
+                            getAdmins(() => {
+                                getMainTableInfo(() => {
+                                    content()
+                                })
+                            });
+                        })
+
+
+                    });
+
+
+                    content = function () {
+
+                        let raw_root = kl.id('content_div');
+                        let root = new Emt('div').setPros({className: 'row'});
+                        raw_root.append(root);
+
+                        let detail_root_div = new Emt('div');
+                        let menus_root_div = new Emt('div');
+                        let menus_list_div = new Emt('div');
+
+                        let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
+
+
+                        let add_menu_modal = hammerYii2Bootstarp1.createModal({title: '添加导航菜单'});
+                        let add_menu_form = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
+                        add_menu_modal.apiHandle.addBodyChildElements([add_menu_form]);
+
+                        add_menu_form.apiHandle.addGroupPreCreate().setLabelText('父级').setIndexKey('pid').setItems([]).create('select');
+                        add_menu_form.apiHandle.addGroupPreCreate().setLabelText('menu标题').setIndexKey('title').create('text');
+                        add_menu_form.apiHandle.addGroupPreCreate().setLabelText('url/code').setIndexKey('url').create('text');
+                        add_menu_form.apiHandle.addGroupPreCreate().setLabelText('选项 link').setIndexKey('opts_link').create('text');
+                        add_menu_form.apiHandle.addGroupPreCreate().setLabelText('选项 主表').setIndexKey('opts_mainTable').create('text');
+                        add_menu_form.apiHandle.addGroupPreCreate().setLabelText('#').setIndexKey('submitBtn').setContentText('添加菜单').setType('button').create('button');
+
+
+                        let modal_edit = hammerYii2Bootstarp1.createModal({title: '修改导航菜单'});
+                        let edit_menu_form = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
+                        console.log(modal_edit, modal_edit.apiHandle);
+                        modal_edit.apiHandle.addBodyChildElements([edit_menu_form]);
+                        edit_menu_form.apiHandle.addGroupPreCreate().setIndexKey('id').create('hide');
+                        edit_menu_form.apiHandle.addGroupPreCreate().setLabelText('menu标题').setIndexKey('title').create('text');
+                        edit_menu_form.apiHandle.addGroupPreCreate().setLabelText('url/code').setIndexKey('url').create('text');
+                        edit_menu_form.apiHandle.addGroupPreCreate().setLabelText('选项 link').setIndexKey('opts_link').create('text');
+                        edit_menu_form.apiHandle.addGroupPreCreate().setLabelText('选项 主表').setIndexKey('opts_mainTable').create('text');
+                        edit_menu_form.apiHandle.addGroupPreCreate().setLabelText('启用正常').setIndexKey('isOk').setItems([{val: 1, text: '启用'}, {val: 2, text: '禁用'}]).create('select');
+                        edit_menu_form.apiHandle.addGroupPreCreate().setLabelText('角色').setIndexKey('roles').setItems(window.serverData.dataLib.role.items).create('checkbox_list');
+                        edit_menu_form.apiHandle.addGroupPreCreate().setLabelText('#').setIndexKey('submit_btn').setContentText('保存').setType('button').create('button');
+
+
+                        let add_menu_btn = new Emt('button', 'type="button"', '添加菜单');
+                        let menus_input_div = Emt('div');
+
+
+                        root.addNodes([
+                            detail_root_div.addNodes([
+
+                                menus_root_div.addNodes([
+                                    new Emt('h1', '', 'menu 树'),
+                                    menus_input_div.addNodes([
+                                        new Emt('p').addNodes([]),
+                                        new Emt('label', '', 'menu 树:'),
+                                    ]),
+                                    new Emt('p').addNodes([add_menu_btn]),
+                                    menus_list_div
+                                ])
+                            ])
+                        ]);
+
+
+                        async function add_menu_role(info) {
+                            console.log('ready add_menu_role', add_menu_role);
+                            kl.ajax({
+                                url: '/_dp/v1/dbdata/add?user_token=' + utk,
+                                data: {
+                                    attr: {
+                                        role_id: info.role_id,
+                                        menu_id: info.menu_id,
+                                        is_ok: info.is_ok
+                                    },
+                                    update_attr: {
+                                        is_ok: info.is_ok
+                                    },
+                                    table_name: rbac_roleMenu_tableName,
+                                },
+                                type: 'json',
+                                success: function (add_attrs_res) {
+                                    if (add_attrs_res.status) {
+                                        console.log('add_menu_role', add_attrs_res);
+                                    } else {
+                                        alert('请求结果异常')
+                                    }
+                                },
+                                error: function (res_request_data) {
+                                    console.log(res_request_data);
+                                    alert('网络异常');
+                                }
+                            })
+                        }
+
+                        window.dragedEle = false;
+
+                        let flush_menu_tree = function () {
+
+                            modal_edit.apiHandle.hide();
+
+                            window.serverData.getMenus((dataRows) => {
+                                window.serverData.dataLib.menu.items = [{val: 0, text: '/'}];
+                                rander_tree(dataRows);
+                            });
+
+                        };
+                        let rander_tree = function (dataRows) {
+                            console.log('dataRows', dataRows);
+                            menus_list_div.innerHTML = '';
+
+                            let tmp_arr = markTree(dataRows, 0, 1);
+                            console.log(tmp_arr);
+                            let menu_root_div = new Emt('div', 'class="menu_root_div"');
+                            menu_root_div.apiHandle = {
+                                menu: {list: [], map: {}},
+                            };
+                            menu_root_div.createMenuDiv = function () {
+                                let menu_div = new Emt('div', 'class="menu_div"');
+                                menu_div.apiHandle = {};
+
+                                menu_div.apiHandle.id_td = new Emt('div', 'class="id_td"');
+                                menu_div.apiHandle.title_td = new Emt('div', 'class="title_td"');
+                                menu_div.apiHandle.type_td = new Emt('div', 'class="type_td"');
+                                menu_div.apiHandle.status_td = new Emt('div', 'class="status_td"');
+                                menu_div.apiHandle.op_td = new Emt('div', 'class="op_td"');
+                                menu_div.apiHandle.body_div = new Emt('div', 'class="menu_body_div"');
+                                menu_div.apiHandle.body_div.draggable = true;
+                                menu_div.apiHandle.body_div.apiHandle = menu_div.apiHandle;
+
+                                menu_div.apiHandle.menus_div = new Emt('div', 'class="menus_div"');
+                                menu_div.apiHandle.edit_btn = new Emt('button', 'type="button"', '修改');
+                                menu_div.apiHandle.add_btn = new Emt('button', 'type="button"', '添加');
+
+
+                                menu_div.addNodes([
+                                    menu_div.apiHandle.body_div.addNodes([
+                                        menu_div.apiHandle.id_td,
+                                        menu_div.apiHandle.title_td,
+                                        //     menu_div.apiHandle.type_td,
+                                        menu_div.apiHandle.status_td,
+                                        menu_div.apiHandle.op_td.addNodes([
+                                            menu_div.apiHandle.edit_btn,
+                                            menu_div.apiHandle.add_btn
+                                        ])
+                                    ]),
+                                    menu_div.apiHandle.menus_div.addNodes([]),
+                                ]);
+
+                                menu_div.apiHandle.setMenuInfo = function (menuInfo) {
+                                    menu_div.apiHandle.data = menuInfo;
+                                    if (menuInfo.id !== 'ID') {
+                                        menu_div.apiHandle.id_td.addNode(
+                                            new Emt('label').addNodes([
+                                                new Emt('span', '', menuInfo.id)
+                                            ])
+                                        );
+                                    } else {
+                                        menu_div.apiHandle.id_td.append(new Emt('div', '', menuInfo.id));
+                                    }
+                                    let title_div = new Emt('div', 'class="menu_title_div"');
+
+
+                                    title_div.addNode(new Emt('div', '', menuInfo.title));
+                                    menu_div.apiHandle.title_td.append(title_div);
+                                    menu_div.apiHandle.type_td.textContent = window.serverData.dataLib.mainTable.linkType.map[menuInfo.is_backend];
+                                    menu_div.apiHandle.status_td.textContent = window.serverData.dataLib.mainTable.isOk.map[menuInfo.is_ok];
+                                };
+                                menu_div.apiHandle.edit_btn.addEventListener('click', function () {
+                                    modal_edit.apiHandle.show();
+                                    edit_menu_form.apiHandle.loadMenuInfo(menu_div.apiHandle.data);
+                                });
+                                menu_div.apiHandle.add_btn.addEventListener('click', function () {
+                                    add_menu_form.apiHandle.ele.input.pid.apiHandle.setInitVal(menu_div.apiHandle.data.id);
+                                    add_menu_modal.apiHandle.show();
+                                });
+
+
+                                menu_div.apiHandle.body_div.addEventListener('dragstart', function (e) {
+                                    console.log('dragstart', e.target);
+                                    window.dragedEle = menu_div.apiHandle.body_div;
+                                    menu_div.apiHandle.body_div.classList.add('on_drag_row');
+                                });
+                                menu_div.apiHandle.body_div.addEventListener('drag', function (e) {
+                                    //console.log('drag');
+
+                                });
+                                menu_div.apiHandle.body_div.addEventListener('dragend', function (e) {
+                                    console.log('dragend');
+                                    window.dragedEle = false;
+                                    menu_div.apiHandle.body_div.classList.remove('on_drag_row');
+
+
+                                });
+
+                                menu_div.apiHandle.body_div.addEventListener('dragenter', function (e) {
+                                    if (menu_div.apiHandle.body_div.apiHandle.data === window.dragedEle.apiHandle.data) {
+                                        return false;
+                                    }
+                                    //console.log('dragenter');
+                                    menu_div.apiHandle.body_div.classList.add('on_drop_row');
+
+                                });
+                                menu_div.apiHandle.body_div.addEventListener('drop', function (e) {
+                                    if (menu_div.apiHandle.body_div.apiHandle.data === window.dragedEle.apiHandle.data) {
+                                        return false;
+                                    }
+                                    let tmp_obj = {onDrop: menu_div.apiHandle.body_div, onDropData: menu_div.apiHandle.body_div.apiHandle.data, draged: window.dragedEle, dragedData: window.dragedEle.apiHandle.data};
+                                    console.log('PRE drop', tmp_obj);
+                                    //return false;
+                                    kl.ajax({
+                                        url: '/_dp/v1/dbdata/update?user_token=' + utk,
+                                        data: {
+                                            attr: {id: tmp_obj.dragedData.id, pid: tmp_obj.onDropData.id},
+                                            table_name: rbac_menu_tableName,
+                                        },
+                                        type: 'json',
+                                        success: function (add_attrs_res) {
+                                            if (add_attrs_res.status) {
+                                                if (add_attrs_res.status === 200) {
+                                                    flush_menu_tree();
+                                                } else {
+                                                    alert('更菜单错误:' + (add_attrs_res.msg || '未知'))
+                                                }
+                                            } else {
+                                                console.log(add_attrs_res.status);
+                                                alert('更菜单错误:请求结果异常')
+                                            }
+                                        },
+                                        error: function (res_request_data) {
+                                            console.log(res_request_data);
+                                            alert('更菜单错误:网络异常');
+                                        }
+
+                                    });
+
+
+                                    menu_div.apiHandle.body_div.classList.remove('on_drop_row');
+
+
+                                });
+                                menu_div.apiHandle.body_div.addEventListener('dragover', function (e) {
+                                    // console.log('dragover');
+                                    e.preventDefault(); //【重要】一定要加这一行代码，否则，后面的方法 ondrop() 无法触发。
+
+                                });
+                                menu_div.apiHandle.body_div.addEventListener('dragleave', function (e) {
+                                    //console.log('dragleave');
+                                    menu_div.apiHandle.body_div.classList.remove('on_drop_row');
+
+                                });
+
+
+                                return menu_div;
+                            };
+
+
+                            menu_root_div.appendMenuTreeNode = function (menuInfo) {
+                                window.serverData.dataLib.menu.items.push({val: menuInfo.id, text: menuInfo.pathName});
+                                let menu_div = menu_root_div.createMenuDiv();
+                                menu_root_div.apiHandle.menu.list.push(menu_div);
+                                menu_root_div.apiHandle.menu.map[menuInfo.id] = menu_div;
+                                if (menuInfo.pid == '0') {
+                                    menu_root_div.addNodes([menu_div]);
+                                } else {
+                                    if (menu_root_div.apiHandle.menu.map[menuInfo.pid] === undefined) {
+                                        menu_div.classList.add('pid_not_found');
+                                        menu_root_div.addNodes([menu_div]);
+                                    } else {
+                                        menu_root_div.apiHandle.menu.map[menuInfo.pid].apiHandle.menus_div.addNode(menu_div);
+                                    }
+                                }
+                                menu_div.apiHandle.setMenuInfo(menuInfo);
+                                if (menuInfo.nodes.length > 0) {
+                                    menuInfo.nodes.forEach(function (menuInfo2, tmp_index) {
+                                        menuInfo2.pathName = menuInfo.pathName + '/' + menuInfo2.title;
+                                        menu_root_div.appendMenuTreeNode(menuInfo2);
+                                    });
+                                }
+                            };
+                            tmp_arr.forEach(function (menuInfo) {
+                                menuInfo.pathName = '/' + menuInfo.title;
+                                menu_root_div.appendMenuTreeNode(menuInfo);
+                            });
+                            add_menu_form.apiHandle.ele.input.pid.apiHandle.setItems(window.serverData.dataLib.menu.items);
+
+                            menus_list_div.addNode(menu_root_div);
+
+                        };
+                        flush_menu_tree();
+
+                        edit_menu_form.apiHandle.loadMenuInfo = function (treeNodeMenuInfo) {
+                            let opts_obj = {};
+                            try {
+                                opts_obj = JSON.parse(treeNodeMenuInfo.opts);
+                                console.log(opts_obj);
+                            } catch (e) {
+                                console.log(treeNodeMenuInfo.opts, treeNodeMenuInfo.opts.urldecode());
+                            }
+                            edit_menu_form.apiHandle.ele.input.id.apiHandle.setInitVal(treeNodeMenuInfo.id);
+                            edit_menu_form.apiHandle.ele.input.title.apiHandle.setInitVal(treeNodeMenuInfo.title);
+                            edit_menu_form.apiHandle.ele.input.url.apiHandle.setInitVal(treeNodeMenuInfo.url);
+                            edit_menu_form.apiHandle.ele.input.opts_link.apiHandle.setInitVal(opts_obj.link || '');
+                            edit_menu_form.apiHandle.ele.input.opts_mainTable.apiHandle.setInitVal(opts_obj.main_table || '');
+                            edit_menu_form.apiHandle.ele.input.isOk.apiHandle.setInitVal(treeNodeMenuInfo.is_ok);
+                            let role_ids = [];
+                            treeNodeMenuInfo.relats.forEach((relatInfo) => {
+                                if (relatInfo.is_ok == '1') {
+                                    role_ids.push(relatInfo.role_id);
+                                }
+                            });
+                            edit_menu_form.apiHandle.ele.input.roles.apiHandle.setInitVal(role_ids);
+                        };
+
+
+                        edit_menu_form.apiHandle.ele.input.submit_btn.addEventListener('click', function () {
+                            let res = {
+                                id: edit_menu_form.apiHandle.ele.input.id.apiHandle.getVal(),
+                                title: edit_menu_form.apiHandle.ele.input.title.apiHandle.getVal(),
+                                url: edit_menu_form.apiHandle.ele.input.url.apiHandle.getVal(),
+                                opts: JSON.stringify({
+                                    link: edit_menu_form.apiHandle.ele.input.opts_link.apiHandle.getVal(),
+                                    main_table: edit_menu_form.apiHandle.ele.input.opts_mainTable.apiHandle.getVal()
+                                }),
+                                is_ok: edit_menu_form.apiHandle.ele.input.isOk.apiHandle.getVal(),
+                                roles: edit_menu_form.apiHandle.ele.input.roles.apiHandle.getVal(),
+                            };
+                            console.log(res);
+                            let attr = {};
+                            if (edit_menu_form.apiHandle.ele.input.title.apiHandle.isChange()) {
+                                attr.title = res.title;
+                            }
+                            if (edit_menu_form.apiHandle.ele.input.url.apiHandle.isChange()) {
+                                attr.url = res.url;
+                            }
+                            if (edit_menu_form.apiHandle.ele.input.opts_link.apiHandle.isChange() || edit_menu_form.apiHandle.ele.input.opts_mainTable.apiHandle.isChange()) {
+                                attr.opts = res.opts;
+                            }
+                            if (edit_menu_form.apiHandle.ele.input.isOk.apiHandle.isChange()) {
+                                attr.is_ok = res.is_ok;
+                            }
+
+                            let roles_change_fun = function () {
+                                if (edit_menu_form.apiHandle.ele.input.roles.apiHandle.isChange()) {
+                                    async function change_roles() {
+                                        for (let tmp_i = 0; tmp_i < window.serverData.dataLib.role.list.length; tmp_i++) {
+                                            await add_menu_role({
+                                                menu_id: res.id,
+                                                role_id: window.serverData.dataLib.role.list[tmp_i].id,
+                                                is_ok: res.roles.indexOf(window.serverData.dataLib.role.list[tmp_i].id) === -1 ? 2 : 1,
+                                            });
+                                        }
+                                        flush_menu_tree();
+                                    }
+
+                                    change_roles();
+                                } else {
+
+                                    console.log('roles 没有变化', edit_menu_form.apiHandle.ele.input.roles.apiHandle.getInitVal(), res.roles);
+                                    flush_menu_tree();
+                                }
+                            };
+
+                            if (Object.values(attr).length > 0) {
+                                kl.ajax({
+                                    url: '/_dp/v1/dbdata/update?user_token=' + utk,
+                                    data: {
+                                        attr: {
+                                            id: res.id,
+                                            title: res.title,
+                                            url: res.url,
+                                            opts: res.opts,
+                                            is_ok: res.is_ok,
+                                        },
+                                        table_name: rbac_menu_tableName,
+                                    },
+                                    type: 'json',
+                                    success: function (save_res) {
+                                        if (save_res.status) {
+                                            if (kl.isUndefined(save_res, 'data')) {
+                                                alert('保存commit错误:' + (save_res.msg || '未知'))
+                                            } else {
+                                                // document.location.reload();
+                                                roles_change_fun();
+                                            }
+                                        } else {
+                                            console.log(save_res);
+                                            alert('请求结果异常')
+                                        }
+                                    },
+                                    error: function (res_save_column) {
+                                        console.log(res_save_column);
+                                        alert('网络异常');
+                                    }
+                                })
+                            } else {
+                                console.log('menu 属性没有变动');
+                                roles_change_fun();
+                            }
+
+
+                        });
+
+                        add_menu_btn.addEventListener('click', function () {
+                            add_menu_form.apiHandle.ele.input.pid.apiHandle.setInitVal(0);
+                            add_menu_modal.apiHandle.show();
+                        });
+
+                        add_menu_form.apiHandle.ele.input.submitBtn.addEventListener('click', function () {
+                            let res = {
+                                pid: add_menu_form.apiHandle.ele.input.pid.apiHandle.getVal(),
+                                title: add_menu_form.apiHandle.ele.input.title.apiHandle.getVal(),
+                                url: add_menu_form.apiHandle.ele.input.url.apiHandle.getVal(),
+                                opts: JSON.stringify({
+                                    link: add_menu_form.apiHandle.ele.input.opts_link.apiHandle.getVal(),
+                                    main_table: add_menu_form.apiHandle.ele.input.opts_mainTable.apiHandle.getVal()
+                                }),
+                            };
+                            console.log(res);
+                            //return false;
+                            kl.ajax({
+                                url: '/_dp/v1/dbdata/add?user_token=' + utk,
+                                data: {
+                                    attr: res,
+                                    table_name: rbac_menu_tableName,
+                                },
+                                type: 'json',
+                                async: true,
+                            }).then(res => {
+                                console.log(res);
+                                if (kl.isUndefined(res, 'result.data.insert.pk')) {
+                                    alert('新增menu失败:' + (kl.isUndefined(res, 'result.msg') ? '未知' : res.result.msg));
+                                } else {
+                                    flush_menu_tree();
+                                    add_menu_modal.apiHandle.hide();
+                                }
+                                return res;
+                            })
+                        });
+
+                        // flush_menu_tree();
+                    }
+                }
+            );
+        </script>
+        <style>
+            .drag_sort_div {
+                float: left;
+                width: 100px;
+            }
+
+            .drag_sort_div > * {
+                display: block;
+                float: left;
+            }
+
+            .menu_row {
+                margin: 10px;
+            }
+
+            .menu_row > td > div {
+                display: block;
+                padding: 5px;
+            }
+
+            .on_drag_row > td > div {
+                background: #000;
+                color: #FFF;
+            }
+
+            .on_drop_row > td > div {
+                background: #ffff00;
+                color: #00F;
+            }
+
+            .menu_root_div, .menu_div, .menu_body_div, .menus_div {
+                display: block;
+                float: left;
+                width: 100%;
+            }
+
+            .menu_body_div > div {
+                float: left;
+            }
+
+            .menus_div {
+                margin-left: 20px;
+                border-left: 1px solid #000;
+            }
+        </style>
+    </div>
+</div>
+
+
+<footer class="footer">
+    <div class="container">
+        <p class="pull-left">&copy; My Company 2022</p>
+
+        <p class="pull-right">Powered by <a href="http://www.yiiframework.com/" rel="external">Yii Framework</a></p>
+    </div>
+</footer>
+
+<script src="/static/_dp/js/jquery.js"></script>
+<script src="/static/_dp/js/bootstrap.js"></script>
+</body>
+</html>

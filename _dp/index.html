@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DP-后台首页</title>
+    <link href="/static/_dp/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/_dp/css/site.css" rel="stylesheet">
+    <link href="/static/_dp/css/bg.css" rel="stylesheet">
+</head>
+<body>
+<div class="wrap">
+    <nav id="w0" class="navbar-inverse navbar-fixed-top navbar">
+        <div class="container">
+            <div class="navbar-header"></div>
+            <div id="bg_menus_div" class="navbar-brand menus_root">DP导航</div>
+            <div id="w0-collapse" class="collapse navbar-collapse">
+                <ul id="w1" class="navbar-nav navbar-right nav">
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
+        <script src="/static/_dp/js/string/string.js"></script>
+        <script src="/static/_dp/js/hammer-yii2/bootstrap.min.20211016.1.js"></script>
+        <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.20211020.1.js"></script>
+        <script src="/static/_dp/js/bg.js"></script>
+
+        <div class="site-index">
+
+            <div>
+
+            </div>
+
+
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="page-header" id="h1">【DP-后台首页】</h3>
+                </div>
+                <div class="panel-body">
+                    <p id="subject_detail"></p>
+                </div>
+            </div>
+
+
+            <div class="body-content" id="content_div">
+
+                <pre>
+                    菜单导航，见左上角【导航】
+
+                    正式环境：
+                        API:
+                            https://beeinvasion.aiqingyinghang.com:2021
+                            http://beeinvasion.aiqingyinghang.com:2020
+                        后台:
+                            https://beeinvasion.aiqingyinghang.com:2021/admin/login.html
+                        游戏：
+                            https://beeinvasion.aiqingyinghang.com:2023/index.html
+                            http://beeinvasion.aiqingyinghang.com:2022/index.html
+                    预览环境：
+                        API：
+                            https://beeinvasion.aiqingyinghang.com:2026
+                        游戏：
+                            https://beeinvasion.aiqingyinghang.com:2027
+                    测试环境：
+                        API：
+                            https://dev.aiqingyinghang.com:2046
+                        游戏：
+                            http://dev.aiqingyinghang.com:2047/web-mobile/index.html
+                            https://dev.aiqingyinghang.com:2048/web-mobile/index.html
+                        后台：
+                            https://dev.aiqingyinghang.com:2046/admin/login.html
+
+                </pre>
+            </div>
+
+        </div>
+        <script>
+            domLoaded(function () {
+                    let utk = '';
+                    bg_init(function () {
+                        utk = window.utk;
+                    });
+                }
+            );
+        </script>
+        <style>
+
+        </style>
+    </div>
+</div>
+
+
+<script src="/static/_dp/js/jquery.js"></script>
+<script src="/static/_dp/js/bootstrap.js"></script>
+</body>
+</html>

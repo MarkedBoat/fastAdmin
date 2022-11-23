@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>表字段</title>
+    <link href="/static/_dp/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/_dp/css/site.css" rel="stylesheet">
+    <link href="/static/_dp/css/bg.css" rel="stylesheet">
+</head>
+<body>
+<div class="wrap">
+    <nav id="w0" class="navbar-inverse navbar-fixed-top navbar">
+        <div class="container">
+            <div class="navbar-header"></div>
+            <div id="bg_menus_div" class="navbar-brand menus_root">导航</div>
+            <div id="w0-collapse" class="collapse navbar-collapse">
+                <ul id="w1" class="navbar-nav navbar-right nav">
+                    <li><a href="/admin/dbdata/tables.html">所有表</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
+        <script src="/static/_dp/js/string/string.js"></script>
+        <script src="/static/_dp/js/hammer-yii2/bootstrap.min.20211016.1.js"></script>
+        <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.20211020.1.js"></script>
+        <script src="/static/_dp/js/bg.js"></script>
+
+        <div class="site-index">
+
+            <div>
+
+            </div>
+
+
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="page-header" id="h1">【管理-字段】</h3>
+                </div>
+                <div class="panel-body">
+                    <p id="subject_detail"></p>
+                </div>
+            </div>
+
+
+            <div class="body-content" id="content_div">
+
+
+            </div>
+
+        </div>
+        <script>
+            domLoaded(function () {
+                    let utk = '';
+                    let role_infos = [];
+                    bg_init(function () {
+                        utk = window.utk;
+
+                        kl.ajax({
+                            url: '/_dp/v1/dbdata/info?user_token=' + utk,
+                            data: {table_name: 'bg_db_column'},
+                            type: 'json',
+                            success: function (res_request_data) {
+                                if (res_request_data.status) {
+                                    if (res_request_data.status === 200) {
+                                        window.serverData.table = res_request_data.data.table;
+                                        window.serverData.columns = res_request_data.data.columns;
+                                        window.serverData.columns.forEach(function (column_info) {
+                                            if (column_info.index_key === 'PRI') {
+                                                window.serverData.table.pk_key = column_info.column_name;
+                                            }
+                                            let tmp_key = column_info.column_name;
+                                            window.serverData.vals_map[tmp_key] = {};
+                                            window.serverData.vals_range_map[tmp_key] = column_info.val_range;
+                                            if (column_info.val_range.length > 0) {
+                                                column_info.val_range.forEach(function (val_config) {
+                                                    //window.serverData.vals_map[tmp_key].list.push({val: val_config.val, label: val_config.text});
+                                                    window.serverData.vals_map[tmp_key][val_config.val] = val_config.text;
+                                                });
+                                            }
+                                        });
+
+
+                                        content();
+                                    } else {
+                                        alert(' 获取表信息 错误:' + (res_request_data.message || '未知'));
+                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                                    }
+                                } else {
+                                    console.log(res_request_data.status);
+                                    alert('获取表信息 请求结果异常');
+                                    throw '别看了， info 信息都拿不到，还想干啥?';
+                                }
+                            },
+                            error: function (res_request_data) {
+                                console.log(res_request_data);
+                                alert('获取表信息 网络异常');
+                                throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                            }
+                        });
+
+
+                        kl.ajax({
+                            url: '/_dp/v1/dbdata/info?user_token=' + utk,
+                            data: {table_name: window.serverData.table_name},
+                            type: 'json',
+                            success: function (res_request_data) {
+                                return false;
+                                if (res_request_data.status) {
+                                    if (res_request_data.status === 200) {
+                                        window.serverData.table = res_request_data.data.table;
+                                        window.serverData.columns = res_request_data.data.columns;
+                                        window.serverData.columns.forEach(function (column_info) {
+                                            if (column_info.index_key === 'PRI') {
+                                                window.serverData.table.pk_key = column_info.column_name;
+                                            }
+                                            let tmp_key = column_info.column_name;
+                                            window.serverData.vals_map[tmp_key] = {};
+                                            window.serverData.vals_range_map[tmp_key] = column_info.val_range;
+                                            if (column_info.val_range.length > 0) {
+                                                column_info.val_range.forEach(function (val_config) {
+                                                    //window.serverData.vals_map[tmp_key].list.push({val: val_config.val, label: val_config.text});
+                                                    window.serverData.vals_map[tmp_key][val_config.val] = val_config.text;
+                                                });
+                                            }
+                                        });
+                                        // content();
+                                    } else {
+                                        alert(' 获取表信息 错误:' + (res_request_data.message || '未知'));
+                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                                    }
+                                } else {
+                                    console.log(res_request_data.status);
+                                    alert('获取表信息 请求结果异常');
+                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
+                                }
+                            },
+                            error: function (res_request_data) {
+                                console.log(res_request_data);
+                                alert('获取表信息 网络异常');
+                                throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                            }
+                        })
+
+
+                        kl.ajax({
+                            url: '/_dp/v1/dbdata/select?user_token=' + utk,
+                            data: {table_name: 'bg_rbac_role', page_index: 1, page_size: 1000},
+                            type: 'json',
+                            success: function (res_request_data) {
+                                if (res_request_data.code && res_request_data.code === 'ok') {
+                                    res_request_data.data.dataRows.forEach((role_info) => {
+                                        role_infos.push({val: role_info.role_code, text: role_info.role_name});
+                                    })
+                                }
+                            },
+                            error: function (res_request_data) {
+                            }
+                        })
+                    });
+
+
+                    content = function () {
+                        kl.id('h1').textContent = kl.id('h1').textContent + '/' + serverData.table.title + '/ ' + window.serverData.table_name;
+                        document.title = '【列】' + serverData.table.title + '/' + serverData.table.table_name;
+
+
+                        var raw_root = kl.id('content_div');
+                        var root = new Emt('div').setPros({className: 'row'});
+                        raw_root.append(root);
+
+                        let colums_vals_map = {
+                            vals_limit: {1: '有限穷举', 2: '[yes,no]', 3: '无限,无法预料'},
+                            yes_or_no: {1: '是', 2: '否'},
+                        };
+
+
+                        let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
+                        let handle_modal_edit = hammerYii2Bootstarp1.modal({title: '修改字段设置'});
+                        let handle_modal_vals = hammerYii2Bootstarp1.modal({title: '编辑字段取值穷举'});
+                        let handle_form_edit = hammerYii2Bootstarp1.form({name_tpl: 'attr[$name_key]'});
+
+                        handle_modal_edit.body_ele.addNodes([handle_form_edit.root_ele]);
+                        handle_form_edit.createInputText('字段', '', 'input_column_key_ele').input_column_key_ele.setPros({readOnly: true});
+                        let column_id = handle_form_edit.createInputHide('input_column_id_ele', 'id').input_column_id_ele.setPros({readOnly: true});
+                        let column_title = handle_form_edit.createInputText('字段标题', '用于当成label显示', 'input_title_ele', 'title').input_title_ele;
+                        let column_sn = handle_form_edit.createInputText('字段序号', '最小的在前面', 'input_sn_ele', 'column_sn').input_sn_ele;
+                        let column_rearmk = handle_form_edit.createInputTextArea('字段描述', '备注', 'input_remark_ele', 'remark').input_remark_ele;
+
+                        let handle_out_datatype_select = hammerYii2Bootstarp1.select({list: ['string', 'int', 'date', 'img_uri']});
+                        let handle_in_datatype_select = hammerYii2Bootstarp1.select({list: ['string', 'int', 'date']});
+
+                        let handle_read_roles_select = hammerYii2Bootstarp1.select({list: []});
+                        let handle_opt_roles_select = hammerYii2Bootstarp1.select({list: []});
+                        let handle_add_roles_select = hammerYii2Bootstarp1.select({list: []});
+
+
+                        //let handle_vals_range_textarea = hammerYii2Bootstarp1.textarea({});
+                        let column_vals_range = handle_form_edit.createInputTextArea('取值范围', '代表值对应含义', 'input_val_range_ele', 'val_range').input_val_range_ele;
+
+
+                        handle_form_edit.root_ele.addNodes([
+                            handle_form_edit.createInputGroup('输出类型', handle_out_datatype_select.root_ele),
+                        ]);
+                        handle_form_edit.root_ele.addNodes([
+                            handle_form_edit.createInputGroup('接收类型', handle_in_datatype_select.root_ele),
+                        ]);
+
+
+                        let edit_vals_div = new Emt('div').setAttrsByStr('class="table-responsive"');
+                        handle_form_edit.root_ele.addNodes([
+                            handle_form_edit.createInputGroup('修改取值范围', edit_vals_div),
+                        ]);
+
+
+                        handle_form_edit.root_ele.addNodes([
+                            handle_form_edit.createInputGroup('读角色', handle_read_roles_select.root_ele),
+                        ]);
+                        handle_form_edit.root_ele.addNodes([
+                            handle_form_edit.createInputGroup('写(选择角色)', handle_opt_roles_select.root_ele),
+                        ]);
+                        handle_form_edit.root_ele.addNodes([
+                            handle_form_edit.createInputGroup('写(全授权)', handle_add_roles_select.root_ele),
+                        ]);
+
+                        handle_form_edit.createSubmitButton('', '保存', 'button_submit_ele', function (btn, form) {
+                            kl.ajax({
+                                url: '/_dp/v1/dbdata/update?user_token=' + utk,
+                                attr: form,
+                                data: {
+                                    attr: {
+                                        id: handle_form_edit.input_column_id_ele.value,
+                                        title: handle_form_edit.input_title_ele.value,
+                                        column_sn: handle_form_edit.input_sn_ele.value,
+                                        out_datatype: handle_out_datatype_select.getValue(),
+                                        in_datatype: handle_in_datatype_select.getValue(),
+                                        val_range: handle_form_edit.input_val_range_ele.value,
+                                        remark: handle_form_edit.input_remark_ele.value,
+                                    },
+                                    table_name: 'bg_db_column',
+                                },
+                                type: 'json',
+                                success: function (res_save_column) {
+                                    if (res_save_column.status) {
+                                        if (res_save_column.status === 200) {
+                                            hanndle_datagrid.requestData('init');
+                                            //res_save_column(res_save_column.data);
+                                            handle_modal_edit.hide();
+                                        } else {
+                                            alert('错误:' + (res_save_column.msg || '未知'))
+                                        }
+                                    } else {
+                                        console.log(res_save_column);
+                                        alert('请求结果异常')
+                                    }
+                                },
+                                error: function (res_save_column) {
+                                    console.log(res_save_column);
+                                    alert('网络异常');
+                                }
+                            })
+                        });
+
+
+                        let ele_vals_table = new Emt('table').setAttrsByStr('class="table table-bordered table-striped table-hover"');
+                        let ele_vals_submit_btn = new Emt('button', 'type="button"').setPros({textContent: '应用到取值范围'});
+                        let tmp_table_header = ele_vals_table.createTHead();
+                        let tmp_tr_header = tmp_table_header.insertRow();
+                        tmp_tr_header.insertCell().textContent = '序号';
+                        tmp_tr_header.insertCell().textContent = '值';
+                        tmp_tr_header.insertCell().textContent = '标签/含义';
+                        tmp_tr_header.insertCell().textContent = '启用';
+
+                        let edit_vals_range_table_body = ele_vals_table.createTBody();
+                        let createColumnValEle = function (val_info) {
+                            let tmp_tr = edit_vals_range_table_body.insertRow();
+                            [
+                                {input_ele_key: 'val_sn', input_ele: new Emt('input').setAttrsByStr('type="text" class="col-sm-12"').setPros({value: val_info.sn || edit_vals_range_table_body.childElementCount})},
+
+                                {input_ele_key: 'column_val', input_ele: new Emt('input').setAttrsByStr('type="text"').setPros({value: val_info.val || ''})},
+                                {input_ele_key: 'title', input_ele: new Emt('input').setAttrsByStr('type="text"').setPros({value: val_info.text || ''})},
+                                {input_ele_key: 'is_ok', input_ele: new Emt('input').setAttrsByStr('type="checkbox"').setPros({checked: !!val_info})}
+                            ].forEach(function (tmp_info) {
+                                let tmp_td = tmp_tr.insertCell();
+                                tmp_td.append(tmp_info.input_ele);
+                                tmp_tr['input_' + tmp_info.input_ele_key] = tmp_info.input_ele;
+                            });
+
+                        };
+
+                        let tmp_table_footer = ele_vals_table.createTFoot();
+
+                        let tmp_tr_footer = tmp_table_footer.insertRow();
+                        let column_name_input_ele = new Emt('input', 'type="button"').setAttrsByStr('type="text" readonly="readonly"');
+                        let add_val_setting_btn = new Emt('button', 'type="button"').setPros({textContent: '添加值'});
+                        tmp_tr_footer.insertCell().textContent = '#';
+                        tmp_tr_footer.insertCell().textContent = '#';
+                        tmp_tr_footer.insertCell().append(add_val_setting_btn);
+
+
+                        edit_vals_div.addNodes([new Emt('div').setAttrsByStr('class="table-responsive"').addNodes([ele_vals_table]), ele_vals_submit_btn]);
+                        ele_vals_submit_btn.addEventListener('click', function () {
+                            let trs = edit_vals_range_table_body.getElementsByTagName('tr');
+                            let val_infos = [];
+                            for (let i = 0; i < trs.length; i++) {
+                                let tr = trs[i];
+                                if (tr.input_is_ok.checked === true) {
+                                    val_infos.push({
+                                        val: tr.input_column_val.value,
+                                        text: tr.input_title.value,
+                                        sn: tr.input_val_sn.value
+                                    });
+                                }
+                            }
+                            console.log(val_infos);
+                            column_vals_range.value = JSON.stringify(val_infos);
+
+
+                        });
+                        add_val_setting_btn.addEventListener('click', function () {
+                            createColumnValEle({});
+                        });
+
+
+                        // let column_title=form_edit.createInputText('字段标题', '用于当成label显示', 'input_title_ele').input_title_ele;
+
+                        let id_list = [];
+                        let sort_bar_list = [];
+                        let hanndle_datagrid = hammerBootstarpDatagrid({
+                            ele: kl.id('content_div'),
+                            requestDataFun: function (event_type, page_data, handle_callback) {
+                                id_list = [];
+                                sort_bar_list = [];
+                                console.log(event_type, page_data);
+                                if (event_type === 'filter') {
+                                    console.log('这个不做理会，不然请求太频繁了');
+                                    return false;
+                                }
+                                let post_data = {
+                                    page: {index: 1, size: 1000},
+                                    attr: page_data.filter,
+                                    table_name: 'bg_db_column',
+                                };
+                                post_data.attr.table_name = window.serverData.table_name;
+
+                                if (!page_data.sort.key || !page_data.sort.type) {
+                                    console.log('没有排序');
+                                } else {
+                                    // post_data.sort = page_data.sort;
+                                    post_data.sort = {};
+                                    post_data.sort[page_data.sort.key] = page_data.sort.type;
+                                }
+                                kl.ajax({
+                                    url: '/_dp/v1/dbdata/select?user_token=' + utk,
+                                    data: post_data,
+                                    type: 'json',
+                                    success: function (res_request_data) {
+                                        if (res_request_data.status) {
+                                            if (res_request_data.status === 200) {
+                                                handle_callback(res_request_data.data.dataRows);
+                                            } else {
+                                                alert('错误:' + (res_request_data.msg || '未知'))
+                                            }
+                                        } else {
+                                            console.log(res_request_data.status);
+                                            alert('请求结果异常')
+                                        }
+                                    },
+                                    error: function (res_request_data) {
+                                        console.log(res_request_data);
+                                        alert('网络异常');
+                                    }
+                                })
+                            },
+                        });
+
+
+                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), 'id', 'id', true);
+                        hanndle_datagrid.addHeader('字段序号', '字段序号', 'column_sn', true, function (cell, row_data) {
+                            let input_data = hanndle_datagrid.getInputData();
+                            //                            console.log(input_data);
+                            if (input_data.sort.key === 'column_sn' && input_data.sort.type === 'desc') {
+                                id_list.push(parseInt(row_data.id));
+                                let bar_btn = new Emt('button', 'type="button"', row_data.column_sn, {draggable: true, sn: parseInt(row_data.column_sn), data_id: parseInt(row_data.id)});
+                                let pre_area = new Emt('div', '', '<--', {sn: parseInt(row_data.column_sn), data_id: parseInt(row_data.id)});
+                                let next_area = new Emt('div', '', '-->', {sn: parseInt(row_data.column_sn), data_id: parseInt(row_data.id)});
+                                sort_bar_list.push(bar_btn);
+                                let tmp_div = new Emt('div');
+                                tmp_div.addNodes([pre_area, bar_btn, next_area]);
+                                cell.appendChild(tmp_div);
+
+                                bar_btn.addEventListener('dragstart', function (e) {
+                                    console.log('dragstart', e.target);
+                                    window.dragedEle = bar_btn;
+                                });
+                                bar_btn.addEventListener('drag', function (e) {
+                                    //console.log('drag');
+
+                                });
+                                bar_btn.addEventListener('dragend', function (e) {
+                                    console.log('dragend');
+                                    window.dragedEle = false;
+                                });
+
+                                pre_area.addEventListener('dragenter', function (e) {
+                                    //console.log('dragenter');
+                                });
+                                pre_area.addEventListener('drop', function (e) {
+                                    let tmp_index = id_list.indexOf(pre_area.data_id);
+                                    let tmp_ar = [];
+                                    if (tmp_index === 0) {
+                                        tmp_ar.push(window.dragedEle.data_id);
+                                    }
+                                    id_list.forEach((data_id) => {
+                                        if (window.dragedEle.data_id !== data_id) {
+                                            tmp_ar.push(data_id);
+                                        }
+                                    });
+                                    console.log('PRE drop', pre_area, pre_area.data_id, window.dragedEle, window.dragedEle.data_id, tmp_ar);
+
+                                    kl.ajax({
+                                        url: '/_dp/v1/dbdata/sortColumn?user_token=' + utk,
+                                        data: {
+                                            ids: tmp_ar
+                                        },
+                                        type: 'json',
+                                        success: function (tmp_res) {
+                                            hanndle_datagrid.requestData('init');
+                                        },
+                                        error: function (res_save_column) {
+                                            alert('报错了');
+                                        }
+                                    })
+
+                                });
+                                pre_area.addEventListener('dragover', function (e) {
+                                    // console.log('dragover');
+                                    e.preventDefault(); //【重要】一定要加这一行代码，否则，后面的方法 ondrop() 无法触发。
+
+                                });
+                                pre_area.addEventListener('dragleave', function (e) {
+                                    //console.log('dragleave');
+                                });
+
+
+                                next_area.addEventListener('dragenter', function (e) {
+                                    //console.log('dragenter');
+                                });
+                                next_area.addEventListener('drop', function (e) {
+                                    let tmp_ar = [];
+                                    id_list.forEach((data_id, index) => {
+                                        if (data_id !== window.dragedEle.data_id) {
+                                            if (data_id === next_area.data_id) {
+                                                tmp_ar.push(data_id);
+                                                tmp_ar.push(window.dragedEle.data_id);
+                                            } else {
+                                                tmp_ar.push(data_id);
+                                            }
+                                        }
+                                    });
+                                    console.log('NEXT drop', pre_area, pre_area.data_id, window.dragedEle, window.dragedEle.data_id, tmp_ar);
+                                    kl.ajax({
+                                        url: '/_dp/v1/dbdata/sortColumn?user_token=' + utk,
+                                        data: {
+                                            ids: tmp_ar
+                                        },
+                                        type: 'json',
+                                        success: function (tmp_res) {
+                                            hanndle_datagrid.requestData('init');
+                                        },
+                                        error: function (res_save_column) {
+                                            alert('报错了');
+                                        }
+                                    })
+
+                                });
+                                next_area.addEventListener('dragover', function (e) {
+                                    // console.log('dragover');
+                                    e.preventDefault(); //【重要】一定要加这一行代码，否则，后面的方法 ondrop() 无法触发。
+
+                                });
+                                next_area.addEventListener('dragleave', function (e) {
+                                    //console.log('dragleave');
+                                });
+
+                            } else {
+                                cell.textContent = row_data.column_sn;
+                            }
+
+
+                        });
+                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), '标题', 'title', true);
+                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), '表名', 'table_name', true);
+                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), '列字段名', 'column_name', true);
+                        hanndle_datagrid.addHeader('', '类型', 'data_type', false, function (cell, row_data) {
+                            cell.addNodes([
+                                new Emt('p').setAttrsByStr('存储:', row_data.db_datatype + '(' + row_data.db_datatype_len.toString() + '])'),
+                                new Emt('p').setAttrsByStr('', '接收:' + row_data.in_datatype),
+                                new Emt('p').setAttrsByStr('', '展示:' + row_data.out_datatype),
+                            ]);
+                        });
+
+                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), '字段值范围', 'val_range', false, function (cell, row_data) {
+                            let tmp_pre = new Emt('pre');
+                            console.log(row_data.column_name);
+                            if (0) {
+                                if (window.serverData.vals_range_map[row_data.column_name] !== undefined && window.serverData.vals_range_map[row_data.column_name].length) {
+                                    let tmp_strs = [];
+                                    window.serverData.vals_range_map[row_data.column_name].forEach(function (val_opt_info) {
+                                        tmp_strs.push(JSON.stringify(val_opt_info));
+                                    });
+                                    tmp_pre.textContent = tmp_strs.join("\n");
+                                    tmp_pre.textContent = JSON.stringify(window.serverData.vals_map[row_data.column_name], null, 2);
+                                } else {
+                                    tmp_pre.textContent = '自由定义';
+                                }
+                            } else {
+                                if (row_data.val_range !== undefined && row_data.val_range !== null && row_data.val_range.length && row_data.val_range !== '[]') {
+                                    let tmp_val_range = JSON.parse(row_data.val_range);
+                                    console.log(row_data.val_range, typeof row_data.val_range);
+                                    let tmp_strs = [];
+                                    tmp_val_range.forEach(function (val_opt_info) {
+                                        tmp_strs.push(JSON.stringify(val_opt_info));
+                                    });
+                                    tmp_pre.textContent = tmp_strs.join("\n");
+                                    //  tmp_pre.textContent = JSON.stringify(tmp_strs, null, 2);
+                                } else {
+                                    tmp_pre.textContent = '自由定义';
+                                }
+                            }
+                            cell.addNodes([
+                                tmp_pre
+                            ]);
+
+                            //edit_vals_range_table_body
+
+                        });
+
+                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), '禁用', 'is_ok', true, function (cell, row_data) {
+                            cell.addNodes([
+                                new Emt('p').setAttrsByStr('', (window.serverData.vals_map.is_ok[row_data.is_ok] || '错误信息')),
+                            ]);
+                        });
+
+                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), '备注', 'remark', true);
+
+                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), 'read_roles', 'read_roles', true);
+                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), 'opt_roles', 'opt_roles', true);
+                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), 'add_roles', 'add_roles', true);
+
+                        hanndle_datagrid.addHeader(new Emt('span').setAttrsByStr('', '#'), '操作', 'op', false, function (cell, row_data) {
+                            let btn_import_column = new Emt('button').setPros({textContent: '修改'});
+                            btn_import_column.addEventListener('click', function () {
+                                if (role_infos.length === 0) {
+                                    alert('等待加载role_info');
+                                    return false;
+                                }
+                                console.log('修改', cell, row_data);
+                                edit_vals_range_table_body.innerHTML = '';
+                                column_name_input_ele.value = row_data.column_name;
+
+                                handle_modal_edit.data_info = {cell: cell, row_data: row_data};
+                                column_id.value = row_data.id;
+                                handle_form_edit.input_column_key_ele.value = row_data.column_name;
+                                column_title.value = row_data.title;
+                                column_sn.value = row_data.column_sn;
+                                column_rearmk.value = row_data.remark;
+                                handle_in_datatype_select.loadVal(row_data.in_datatype);
+                                handle_out_datatype_select.loadVal(row_data.out_datatype);
+
+                                if (row_data.val_range === null) {
+                                    row_data.val_range = '[]';
+                                }
+                                column_vals_range.value = row_data.val_range;
+
+                                let tmp_val_range = JSON.parse(row_data.val_range);
+                                tmp_val_range.forEach(function (info) {
+                                    createColumnValEle(info);
+                                });
+
+                                //handle_in_datatype_select.loadVal([row_data.out_datatype,'string','int','date']);
+
+
+                                handle_modal_edit.show();
+                            });
+                            cell.addNodes([btn_import_column]);
+                        });
+
+
+                        hanndle_datagrid.requestData('init');
+
+
+                    }
+                }
+            );
+        </script>
+        <style>
+
+        </style>
+    </div>
+</div>
+
+
+<footer class="footer">
+    <div class="container">
+        <p class="pull-left">&copy; My Company 2022</p>
+
+        <p class="pull-right">Powered by <a href="http://www.yiiframework.com/" rel="external">Yii Framework</a></p>
+    </div>
+</footer>
+
+<script src="/static/_dp/js/jquery.js"></script>
+<script src="/static/_dp/js/bootstrap.js"></script>
+</body>
+</html>
