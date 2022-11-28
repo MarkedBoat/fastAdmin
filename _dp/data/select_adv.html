@@ -67,7 +67,7 @@
 
                     kl.ajax({
                         url: '/_dp/v1/dbdata/info?user_token=' + utk,
-                        data: {table_name: window.serverData.table_name},
+                        data: {dbconf_name: dbconf_name,table_name: window.serverData.table_name},
                         type: 'json',
                         success: function (res_request_data) {
                             if (res_request_data.status) {
@@ -102,7 +102,7 @@
                     kl.id('subject_detail').textContent = serverData.table.remark;
 
 
-                    let tmp_info = {table_name: serverData.table.table_name};
+                    let tmp_info = {dbconf_name: dbconf_name,table_name: serverData.table.table_name};
                     let tmp_json = JSON.stringify(tmp_info).urlencode();
                     console.log(tmp_info, tmp_json);
                     let a_column = new Emt('a').setPros({className: 'btn btn-info btn-sm', href: '/admin/dbdata/columns_adv.html?' + tmp_json, target: '_blank', textContent: 'go管理字段'});
@@ -161,7 +161,7 @@
                                 page_size: page_data.page.size,
                                 attr: page_data.filter,
                                 db_name: 'test',
-                                table_name: window.serverData.table_name,
+                                dbconf_name: dbconf_name,table_name: window.serverData.table_name,
                             };
                             console.log('xxxxx', page_data.sort);
 
@@ -217,9 +217,9 @@
                             window.serverData.table.pk_key = column_info.column_name;
                         }
                         let tmp_key = column_info.column_name;
-                        if (column_info.val_range.length > 0) {
+                        if (column_info.val_items.length > 0) {
                             window.serverData.vals_map[tmp_key] = {};
-                            column_info.val_range.forEach(function (val_config) {
+                            column_info.val_items.forEach(function (val_config) {
                                 //window.serverData.vals_map[tmp_key].list.push({val: val_config.val, label: val_config.text});
                                 window.serverData.vals_map[tmp_key][val_config.val] = val_config.text;
 
@@ -354,7 +354,7 @@
                             data: {
                                 attr: changed_attrs,
                                 db_name: window.serverData.db_name,
-                                table_name: window.serverData.table_name,
+                                dbconf_name: dbconf_name,table_name: window.serverData.table_name,
                             },
                             type: 'json',
                             success: function (add_attrs_res) {
@@ -411,7 +411,7 @@
                             data: {
                                 attr: changed_attrs,
                                 db_name: window.serverData.db_name,
-                                table_name: window.serverData.table_name,
+                                dbconf_name: dbconf_name,table_name: window.serverData.table_name,
                             },
                             type: 'json',
                             success: function (add_attrs_res) {

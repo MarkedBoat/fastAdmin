@@ -8,7 +8,7 @@ use models\common\sys\Sys;
 
 /**
  * @property int id
- * @property string db_name
+ * @property string dbconf_name
  * @property string table_name
  * @property int row_pk 对应的pk
  * @property int exec_res 执行结果
@@ -22,7 +22,7 @@ use models\common\sys\Sys;
 class DbOpLogDao extends ORM
 {
     public $id             = null;
-    public $db_name        = '';
+    public $dbconf_name        = '';
     public $table_name     = '';
     public $row_pk         = 0;
     public $exec_res       = 0;
@@ -39,7 +39,7 @@ class DbOpLogDao extends ORM
     public static $pk           = 'id';
     public static $field_config = [
         'id'             => ['db_type' => 'int', 'length' => 0, 'def' => null, 'pro_def' => null],
-        'db_name'        => ['db_type' => 'varchar', 'length' => 64, 'def' => '', 'pro_def' => ''],
+        'dbconf_name'        => ['db_type' => 'varchar', 'length' => 64, 'def' => '', 'pro_def' => ''],
         'table_name'     => ['db_type' => 'varchar', 'length' => 64, 'def' => '', 'pro_def' => ''],
         'row_pk'         => ['db_type' => 'int', 'length' => 0, 'def' => 0, 'pro_def' => 0],
         'exec_res'       => ['db_type' => 'tinyint', 'length' => 0, 'def' => 0, 'pro_def' => 0],
@@ -54,7 +54,7 @@ class DbOpLogDao extends ORM
 
     public function getDbConfName()
     {
-        return 'dp';
+        return 'fast_bg';
     }
 
 }

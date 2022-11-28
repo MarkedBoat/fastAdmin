@@ -26,7 +26,7 @@ class DbTable extends DbTableDao
 
 
     private $_table_name      = '';
-    private $_db_name         = '';
+    private $_dbconf_name     = '';
     private $main_table_model;
     private $column_model_map = [];
     private $column_names     = [];
@@ -44,28 +44,30 @@ class DbTable extends DbTableDao
 
     private $ext_sql_opts = [];
 
+    public static $db_connects = [];
+
 
     /**
-     * @param $db_name
+     * @param $dbconf_name
      * @param $table_name
      * @return static|array
      * @throws \models\common\error\AdvError
      */
-    public function setTable($db_name, $table_name)
+    public function setTable($dbconf_name, $table_name)
     {
-        $this->_db_name    = $db_name;
-        $this->_table_name = $table_name;
+        $this->_dbconf_name = $dbconf_name;
+        $this->_table_name  = $table_name;
 
-        $this->main_table_model = $this->findOneByWhere(['table_name' => $this->_table_name, 'db_name' => $this->_db_name, 'is_ok' => 1], false);
+        $this->main_table_model = $this->findOneByWhere(['table_name' => $this->_table_name, 'dbconf_name' => $this->_dbconf_name, 'is_ok' => 1], false);
         if (empty($this->main_table_model))
         {
-            throw new \Exception(" 表不存在 {$this->_db_name}.{$this->_table_name}");
+            throw new \Exception(" 表不存在 {$this->_dbconf_name}.{$this->_table_name}");
         }
         $column_tn     = DbColumn::$tableName;
         $column_models = DbColumn::model()->findAllByWhere([
-            'table_name' => $this->_table_name,
-            'db_name'    => $this->_db_name,
-            'is_ok'      => Opt::isOk
+            'table_name'  => $this->_table_name,
+            'dbconf_name' => $this->_dbconf_name,
+            'is_ok'       => Opt::isOk
         ]);
 
         if (empty($column_models))
@@ -130,6 +132,22 @@ class DbTable extends DbTableDao
         return $this;
     }
 
+    public function getDbconfConnect()
+    {
+        if (!isset(self::$db_connects[$this->dbconf_name]))
+        {
+            if ($this->dbconf_name === 'fast_bg')
+            {
+                self::$db_connects[$this->dbconf_name] = $this->getDbConnect();
+            }
+            else
+            {
+                self::$db_connects[$this->dbconf_name] = DbDbConf::model()->findOneByWhere(['is_ok' => Opt::YES, 'db_code' => $this->dbconf_name])->getConfDbConnect();
+            }
+        }
+        return self::$db_connects[$this->dbconf_name];
+    }
+
     /**
      *
      * @return array [dataRows,count,sql,bind]
@@ -137,7 +155,7 @@ class DbTable extends DbTableDao
      */
     public function query()
     {
-        $db    = $this->getDbConnect();
+        $db    = $this->getDbconfConnect();
         $where = '';
         $bind  = [];
         if (count($this->attrs) > 0)
@@ -224,6 +242,7 @@ class DbTable extends DbTableDao
                 }
             }
         }
+
         $ext_from = join(' ', $ext_froms);
         //$where    = $where . count($ext_wheres) > 0 ? (($where ? (" and ") : (" where ")) . join(' and ', $ext_wheres)) : '';
         if (count($ext_wheres))
@@ -238,19 +257,19 @@ class DbTable extends DbTableDao
         if (count($list))
         {
             $relat_tn = DbRelation::$tableName;
-            $rows     = $db->setText("select * from {$relat_tn} where db_name='{$this->_db_name}' and table_name='{$this->_table_name}' and is_ok=1;")->queryAll();
+            $rows     = $this->getDbConnect()->setText("select * from {$relat_tn} where index_dbconf_name='{$this->_dbconf_name}' and index_table_name='{$this->_table_name}' and is_ok=1;")->queryAll();
 
             $filter = new SqlFilter();
             foreach ($rows as $relat_info_row)
             {
                 $src_vals             = [];
-                $src_db               = $relat_info_row['src_db_name'];
-                $src_table            = $relat_info_row['src_table_name'];
-                $src_val_column       = $relat_info_row['src_val_column_name'];
-                $src_label_column     = $relat_info_row['src_label_column_name'];
-                $src_safe_columns_str = $relat_info_row['src_safe_columns'];
+                $src_db               = $relat_info_row['related_dbconf_name'];
+                $src_table            = $relat_info_row['related_table_name'];
+                $src_val_column       = $relat_info_row['related_column_name'];
+                $src_label_column     = $relat_info_row['related_label_column_name'];
+                $src_safe_columns_str = $relat_info_row['related_ext_columns'];
                 $src_safe_columns     = explode(',', $src_safe_columns_str);
-                $val_column           = $relat_info_row['column_name'];
+                $val_column           = $relat_info_row['index_column_name'];
                 $relat_map            = ['infos' => [], 'labels' => []];
 
                 if ($relat_info_row['ext_filter_sql'])
@@ -269,7 +288,7 @@ class DbTable extends DbTableDao
                     }
                     if (!is_null($queryed_row[$val_column]))
                     {
-                        $src_vals[]  = $queryed_row[$relat_info_row['column_name']];
+                        $src_vals[]  = $queryed_row[$relat_info_row['index_column_name']];
                         $relat_pks[] = $queryed_row[$this->main_table_model->pk_key];
                     }
                 }
@@ -357,7 +376,7 @@ class DbTable extends DbTableDao
      */
     public function getBizTableInfo()
     {
-        return DbTable::model()->findOneByWhere(['db_name' => $this->_db_name, 'table_name' => $this->_table_name, 'is_ok' => Opt::isOk]);
+        return DbTable::model()->findOneByWhere(['dbconf_name' => $this->_dbconf_name, 'table_name' => $this->_table_name, 'is_ok' => Opt::isOk]);
     }
 
     /**
@@ -366,21 +385,21 @@ class DbTable extends DbTableDao
      */
     public function getBizTableColumns()
     {
-        return DbColumn::model()->addSort('column_sn', 'desc')->findAllByWhere(['db_name' => $this->_db_name, 'table_name' => $this->_table_name, 'is_ok' => Opt::isOk]);
+        return DbColumn::model()->addSort('column_sn', 'desc')->findAllByWhere(['dbconf_name' => $this->_dbconf_name, 'table_name' => $this->_table_name, 'is_ok' => Opt::isOk]);
     }
 
     public function getOpenInfo()
     {
         return [
             'title'       => $this->title,
-            'db_name'     => $this->db_name,
+            'dbconf_name' => $this->dbconf_name,
             'table_name'  => $this->table_name,
             'remark'      => $this->remark,
             'pk_key'      => $this->pk_key,
             //'orm_class'   => $this->orm_class,
             //'is_ok'       => $this->is_ok,
             'read_roles'  => $this->getJsondecodedValue($this->read_roles, 'array'),
-            'add_roles'   => $this->getJsondecodedValue($this->add_roles, 'array'),
+            'all_roles'   => $this->getJsondecodedValue($this->all_roles, 'array'),
             'create_time' => $this->create_time,
         ];
     }

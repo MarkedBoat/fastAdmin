@@ -50,7 +50,7 @@ class RbacMenuDao extends ORM
 
     public function getDbConfName()
     {
-        return 'dp';
+        return 'fast_bg';
     }
 
 }

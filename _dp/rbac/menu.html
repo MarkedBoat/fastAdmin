@@ -26,6 +26,7 @@
         <script src="/static/_dp/js/string/string.js"></script>
         <script src="/static/_dp/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
         <script src="/static/_dp/js/bg.js"></script>
+        <script src="/static/_dp/js/hammer-bg-dbdata.js"></script>
 
         <div class="site-index">
 
@@ -84,11 +85,14 @@
                             mainTable: {}
                         };
 
+                        window.serverData.dataLib.bgDataApi = hammerBgDataApi();
+                        window.serverData.dataLib.bgDataApi.setUserToken(utk);
+
 
                         let getRoles = (fun) => {
                             kl.ajax({
                                 url: '/_dp/v1/dbdata/select?user_token=' + utk,
-                                data: {table_name: rbac_role_tableName, page_index: 1, page_size: 1000},
+                                data: {dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name,table_name: rbac_role_tableName, page_index: 1, page_size: 1000},
                                 type: 'json',
                                 success: function (res_request_data) {
                                     if (res_request_data.code && res_request_data.code === 'ok') {
@@ -112,7 +116,7 @@
                         window.serverData.getMenus = (fun) => {
                             kl.ajax({
                                 url: '/_dp/v1/dbdata/select?user_token=' + utk,
-                                data: {table_name: rbac_menu_tableName, page_index: 1, page_size: 1000},
+                                data: {dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name,table_name: rbac_menu_tableName, page_index: 1, page_size: 1000},
                                 type: 'json',
                                 success: function (res_request_data) {
                                     if (res_request_data.code && res_request_data.code === 'ok') {
@@ -150,7 +154,7 @@
                         let getMenuRoles = (fun) => {
                             kl.ajax({
                                 url: '/_dp/v1/dbdata/select?user_token=' + utk,
-                                data: {table_name: rbac_roleMenu_tableName, page_index: 1, page_size: 1000},
+                                data: {dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name,table_name: rbac_roleMenu_tableName, page_index: 1, page_size: 1000},
                                 type: 'json',
                                 success: function (res_request_data) {
                                     if (res_request_data.code && res_request_data.code === 'ok') {
@@ -168,7 +172,7 @@
                         let getAdmins = (fun) => {
                             kl.ajax({
                                 url: '/_dp/v1/dbdata/select?user_token=' + utk,
-                                data: {table_name: rbac_admin_tableName, page_index: 1, page_size: 1000},
+                                data: {dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name,table_name: rbac_admin_tableName, page_index: 1, page_size: 1000},
                                 type: 'json',
                                 success: function (res_request_data) {
                                     if (res_request_data.code && res_request_data.code === 'ok') {
@@ -191,7 +195,7 @@
                         let getMainTableInfo = function (fun) {
                             kl.ajax({
                                 url: '/_dp/v1/dbdata/info?user_token=' + utk,
-                                data: {table_name: rbac_menu_tableName},
+                                data: {dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name,table_name: rbac_menu_tableName},
                                 type: 'json',
                                 success: function (res_request_data) {
                                     if (res_request_data.status) {
@@ -206,12 +210,12 @@
                                             res_request_data.data.columns.forEach(function (colInfo) {
                                                 window.serverData.dataLib.mainTable.__column.map[colInfo.column_name] = colInfo;
                                             });
-                                            window.serverData.dataLib.mainTable.linkType.items = window.serverData.dataLib.mainTable.__column.map.is_backend.val_range;
+                                            window.serverData.dataLib.mainTable.linkType.items = window.serverData.dataLib.mainTable.__column.map.is_backend.val_items;
                                             window.serverData.dataLib.mainTable.linkType.items.forEach(function (itemInfo) {
                                                 window.serverData.dataLib.mainTable.linkType.map[itemInfo.val] = itemInfo.text;
                                             });
 
-                                            window.serverData.dataLib.mainTable.isOk.items = window.serverData.dataLib.mainTable.__column.map.is_ok.val_range;
+                                            window.serverData.dataLib.mainTable.isOk.items = window.serverData.dataLib.mainTable.__column.map.is_ok.val_items;
                                             window.serverData.dataLib.mainTable.isOk.items.forEach(function (itemInfo) {
                                                 window.serverData.dataLib.mainTable.isOk.map[itemInfo.val] = itemInfo.text;
                                             });
@@ -317,7 +321,7 @@
                                     update_attr: {
                                         is_ok: info.is_ok
                                     },
-                                    table_name: rbac_roleMenu_tableName,
+                                    dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name,table_name: rbac_roleMenu_tableName,
                                 },
                                 type: 'json',
                                 success: function (add_attrs_res) {
@@ -453,7 +457,7 @@
                                         url: '/_dp/v1/dbdata/update?user_token=' + utk,
                                         data: {
                                             attr: {id: tmp_obj.dragedData.id, pid: tmp_obj.onDropData.id},
-                                            table_name: rbac_menu_tableName,
+                                            dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name,table_name: rbac_menu_tableName,
                                         },
                                         type: 'json',
                                         success: function (add_attrs_res) {
@@ -613,7 +617,7 @@
                                             opts: res.opts,
                                             is_ok: res.is_ok,
                                         },
-                                        table_name: rbac_menu_tableName,
+                                        dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name,table_name: rbac_menu_tableName,
                                     },
                                     type: 'json',
                                     success: function (save_res) {
@@ -663,7 +667,7 @@
                                 url: '/_dp/v1/dbdata/add?user_token=' + utk,
                                 data: {
                                     attr: res,
-                                    table_name: rbac_menu_tableName,
+                                    dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name,table_name: rbac_menu_tableName,
                                 },
                                 type: 'json',
                                 async: true,

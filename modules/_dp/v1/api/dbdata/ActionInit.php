@@ -15,15 +15,16 @@ use modules\_dp\v1\model\dbdata\DbTable;
 use modules\_dp\v1\model\rbac\RbacAction;
 
 
-class ActionAdd extends AdminBaseAction
+class ActionInit extends AdminBaseAction
 {
     public $dataSource = 'POST_ALL';
 
     public function run()
     {
+        $init_sql='CREATE SCHEMA `fast_bg` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  ;';
         //  $this->dispatcher->setOutType(Api::outTypeText);
         //  \models\Api::$hasOutput = true;
-        $db_code = $this->inputDataBox->getStringNotNull('dbconf_name');
+        $db          = 'dev_bg';
         $table_name  = $this->inputDataBox->getStringNotNull('table_name');
         $attr        = $this->inputDataBox->tryGetArray('attr');
         $update_attr = $this->inputDataBox->tryGetArray('update_attr');
@@ -33,23 +34,10 @@ class ActionAdd extends AdminBaseAction
             $table_name = Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$table_name];
         }
 
-        if ($db_code === '$sys' || $db_code === 'fast_bg')
-        {
-            // $db_cnn      = DbTable::model()->getDbConnect();
-            $dbconf_name = 'fast_bg';
-        }
-        else
-        {
-            // $conf_model  = DbDbConf::model()->findOneByWhere(['db_code' => $db_code]);
-            $dbconf_name = $db_code;
-            //  $db_cnn      = $conf_model->getConfDbConnect();
-
-        }
-
         $is_super     = in_array('super_admin', $this->user->role_codes, true);
         $user_roles   = $this->user->role_codes;
         $user_roles[] = '*';
-        $db_table     = DbTable::model()->setTable($dbconf_name, $table_name);
+        $db_table     = DbTable::model()->setTable($db, $table_name);
         $table_model  = $db_table->getBizTableInfo();
         $errors       = [];
         $bind         = [];
@@ -132,7 +120,7 @@ class ActionAdd extends AdminBaseAction
                 $on_duplicate_key_update = ' on duplicate key update ' . join(',', $update);
             }
             $insert_sql = "insert ignore into  {$table_name} set {$sets_str} {$on_duplicate_key_update}";
-            $insert_cmd = $db_table->getDbconfConnect()->setText($insert_sql);
+            $insert_cmd = $db_table->getDbConnect()->setText($insert_sql);
             $res        = $insert_cmd->bindArray($bind)->execute();
 
 
@@ -147,10 +135,10 @@ class ActionAdd extends AdminBaseAction
             {
                 $pk_val      = $insert_cmd->lastInsertId();
                 $select_sql  = "select * from {$table_name}  where `{$pk}`={$pk_val} limit 1";
-                $insert_data = $db_table->getDbconfConnect()->setText($select_sql)->queryRow();
+                $insert_data = $db_table->getDbConnect()->setText($select_sql)->queryRow();
 
                 $log_dao                 = DbOpLogDao::model();
-                $log_dao->db_name        = $dbconf_name;
+                $log_dao->db_name        = $db;
                 $log_dao->table_name     = $table_name;
                 $log_dao->row_pk         = $pk_val;
                 $log_dao->op_type        = $op_type;
@@ -163,7 +151,7 @@ class ActionAdd extends AdminBaseAction
                     ]
                 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                 $log_dao->exec_res       = $res;
-                $log_dao->exec_by        = $this->user->id;
+                $log_dao->exec_by       = $this->user->id;
                 $log_dao->log_struct_ver = '2022-11-21';
                 $log_dao->insert(false);
 

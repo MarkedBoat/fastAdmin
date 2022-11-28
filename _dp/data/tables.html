@@ -29,6 +29,7 @@
         <script src="/static/_dp/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
         <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2022.11.16.js"></script>
         <script src="/static/_dp/js/bg.js"></script>
+        <script src="/static/_dp/js/hammer-bg-dbdata.js"></script>
 
         <div class="site-index">
 
@@ -40,7 +41,6 @@
             <div class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="page-header" id="user_nickname">【管理所有表】</h3>
-                    <button><a id="import_all_table_link" href="/_dp/v1/dbdata/fillAllTable?">导入所有表</a></button>
                 </div>
                 <div class="panel-body">
                     <p id="subject_detail"></p>
@@ -57,9 +57,6 @@
         <script>
             domLoaded(function () {
                     let utk = '';
-                    let rbac_role_tableName = '$rbac_role_tableName';
-                    let dbdata_column_tableName = '$dbdata_column_tableName';
-                    let dbdata_table_tableName = '$dbdata_table_tableName';
 
                     bg_init(function () {
                         utk = window.utk;
@@ -71,125 +68,28 @@
                             dbdataTablesTable: {}
 
                         };
+                        window.serverData.dataLib.bgDataApi = hammerBgDataApi();
+                        window.serverData.dataLib.bgDataApi.setUserToken(utk);
 
-                        let getRoles = (fun) => {
-                            kl.ajax({
-                                url: '/_dp/v1/dbdata/select?user_token=' + utk,
-                                data: {table_name: rbac_role_tableName, page_index: 1, page_size: 1000},
-                                type: 'json',
-                                success: function (res_request_data) {
-                                    if (kl.isUndefined(res_request_data, 'data.dataRows') || typeof res_request_data.data.dataRows.forEach !== "function") {
-                                        alert('获取菜单列表:结构异常' + res_request_data.msg || '');
 
-                                    } else {
-                                        window.serverData.dataLib.role.list = res_request_data.data.dataRows;
-                                        window.serverData.dataLib.role.list.forEach((roleInfo) => {
-                                            window.serverData.dataLib.role.items.push({val: roleInfo.id, text: roleInfo.role_name});
-                                            window.serverData.dataLib.role.map[roleInfo.id] = roleInfo.real_name;
-                                        });
-                                        fun();
-                                    }
-                                },
-                                error: function (res_request_data) {
-                                    alert('获取菜单列表:网络错误' + res_request_data);
-                                }
+                        (async function () {
+
+                            await window.serverData.dataLib.bgDataApi.init_DbTableConf_ConfigInfo(function () {
+                                console.log('数据库配置初始化 1');
                             });
-                        };
-                        let getDbdataTablesTableInfo = (fun) => {
-                            kl.ajax({
-                                url: '/_dp/v1/dbdata/info?user_token=' + utk,
-                                data: {table_name: dbdata_table_tableName},
-                                type: 'json',
-                                success: function (res_request_data) {
-                                    if (res_request_data.status) {
-                                        if (kl.isUndefined(res_request_data, 'data.columns') || kl.isUndefined(res_request_data, 'data.table')) {
-                                            alert(' 获取表信息 错误:' + (res_request_data.message || '未知'));
-                                            throw '别看了，连table info 信息都拿不到，还想干啥?';
-                                        } else {
-                                            window.serverData.dataLib.dbdataTablesTable = {
-                                                __column: {map: {}, items: res_request_data.data.columns},
-                                                linkType: {map: {}, items: []},
-                                                isOk: {map: {}, items: []},
-                                            };
-                                            res_request_data.data.columns.forEach(function (colInfo) {
-                                                window.serverData.dataLib.dbdataTablesTable.__column.map[colInfo.column_name] = colInfo;
-                                            });
-                                            window.serverData.dataLib.dbdataTablesTable.isOk.items = window.serverData.dataLib.dbdataTablesTable.__column.map.is_ok.val_range;
-                                            window.serverData.dataLib.dbdataTablesTable.isOk.items.forEach(function (itemInfo) {
-                                                window.serverData.dataLib.dbdataTablesTable.isOk.map[itemInfo.val] = itemInfo.text;
-                                            });
-                                            fun();
-                                        }
-                                    } else {
-                                        console.log(res_request_data.status);
-                                        alert('获取表信息 请求结果异常');
-                                        throw '别看了， info 信息都拿不到，还想干啥?';
-                                    }
-                                },
-                                error: function (res_request_data) {
-                                    console.log(res_request_data);
-                                    alert('获取表信息 网络异常');
-                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
+                            console.log('数据库配置初始化');
 
-                                }
+                            await window.serverData.dataLib.bgDataApi.initRoles(() => {
+                                console.log('角色初始化 1');
                             });
+                            console.log('角色初始化');
 
-                        };
-                        let getMainTableInfo = (fun) => {
-                            kl.ajax({
-                                url: '/_dp/v1/dbdata/info?user_token=' + utk,
-                                data: {table_name: window.serverData.table_name},
-                                type: 'json',
-                                success: function (res_request_data) {
-                                    if (res_request_data.status) {
-                                        if (kl.isUndefined(res_request_data, 'data.columns') || kl.isUndefined(res_request_data, 'data.table')) {
-                                            alert(' 获取表信息 错误:' + (res_request_data.message || '未知'));
-                                            throw '别看了，连table info 信息都拿不到，还想干啥?';
-                                        } else {
-                                            window.serverData.dataLib.mainTable = {
-                                                __column: {map: {}, items: res_request_data.data.columns},
-                                                linkType: {map: {}, items: []},
-                                                isOk: {map: {}, items: []},
-                                                table: res_request_data.data.table
-                                            };
-                                            res_request_data.data.columns.forEach(function (colInfo) {
-                                                window.serverData.dataLib.mainTable.__column.map[colInfo.column_name] = colInfo;
-                                            });
-                                            // window.serverData.dataLib.mainTable.linkType.items = window.serverData.dataLib.mainTable.__column.map.is_backend.val_range;
-                                            // window.serverData.dataLib.mainTable.linkType.items.forEach(function (itemInfo) {
-                                            //     window.serverData.dataLib.mainTable.linkType.map[itemInfo.val] = itemInfo.text;
-                                            // });
-                                            //
-                                            // window.serverData.dataLib.mainTable.isOk.items = window.serverData.dataLib.mainTable.__column.map.is_ok.val_range;
-                                            // window.serverData.dataLib.mainTable.isOk.items.forEach(function (itemInfo) {
-                                            //     window.serverData.dataLib.mainTable.isOk.map[itemInfo.val] = itemInfo.text;
-                                            // });
-                                            fun();
-                                        }
-                                    } else {
-                                        console.log(res_request_data.status);
-                                        alert('获取表信息 请求结果异常');
-                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
-                                    }
-                                },
-                                error: function (res_request_data) {
-                                    console.log(res_request_data);
-                                    alert('获取表信息 网络异常');
-                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
+                            content();
+                        })();
 
-                                }
-                            });
-                        };
-
-                        getRoles(() => {
-                            getDbdataTablesTableInfo(() => {
-                                content();
-                            })
-                        })
                     });
                     let content = function () {
 
-                        kl.id('import_all_table_link').href += '&user_token=' + utk;
                         let raw_root = kl.id('content_div');
                         let root = new Emt('div').setPros({className: 'row'});
                         raw_root.append(root);
@@ -227,7 +127,7 @@
                                     checkbox.checked = dataRow.read_roles.indexOf(checkbox.value) > -1;
                                 });
                                 role_table.col_add_role_checkboxs.forEach((checkbox) => {
-                                    checkbox.checked = dataRow.add_roles.indexOf(checkbox.value) > -1;
+                                    checkbox.checked = dataRow.all_roles.indexOf(checkbox.value) > -1;
                                 });
                             };
                             role_table.getRoleCodes = () => {
@@ -280,7 +180,7 @@
                                 title: editTableConfig_Form.apiHandle.ele.input.title.apiHandle.getVal(),
                                 remark: editTableConfig_Form.apiHandle.ele.input.remark.apiHandle.getVal(),
                                 read_roles: JSON.stringify(rolecodes_map.read),
-                                add_roles: JSON.stringify(rolecodes_map.add),
+                                all_roles: JSON.stringify(rolecodes_map.add),
                             };
                             console.log(btn, this, editTableConfig_Form.apiHandle, rolecodes_map, attr);
                             //return false;
@@ -289,7 +189,7 @@
                                 //attr: form,
                                 data: {
                                     attr: attr,
-                                    table_name: dbdata_table_tableName,
+                                    dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name, table_name: window.serverData.dataLib.bgDataApi.config.dbdata_table_tableName,
                                 },
                                 type: 'json',
                                 success: function (update_tableConfig_res) {
@@ -330,7 +230,7 @@
                                 page_index: page_data.page.index,
                                 page_size: page_data.page.size,
                                 attr: page_data.filter,
-                                table_name: dbdata_table_tableName,
+                                dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name, table_name: window.serverData.dataLib.bgDataApi.config.dbdata_table_tableName,
                             };
                             // post_data.attr.table_name = window.serverData.table_name;
 
@@ -386,21 +286,22 @@
                         datagrid.api.preCreateColumn('id').setColumnInfo({}).setHeaderText('ID').setSortable(true).setFixedFilterInputConfig({valueItems: []});
 
                         datagrid.api.preCreateColumn('title').setColumnInfo({}).setHeaderText('标题').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-                        datagrid.api.preCreateColumn('db_name').setColumnInfo({}).setHeaderText('数据库').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                        datagrid.api.preCreateColumn('dbconf_name').setColumnInfo({}).setHeaderText('数据库').setSortable(true).setFixedFilterInputConfig({valueItems: []});
                         datagrid.api.preCreateColumn('table_name').setColumnInfo({}).setHeaderText('表名').setSortable(true).setFixedFilterInputConfig({valueItems: []});
 
 
-                        datagrid.api.preCreateColumn('is_ok').setColumnInfo({}).setHeaderText('禁用').setSortable(true).setFixedFilterInputConfig({valueItems: window.serverData.dataLib.dbdataTablesTable.isOk.items}).setRenderFunction((cell, row_data) => {
+                        datagrid.api.preCreateColumn('is_ok').setColumnInfo({}).setHeaderText('禁用').setSortable(true).setFixedFilterInputConfig({valueItems: window.serverData.dataLib.dbdataTablesTable.__column.map.is_ok.val_items}).setRenderFunction((cell, row_data) => {
                             cell.addNodes([
-                                new Emt('p').setAttrsByStr('', (window.serverData.dataLib.dbdataTablesTable.isOk.map[row_data.is_ok] || '错误信息')),
+                                new Emt('p').setAttrsByStr('', (window.serverData.dataLib.dbdataTablesTable.__column.map.is_ok.valItemMap[row_data.is_ok] || '错误信息')),
                             ]);
                         });
 
                         datagrid.api.preCreateColumn('remark').setColumnInfo({}).setHeaderText('备注').setSortable(true).setFixedFilterInputConfig({valueItems: []});
 
                         datagrid.api.preCreateColumn('read_roles').setColumnInfo({}).setHeaderText('read_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-
+                        datagrid.api.preCreateColumn('update_roles').setColumnInfo({}).setHeaderText('update_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
                         datagrid.api.preCreateColumn('add_roles').setColumnInfo({}).setHeaderText('add_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                        datagrid.api.preCreateColumn('all_roles').setColumnInfo({}).setHeaderText('all_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
 
                         datagrid.api.preCreateColumn('create_time').setColumnInfo({}).setHeaderText('创建时间').setSortable(true).setFixedFilterInputConfig({valueItems: []});
 
@@ -408,14 +309,19 @@
                             let edit_btn = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '修改'});
                             let btn_import_column = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '导入字段'});
 
-                            let tmp_info = {table_name: row_data.table_name};
+                            let tmp_info = {dbconf_name:row_data.dbconf_name, table_name: row_data.table_name};
                             //let tmp_json = JSON.stringify(tmp_info).urlencode();
                             let tmp_json = JSON.stringify(tmp_info);
 
                             console.log(tmp_info, tmp_json);
-                            let a_column = new Emt('a').setPros({className: 'btn btn-info btn-sm', href: '/_dp/data/columns_adv.html?' + tmp_json, target: '_blank', textContent: 'go管理字段'});
+                            let a_column = new Emt('a').setPros({className: 'btn btn-info btn-sm', href: '/_dp/data/columns.html?' + tmp_json, target: '_blank', textContent: 'go管理字段'});
                             let a_select = new Emt('a').setPros({className: 'btn btn-info btn-sm', href: '/_dp/data/select.html?' + tmp_json, target: '_blank', textContent: 'go查询数据-表'});
-                            let a_orm = new Emt('a').setPros({className: 'btn btn-info btn-sm', href: '/dev/v1/mysql/orm?conf=dp&table=' + row_data.table_name, target: '_blank', textContent: 'ORM'});
+                            let a_orm = new Emt('a').setPros({
+                                className: 'btn btn-info btn-sm',
+                                href: '/dev/v1/mysql/orm?conf=' + window.serverData.dataLib.bgDataApi.config.dbconf_name + '&table=' + row_data.table_name,
+                                target: '_blank',
+                                textContent: 'ORM'
+                            });
 
 
                             edit_btn.addEventListener('click', function () {
@@ -424,14 +330,14 @@
 
                                 editTableConfig_Modal.data_info = {cell: cell, row_data: row_data};
                                 editTableConfig_Form.apiHandle.ele.input.idInput.value = row_data.id;
-                                editTableConfig_Form.apiHandle.ele.input.dbConf.value = row_data.db_name;
+                                editTableConfig_Form.apiHandle.ele.input.dbConf.value = row_data.dbconf_name;
                                 editTableConfig_Form.apiHandle.ele.input.tableName.value = row_data.table_name;
                                 editTableConfig_Form.apiHandle.ele.input.title.value = row_data.title;
                                 editTableConfig_Form.apiHandle.ele.input.remark.value = row_data.remark;
 
 
                                 let tmp_obj = {};
-                                ['read_roles', 'add_roles'].forEach((column_name) => {
+                                ['read_roles', 'all_roles'].forEach((column_name) => {
                                     if (row_data[column_name] === null) {
                                         tmp_obj[column_name] = [];
                                     } else {
@@ -450,8 +356,7 @@
 
                             btn_import_column.addEventListener('click', function () {
                                 kl.ajax({
-                                    // url: 'http://back.markedboat.com/dbdata/fill_table?db=' + row_data.db_name + '&table=' + row_data.table_name,
-                                    url: '/_dp/v1/dbdata/fillColumn?user_token=' + utk + '&table=' + row_data.table_name,
+                                    url: '/_dp/v1/dbdata/importTableColumns?user_token=' + utk + '&dbconf_code=' + row_data.dbconf_name + '&table=' + row_data.table_name,
                                     method: 'GET',
                                     type: 'text',
                                     success: function (res_import_columns) {

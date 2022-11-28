@@ -102,4 +102,42 @@ td > input[type="text"], td > input[type="number"], td > select {
     width: 100%;
 }
 
+.menu_toggle_btn {
+    display: block;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 9999;
+    color: #FFF;
+    background: #000;
+    cursor: pointer;
+}
+
+.menu_root_div {
+    float: left;
+    width: 150px;
+    border-right: 1px solid #000;
+    padding-top: 80px;
+    padding-bottom: 80px;
+    height: 100%;
+    overflow: scroll;
+}
+
+.body_content_div {
+    position: absolute;
+    left: 150px;
+}
+
+#w0 > h3 {
+    margin-left: 100px;
+    color: #FFF;
+}
+.menu_div {
+    border-left: 1px solid #000;
+    padding-top: 0.5em;
+}
+.menus_div > .menu_div {
+    margin-left: 0.5em;
+    padding-left: 0.5em;
+}
 

@@ -27,6 +27,7 @@
         <script src="/static/_dp/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
         <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2022.10.07.0.js"></script>
         <script src="/static/_dp/js/bg.js"></script>
+        <script src="/static/_dp/js/hammer-bg-dbdata.js"></script>
 
         <div class="site-index">
 
@@ -93,6 +94,10 @@
                                 {index: 'taskAction', tableName: '$rbac_taskAction_tableName', title: '任务&操作', isRelationTable: true, indexKey: 'task_id', valKey: 'action_id'},
                             ]
                         };
+
+                        window.serverData.dataLib.bgDataApi = hammerBgDataApi();
+                        window.serverData.dataLib.bgDataApi.setUserToken(utk);
+
                         window.serverData.dataLib.rbacMapList.forEach((cfg) => {
                             window.serverData.dataLib.rbacMap[cfg.index] = cfg;
                         });
@@ -101,7 +106,7 @@
                             let cfgInfo = window.serverData.dataLib.rbacMap[configIndex];
                             return kl.ajax({
                                 url: '/_dp/v1/dbdata/select?user_token=' + utk,
-                                data: {table_name: cfgInfo.tableName, page_index: 1, page_size: 1000},
+                                data: {dbconf_name: dbconf_name,table_name: cfgInfo.tableName, page_index: 1, page_size: 1000},
                                 type: 'json',
                                 async: true,
                             }).then(res => {
@@ -173,7 +178,7 @@
                                     update_attr: {
                                         is_ok: is_ok
                                     },
-                                    table_name: tmp_map[relation].tableName,
+                                    dbconf_name: dbconf_name,table_name: tmp_map[relation].tableName,
                                 },
                                 type: 'json',
                                 async: true,
@@ -562,7 +567,7 @@
                                         role_code: add_role_form.apiHandle.ele.input.roleCode.value,
                                         role_name: add_role_form.apiHandle.ele.input.roleName.value,
                                     },
-                                    table_name: window.serverData.dataLib.rbacMap.role.tableName,
+                                    dbconf_name: dbconf_name,table_name: window.serverData.dataLib.rbacMap.role.tableName,
                                 },
                                 type: 'json',
                                 async: true,
@@ -585,7 +590,7 @@
                                         task_code: add_task_form.apiHandle.ele.input.taskCode.value,
                                         task_name: add_task_form.apiHandle.ele.input.taskName.value,
                                     },
-                                    table_name: window.serverData.dataLib.rbacMap.task.tableName,
+                                    dbconf_name: dbconf_name,table_name: window.serverData.dataLib.rbacMap.task.tableName,
                                 },
                                 type: 'json',
                                 async: true,
@@ -610,7 +615,7 @@
                                         action_code: edit_action_form.apiHandle.ele.input.actionCode.value,
                                         action_name: edit_action_form.apiHandle.ele.input.actionName.value,
                                     },
-                                    table_name: window.serverData.dataLib.rbacMap.action.tableName,
+                                    dbconf_name: dbconf_name,table_name: window.serverData.dataLib.rbacMap.action.tableName,
                                 },
                                 type: 'json',
                                 async: true,

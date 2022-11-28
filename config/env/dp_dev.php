@@ -12,10 +12,22 @@ $dev_cfg = [
     ]
 ];
 
+$fast_bg_cfg = [
+    'connectionString' => 'mysql:host=mysql8_server;port=3306;dbname=fast_bg',
+    'username'         => 'root',
+    'password'         => 'Mysql!',
+    'charset'          => 'utf8',
+    'readOnly'         => true,
+    'attributes'       => [
+        \PDO::ATTR_TIMEOUT => 1
+    ]
+];
+
 
 return array_merge_recursive(include __ROOT_DIR__ . '/config/env/common_param.php', [
     'db'    => [
-        'dp' => $dev_cfg,
+        'fast_bg' => $fast_bg_cfg,
+        'dp'      => $dev_cfg,
     ],
     'redis' => [
         'default' => ['host' => 'redis_server', 'port' => 6379, 'password' => '', 'db' => 0],
@@ -36,7 +48,9 @@ return array_merge_recursive(include __ROOT_DIR__ . '/config/env/common_param.ph
         //后台 系统设置
         'sys_setting'          => [
             'db' => [
+                '$sys_dbname'       => 'fast_bg',
                 'tableNameFakeCode' => [
+
                     //user|admin
                     '$user_admin_tableName'      => 'bg_admin',
                     //rbac
@@ -49,7 +63,7 @@ return array_merge_recursive(include __ROOT_DIR__ . '/config/env/common_param.ph
                     '$rbac_roleMenu_tableName'   => 'bg_rbac_role_menu',
                     '$rbac_userRole_tableName'   => 'bg_rbac_user_role',
                     //dbdata
-                    '$dbdata_db_tableName'       => 'bg_db_db',
+                    '$dbdata_dbconf_tableName'   => 'bg_db_dbconf',
                     '$dbdata_table_tableName'    => 'bg_db_table',
                     '$dbdata_column_tableName'   => 'bg_db_column',
 

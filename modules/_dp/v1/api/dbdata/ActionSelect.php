@@ -10,6 +10,7 @@ use models\common\sys\Sys;
 use modules\_dp\v1\api\AdminBaseAction;
 use modules\_dp\v1\dao\rbac\RbacRoleDao;
 use modules\_dp\v1\model\dbdata\DbColumn;
+use modules\_dp\v1\model\dbdata\DbDbConf;
 use modules\_dp\v1\model\dbdata\DbTable;
 use modules\_dp\v1\model\rbac\RbacAction;
 
@@ -22,7 +23,7 @@ class ActionSelect extends AdminBaseAction
     {
         //  $this->dispatcher->setOutType(Api::outTypeText);
         //  \models\Api::$hasOutput = true;
-        $db         = 'dev_bg';
+        $db_code    = $this->inputDataBox->getStringNotNull('dbconf_name');
         $table_name = $this->inputDataBox->getStringNotNull('table_name');
         $attr       = $this->inputDataBox->tryGetArray('attr');
         $page_index = $this->inputDataBox->tryGetInt('page_index');
@@ -34,10 +35,23 @@ class ActionSelect extends AdminBaseAction
             $table_name = Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$table_name];
         }
 
+        if ($db_code === '$sys' || $db_code === 'fast_bg')
+        {
+            // $db_cnn      = DbTable::model()->getDbConnect();
+            $dbconf_name = 'fast_bg';
+        }
+        else
+        {
+           // $conf_model  = DbDbConf::model()->findOneByWhere(['db_code' => $db_code]);
+            $dbconf_name = $db_code;
+            //  $db_cnn      = $conf_model->getConfDbConnect();
+
+        }
+
         $is_super = in_array('super_admin', $this->user->role_codes, true);
 
 
-        $dbtable = DbTable::model()->setTable($db, $table_name);
+        $dbtable = DbTable::model()->setTable($dbconf_name, $table_name);
         $info    = $dbtable->getInfo();
 
         if (!($is_super || count($info['table']['read_roles']) === 0 || count(array_intersect($this->user->role_codes, $info['table']['read_roles'])) === 0))

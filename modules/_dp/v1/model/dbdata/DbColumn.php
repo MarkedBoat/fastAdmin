@@ -23,11 +23,11 @@ class DbColumn extends DbColumnDao
     {
         return [
             'title'           => $this->title,
-            //'db_name'         => $this->db_name,
+            //'dbconf_name'         => $this->dbconf_name,
             // 'table_name'      => $this->table_name,
             'column_name'     => $this->column_name,
             'column_sn'       => $this->column_sn,
-            'val_range'       => $this->getJsondecodedValue($this->val_range, 'array'),
+            'val_items'       => $this->getJsondecodedValue($this->val_items, 'array'),
             'db_datatype'     => $this->db_datatype,
             'db_datatype_len' => $this->db_datatype_len,
             'out_datatype'    => $this->out_datatype,
@@ -36,8 +36,8 @@ class DbColumn extends DbColumnDao
             'default_val'     => $this->default_val,
             'remark'          => $this->remark,
             'read_roles'      => $this->getJsondecodedValue($this->read_roles, 'array'),
-            'opt_roles'       => $this->getJsondecodedValue($this->opt_roles, 'array'),
-            'add_roles'       => $this->getJsondecodedValue($this->add_roles, 'array'),
+            'update_roles'       => $this->getJsondecodedValue($this->update_roles, 'array'),
+            'all_roles'       => $this->getJsondecodedValue($this->all_roles, 'array'),
             'create_time'     => $this->create_time,
             'update_time'     => $this->update_time,
         ];

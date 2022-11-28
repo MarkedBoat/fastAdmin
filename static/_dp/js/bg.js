@@ -30,60 +30,95 @@ let bg_init = function (page_init_fun) {
     window.serverData.vals_range_map = {};
 
 
-    let tmp_list = function (obj) {
-        console.log(obj);
+    let rander_tree = function (dataTree) {
 
+        let menu_root_div = new Emt('div', 'class="menu_root_div"');
+        menu_root_div.apiHandle = {
+            menu: {list: [], map: {}},
+        };
+        menu_root_div.createMenuDiv = function () {
+            let menu_div = new Emt('div', 'class="menu_div"');
+            menu_div.apiHandle = {};
 
-        let li = new Emt('li');
+            menu_div.apiHandle.title_td = new Emt('div', 'class="title_td"');
+            menu_div.apiHandle.body_div = new Emt('div', 'class="menu_body_div"');
+            menu_div.apiHandle.body_div.apiHandle = menu_div.apiHandle;
+            menu_div.apiHandle.menus_div = new Emt('div', 'class="menus_div"');
 
-        if (obj.sub_menus.length > 0) {
-            li.addNodes([
-                new Emt('span').setPros({textContent: '+' + obj.title})
+            menu_div.addNodes([
+                menu_div.apiHandle.body_div.addNodes([
+                    menu_div.apiHandle.title_td,
+                ]),
+                menu_div.apiHandle.menus_div.addNodes([]),
             ]);
 
-            let ul = new Emt('ul');
-            obj.sub_menus.forEach(function (sub_info) {
-                ul.addNodes([tmp_list(sub_info)]);
-            });
-            li.classList.add('hide_child_li');
-            li.addEventListener('click', function (e) {
-                //e.preventDefault();
-                e.stopPropagation();
-                li.classList.toggle('hide_child_li');
-            });
-            li.addNode(ul);
-        } else {
-            li.addNodes([
-                new Emt('a').setPros({textContent: obj.title, href: kl.isUndefined(obj, 'opts.link') ? '#' : obj.opts.link})
-            ]);
-        }
-        return li;
+            menu_div.apiHandle.setMenuInfo = function (menuInfo) {
+                menu_div.apiHandle.data = menuInfo;
+
+                if (menuInfo.sub_menus.length === 0) {
+                    menu_div.apiHandle.title_td.append(new Emt('a').setPros({target: '_blank', textContent: menuInfo.title, href: kl.isUndefined(menuInfo, 'opts.link') ? '#' : menuInfo.opts.link}));
+                } else {
+                    let title_div = new Emt('div', 'class="menu_title_div"');
+                    title_div.addNode(new Emt('div', '', menuInfo.title));
+                    menu_div.apiHandle.title_td.append(title_div);
+                }
+            };
+
+            return menu_div;
+        };
+
+
+        menu_root_div.appendMenuTreeNode = function (menuInfo) {
+            let menu_div = menu_root_div.createMenuDiv();
+            menu_root_div.apiHandle.menu.list.push(menu_div);
+            menu_root_div.apiHandle.menu.map[menuInfo.id] = menu_div;
+            if (menuInfo.pid == '0') {
+                menu_root_div.addNodes([menu_div]);
+            } else {
+                if (menu_root_div.apiHandle.menu.map[menuInfo.pid] === undefined) {
+                    menu_div.classList.add('pid_not_found');
+                    menu_root_div.addNodes([menu_div]);
+                } else {
+                    menu_root_div.apiHandle.menu.map[menuInfo.pid].apiHandle.menus_div.addNode(menu_div);
+                }
+            }
+            menu_div.apiHandle.setMenuInfo(menuInfo);
+            if (menuInfo.sub_menus.length === 0) {
+                menu_div.apiHandle.menus_div.remove();
+
+            } else {
+                menuInfo.sub_menus.forEach(function (menuInfo2, tmp_index) {
+                    menuInfo2.pathName = menuInfo.pathName + '/' + menuInfo2.title;
+                    menu_root_div.appendMenuTreeNode(menuInfo2);
+                });
+            }
+        };
+        dataTree.forEach(function (menuInfo) {
+            menuInfo.pathName = '/' + menuInfo.title;
+            menu_root_div.appendMenuTreeNode(menuInfo);
+        });
+        return menu_root_div;
     };
 
 
     let getMenus = function () {
         kl.ajax({
-            url: '/dp/v1/admin/rbac/menu?user_token=' + utk,
+            url: '/_dp/v1/rbac/menu?user_token=' + utk,
             data: {},
             method: 'POST',
             success: function (res_menu) {
                 console.log(res_menu);
                 if (res_menu.status) {
                     if (res_menu.status === 200) {
-                        let btn = new Emt('span', '', '##导航##');
-                        let menus_box = new Emt('div', 'class="menus_box hide"').addNodes([
-                            function (ul) {
-                                res_menu.data.forEach(function (tree) {
-                                    ul.addNode(tmp_list(tree));
-                                });
-                                return ul;
-                            }(new Emt('ul'))
-                        ]);
-                        kl.id('bg_menus_div').innerHTML = '';
-                        kl.id('bg_menus_div').append(btn);
-                        kl.id('bg_menus_div').append(menus_box);
+                        let btn = new Emt('span', 'class="menu_toggle_btn"', '##导航##');
+                        let menu_root_div = rander_tree(res_menu.data);
+                        document.body.append(btn);
+                        document.body.insertBefore(menu_root_div, document.body.firstElementChild);
+                        menu_root_div.classList.add('hide');
                         btn.addEventListener('click', function () {
-                            menus_box.classList.toggle('hide');
+                            menu_root_div.classList.toggle('hide');
+                            kl.id('w0').parentElement.classList.toggle('body_content_div');
+
                         });
                         page_init_fun();
                     } else {

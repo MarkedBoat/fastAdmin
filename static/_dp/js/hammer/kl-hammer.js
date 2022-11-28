@@ -57,7 +57,7 @@ let KL = function () {
             }
         } else {
             if (sourceDataType === 'object') {
-                return serverData;
+                return sourceData;
             }
             return defaultValue;
         }

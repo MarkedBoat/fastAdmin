@@ -10,59 +10,35 @@
     <script src="/static/_dp/js/jquery.js"></script>
     <script src="/static/_dp/js/bootstrap.js"></script>
 
+    <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
+    <script src="/static/_dp/js/string/string.js"></script>
+    <script src="/static/_dp/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
+    <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2022.11.16.js"></script>
+    <script src="/static/_dp/js/bg.js"></script>
+    <script src="/static/_dp/js/hammer/hammer-struct.js"></script>
+    <script src="/static/_dp/js/hammer-bg-dbdata.js"></script>
+
 <body>
 <div class="wrap">
     <nav id="w0" class="navbar-inverse navbar-fixed-top navbar">
-        <div class="container">
-            <div class="navbar-header"></div>
-            <div id="bg_menus_div" class="navbar-brand menus_root">导航</div>
-            <div id="w0-collapse" class="collapse navbar-collapse">
-                <ul id="w1" class="navbar-nav navbar-right nav">
-                    <li><a href="/admin/dbdata/tables.html">所有表</a></li>
-                </ul>
-            </div>
-        </div>
+        <h3 id="h1">【查询-数据】</h3>
     </nav>
     <div class="container">
-
-        <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
-        <script src="/static/_dp/js/string/string.js"></script>
-        <script src="/static/_dp/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
-        <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2022.11.16.js"></script>
-        <script src="/static/_dp/js/bg.js"></script>
-        <script src="/static/_dp/js/hammer/hammer-struct.js"></script>
-
         <div class="site-index">
-
-            <div>
-
-            </div>
-
-
             <div class="panel panel-primary">
-                <div class="panel-heading">
-                    <h3 class="page-header" id="h1">【查询-数据】</h3>
-                </div>
                 <div class="panel-body">
                     <p id="subject_detail"></p>
                 </div>
             </div>
-
-
             <div class="body-content" id="content_div">
-
-
             </div>
-
         </div>
         <script>
 
             domLoaded(function () {
                 let utk = '';
-                let rbac_role_tableName = '$rbac_role_tableName';
-                let dbdata_column_tableName = '$dbdata_column_tableName';
-                let dbdata_table_tableName = '$dbdata_table_tableName';
-                let mainTable_tableName = '$dbdata_table_tableName';
+                let dbconf_name = 'fast_bg';
+
 
                 bg_init(function () {
                     utk = window.utk;
@@ -76,103 +52,42 @@
 
                     };
 
-                    let getRoles = (fun) => {
-                        kl.ajax({
-                            url: '/_dp/v1/dbdata/select?user_token=' + utk,
-                            data: {table_name: rbac_role_tableName, page_index: 1, page_size: 1000},
-                            type: 'json',
-                            success: function (res_request_data) {
-                                if (kl.isUndefined(res_request_data, 'data.dataRows') || typeof res_request_data.data.dataRows.forEach !== "function") {
-                                    alert('获取菜单列表:结构异常' + res_request_data.msg || '');
 
-                                } else {
-                                    window.serverData.dataLib.role.list = res_request_data.data.dataRows;
-                                    window.serverData.dataLib.role.list.forEach((roleInfo) => {
-                                        window.serverData.dataLib.role.items.push({val: roleInfo.id, text: roleInfo.role_name});
-                                        window.serverData.dataLib.role.map[roleInfo.id] = roleInfo.real_name;
-                                    });
-                                    fun();
-                                }
-                            },
-                            error: function (res_request_data) {
-                                alert('获取菜单列表:网络错误' + res_request_data);
-                            }
+                    window.serverData.dataLib.bgDataApi = hammerBgDataApi();
+                    window.serverData.dataLib.bgDataApi.setUserToken(utk);
+                    window.serverData.dataLib.bgDataApi.setMainTableName(window.serverData.dbconf_name, window.serverData.table_name);
+
+
+                    (async function () {
+
+
+                        await window.serverData.dataLib.bgDataApi.initRoles(() => {
+                            console.log('角色初始化 1');
                         });
-                    };
+                        console.log('角色初始化');
 
-                    let getMainTableInfo = (fun) => {
-                        kl.ajax({
-                            url: '/_dp/v1/dbdata/info?user_token=' + utk,
-                            data: {table_name: window.serverData.table_name},
-                            type: 'json',
-                            success: function (res_request_data) {
-                                if (res_request_data.status) {
-                                    if (kl.isUndefined(res_request_data, 'data.columns') || kl.isUndefined(res_request_data, 'data.table')) {
-                                        alert(' 获取表信息 错误:' + (res_request_data.message || '未知'));
-                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
-                                    } else {
-                                        window.serverData.dataLib.mainTable = {
-                                            __column: {map: {}, items: res_request_data.data.columns},
-                                            table: res_request_data.data.table,
-                                            pkKey: '',
-                                        };
-                                        res_request_data.data.columns.forEach(function (colInfo) {
-
-                                            if (colInfo.index_key === 'PRI') {
-                                                window.serverData.dataLib.mainTable.pkKey = colInfo.column_name;
-                                            }
-
-                                            if (colInfo.val_range === null || colInfo.val_range === undefined) {
-                                                colInfo.valueItems = [];
-                                            } else {
-                                                if (typeof colInfo.val_range === 'string') {
-                                                    try {
-                                                        colInfo.valueItems = JSON.parse(colInfo.val_range);
-                                                    } catch (e) {
-                                                        colInfo.valueItems = [];
-                                                    }
-                                                } else {
-                                                    colInfo.valueItems = colInfo.val_range;
-                                                }
-                                            }
-                                            colInfo.valueMap = {};
-                                            colInfo.valueItems.forEach((valItem) => {
-                                                colInfo.valueMap[valItem.val] = valItem.text;
-                                            });
-                                            window.serverData.dataLib.mainTable.__column.map[colInfo.column_name] = colInfo;
-
-                                        });
-                                        fun();
-                                    }
-                                } else {
-                                    console.log(res_request_data.status);
-                                    alert('获取表信息 请求结果异常');
-                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
-                                }
-                            },
-                            error: function (res_request_data) {
-                                console.log(res_request_data);
-                                alert('获取表信息 网络异常');
-                                throw '别看了，连table info 信息都拿不到，还想干啥?';
-
-                            }
+                        await window.serverData.dataLib.bgDataApi.init_MainTable_ConfigInfo(() => {
+                            console.log('主表初始化 1');
                         });
-                    };
+                        console.log('主表初始化');
 
-                    getRoles(() => {
-                        getMainTableInfo(() => {
-                            content();
-                        })
-                    })
+
+                        content();
+                    })();
+
+                    // getRoles(() => {
+                    //     getMainTableInfo(() => {
+                    //         content();
+                    //     })
+                    // })
                 });
                 let content = function () {
                     let rowIndexCount = 0;
 
 
-                    kl.id('h1').textContent = kl.id('h1').textContent + '/' + window.serverData.dataLib.mainTable.table.title + '/ ' + window.serverData.dataLib.mainTable.table.table_name;
-                    document.title = '查:' + window.serverData.dataLib.mainTable.table.title + '/' + window.serverData.dataLib.mainTable.table.table_name;
-                    kl.id('subject_detail').textContent = window.serverData.dataLib.mainTable.table.remark;
-                    mainTable_tableName = window.serverData.dataLib.mainTable.table.table_name;
+                    kl.id('h1').textContent = kl.id('h1').textContent + '/' + window.serverData.dataLib.mainTable.tableInfo.title + '/ ' + window.serverData.dataLib.mainTable.tableInfo.table_name;
+                    document.title = '查:' + window.serverData.dataLib.mainTable.tableInfo.title + '/' + window.serverData.dataLib.mainTable.tableInfo.table_name;
+                    kl.id('subject_detail').textContent = window.serverData.dataLib.mainTable.tableInfo.remark;
 
 
                     let raw_root = kl.id('content_div');
@@ -241,7 +156,8 @@
                             page_index: page_data.page.index,
                             page_size: page_data.page.size,
                             attr: page_data.filter,
-                            table_name: window.serverData.dataLib.mainTable.table.table_name,
+                            dbconf_name: window.serverData.dataLib.mainTable.tableInfo.dbconf_name,
+                            table_name: window.serverData.dataLib.mainTable.tableInfo.table_name,
                         };
                         // post_data.attr.table_name = window.serverData.table_name;
 
@@ -317,7 +233,7 @@
                         if (columnConfigInfo.db_datatype === 'text' || (columnConfigInfo.db_datatype === 'varchar' && columnConfigInfo.db_datatype_len > 64)) {
                             inputType = 'textarea';
                         }
-                        if (columnConfigInfo.valueItems.length > 0) {
+                        if (columnConfigInfo.valItems.length > 0) {
                             inputType = 'select';
                         }
                         searchForm.apiHandle.addGroupPreCreate().setLabelText(columnTitle).setIndexKey(inputKey).create(inputType === 'select' ? inputType : 'text');
@@ -325,10 +241,10 @@
                         if ((['update_time', 'create_time']).indexOf(columnConfigInfo.column_name) === -1) {
                             insertRowForm.apiHandle.addGroupPreCreate().setLabelText(columnTitle).setIndexKey(inputKey).create(inputType);
                             updateRowForm.apiHandle.addGroupPreCreate().setLabelText(columnTitle).setIndexKey(inputKey).create(inputType);
-                            if (columnConfigInfo.valueItems.length > 0) {
-                                updateRowForm.apiHandle.ele.input[inputKey].apiHandle.setItems(columnConfigInfo.valueItems);
-                                insertRowForm.apiHandle.ele.input[inputKey].apiHandle.setItems(columnConfigInfo.valueItems);
-                                searchForm.apiHandle.ele.input[inputKey].apiHandle.setItems(columnConfigInfo.valueItems);
+                            if (columnConfigInfo.valItems.length > 0) {
+                                updateRowForm.apiHandle.ele.input[inputKey].apiHandle.setItems(columnConfigInfo.valItems);
+                                insertRowForm.apiHandle.ele.input[inputKey].apiHandle.setItems(columnConfigInfo.valItems);
+                                searchForm.apiHandle.ele.input[inputKey].apiHandle.setItems(columnConfigInfo.valItems);
                             }
                             if (columnConfigInfo.index_key === 'PRI') {
                                 updateRowForm.apiHandle.ele.input[inputKey].readOnly = true;
@@ -336,12 +252,18 @@
                             }
                         }
 
-                        let tmp_column_handle = datagrid.api.preCreateColumn(columnConfigInfo.column_name).setColumnInfo(columnConfigInfo).setHeaderText(columnTitle).setSortable(true).setFixedFilterInputConfig({valueItems: columnConfigInfo.valueItems}).setFreeFilterInput(searchForm.apiHandle.ele.input[inputKey]);
+                        let tmp_column_handle = datagrid.api.preCreateColumn(columnConfigInfo.column_name).setColumnInfo(columnConfigInfo).setHeaderText(columnTitle).setSortable(true).setFixedFilterInputConfig({valueItems: columnConfigInfo.valItems}).setFreeFilterInput(searchForm.apiHandle.ele.input[inputKey]);
                         //  console.log('columnConfigInfo.valueMap',columnConfigInfo.valueMap,columnConfigInfo.valueMap.length > 0);
 
-                        if (columnConfigInfo.valueItems.length > 0) {
+                        if (columnConfigInfo.valItems.length > 0) {
                             tmp_column_handle.setRenderFunction((data_cell, rowData) => {
-                                data_cell.textContent = columnConfigInfo.valueMap[rowData[columnConfigInfo.column_name]] || rowData[columnConfigInfo.column_name];
+                                data_cell.textContent = columnConfigInfo.valItemMap[rowData[columnConfigInfo.column_name]] || rowData[columnConfigInfo.column_name];
+                            })
+                        } else {
+
+                            tmp_column_handle.setRenderFunction((data_cell, rowData) => {
+                                let tmp_path = '__relat.' + columnConfigInfo.column_name + '.info';
+                                data_cell.textContent = rowData[columnConfigInfo.column_name] + (kl.isUndefined(rowData, tmp_path) ? '' : ('(' + rowData.__relat[columnConfigInfo.column_name].label) + ')');
                             })
                         }
 
@@ -410,7 +332,7 @@
                     });
                     updateRowForm.apiHandle.ele.input.submitBtn.addEventListener('click', function () {
                         let changed_attrs = {};
-                        changed_attrs[window.serverData.dataLib.mainTable.pkKey] = updateRowForm.apiHandle.ele.input[window.serverData.dataLib.mainTable.pkKey + 'Input'].value;
+                        changed_attrs[window.serverData.dataLib.mainTable.tableInfo.pkKey] = updateRowForm.apiHandle.ele.input[window.serverData.dataLib.mainTable.tableInfo.pkKey + 'Input'].value;
                         window.serverData.dataLib.mainTable.__column.items.forEach(function (columnConfigInfo) {
                             let inputKey = columnConfigInfo.column_name + 'Input';
                             if (columnConfigInfo.column_name === window.serverData.dataLib.mainTable.pkKey || updateRowForm.apiHandle.ele.input[inputKey] === undefined) return false;
@@ -424,8 +346,8 @@
                             url: '/_dp/v1/dbdata/update?user_token=' + utk,
                             data: {
                                 attr: changed_attrs,
-                                db_name: window.serverData.dataLib.mainTable.table.db_name,
-                                table_name: window.serverData.dataLib.mainTable.table.table_name,
+                                dbconf_name: window.serverData.dataLib.mainTable.tableInfo.dbconf_name,
+                                table_name: window.serverData.dataLib.mainTable.tableInfo.table_name,
                             },
                             type: 'json',
                             success: function (update_res) {
@@ -457,8 +379,8 @@
                             url: '/_dp/v1/dbdata/add?user_token=' + utk,
                             data: {
                                 attr: changed_attrs,
-                                db_name: window.serverData.dataLib.mainTable.table.db_name,
-                                table_name: window.serverData.dataLib.mainTable.table.table_name,
+                                dbconf_name: window.serverData.dataLib.mainTable.tableInfo.dbconf_name,
+                                table_name: window.serverData.dataLib.mainTable.tableInfo.table_name,
                             },
                             type: 'json',
                             success: function (add_res) {
@@ -505,6 +427,10 @@
                 position: fixed;
                 left: 0;
                 bottom: 0;
+            }
+
+            .container {
+
             }
         </style>
         <script></script>

@@ -24,9 +24,10 @@
     <div class="container">
         <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
         <script src="/static/_dp/js/string/string.js"></script>
-        <script src="/static/_dp/js/hammer-yii2/bootstrap.min.20211016.1.js"></script>
-        <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.20211020.1.js"></script>
+        <script src="/static/_dp/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
+        <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2022.11.16.js"></script>
         <script src="/static/_dp/js/bg.js"></script>
+        <script src="/static/_dp/js/hammer-bg-dbdata.js"></script>
 
         <div class="site-index">
 
@@ -54,204 +55,302 @@
         <script>
             domLoaded(function () {
                     let utk = '';
-                    let role_infos = [];
+
                     bg_init(function () {
                         utk = window.utk;
 
-                        kl.ajax({
-                            url: '/_dp/v1/dbdata/info?user_token=' + utk,
-                            data: {table_name: 'bg_db_column'},
-                            type: 'json',
-                            success: function (res_request_data) {
-                                if (res_request_data.status) {
-                                    if (res_request_data.status === 200) {
-                                        window.serverData.table = res_request_data.data.table;
-                                        window.serverData.columns = res_request_data.data.columns;
-                                        window.serverData.columns.forEach(function (column_info) {
-                                            if (column_info.index_key === 'PRI') {
-                                                window.serverData.table.pk_key = column_info.column_name;
-                                            }
-                                            let tmp_key = column_info.column_name;
-                                            window.serverData.vals_map[tmp_key] = {};
-                                            window.serverData.vals_range_map[tmp_key] = column_info.val_range;
-                                            if (column_info.val_range.length > 0) {
-                                                column_info.val_range.forEach(function (val_config) {
-                                                    //window.serverData.vals_map[tmp_key].list.push({val: val_config.val, label: val_config.text});
-                                                    window.serverData.vals_map[tmp_key][val_config.val] = val_config.text;
-                                                });
-                                            }
-                                        });
+                        window.serverData.dataLib = {
+                            admin: {items: [], list: [], map: {}},
+                            role: {items: [], list: [], map: {}},
+                            mainTable: {},
+                            dbdataColumnTable: {}
+
+                        };
+
+                        window.serverData.dataLib.bgDataApi = hammerBgDataApi();
+                        window.serverData.dataLib.bgDataApi.setUserToken(utk);
+                        window.serverData.dataLib.bgDataApi.setMainTableName(window.serverData.dbconf_name, window.serverData.table_name);
+                        (async function () {
+
+                            await window.serverData.dataLib.bgDataApi.init_DbColumnConf_ConfigInfo(function () {
+                                console.log('数据库配置初始化 1');
+                            });
+                            console.log('数据库配置初始化');
+
+                            await window.serverData.dataLib.bgDataApi.initRoles(() => {
+                                console.log('角色初始化 1');
+                            });
+                            console.log('角色初始化');
+
+                            await window.serverData.dataLib.bgDataApi.init_MainTable_ConfigInfo(() => {
+                                console.log('主表初始化 1');
+                            });
+                            console.log('主表初始化');
 
 
-                                        content();
-                                    } else {
-                                        alert(' 获取表信息 错误:' + (res_request_data.message || '未知'));
-                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
+                            content();
+                        })();
 
-                                    }
-                                } else {
-                                    console.log(res_request_data.status);
-                                    alert('获取表信息 请求结果异常');
-                                    throw '别看了， info 信息都拿不到，还想干啥?';
-                                }
-                            },
-                            error: function (res_request_data) {
-                                console.log(res_request_data);
-                                alert('获取表信息 网络异常');
-                                throw '别看了，连table info 信息都拿不到，还想干啥?';
-
-                            }
-                        });
-
-
-                        kl.ajax({
-                            url: '/_dp/v1/dbdata/info?user_token=' + utk,
-                            data: {table_name: window.serverData.table_name},
-                            type: 'json',
-                            success: function (res_request_data) {
-                                return false;
-                                if (res_request_data.status) {
-                                    if (res_request_data.status === 200) {
-                                        window.serverData.table = res_request_data.data.table;
-                                        window.serverData.columns = res_request_data.data.columns;
-                                        window.serverData.columns.forEach(function (column_info) {
-                                            if (column_info.index_key === 'PRI') {
-                                                window.serverData.table.pk_key = column_info.column_name;
-                                            }
-                                            let tmp_key = column_info.column_name;
-                                            window.serverData.vals_map[tmp_key] = {};
-                                            window.serverData.vals_range_map[tmp_key] = column_info.val_range;
-                                            if (column_info.val_range.length > 0) {
-                                                column_info.val_range.forEach(function (val_config) {
-                                                    //window.serverData.vals_map[tmp_key].list.push({val: val_config.val, label: val_config.text});
-                                                    window.serverData.vals_map[tmp_key][val_config.val] = val_config.text;
-                                                });
-                                            }
-                                        });
-                                        // content();
-                                    } else {
-                                        alert(' 获取表信息 错误:' + (res_request_data.message || '未知'));
-                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
-
-                                    }
-                                } else {
-                                    console.log(res_request_data.status);
-                                    alert('获取表信息 请求结果异常');
-                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
-                                }
-                            },
-                            error: function (res_request_data) {
-                                console.log(res_request_data);
-                                alert('获取表信息 网络异常');
-                                throw '别看了，连table info 信息都拿不到，还想干啥?';
-
-                            }
-                        })
-
-
-                        kl.ajax({
-                            url: '/_dp/v1/dbdata/select?user_token=' + utk,
-                            data: {table_name: 'bg_rbac_role', page_index: 1, page_size: 1000},
-                            type: 'json',
-                            success: function (res_request_data) {
-                                if (res_request_data.code && res_request_data.code === 'ok') {
-                                    res_request_data.data.dataRows.forEach((role_info) => {
-                                        role_infos.push({val: role_info.role_code, text: role_info.role_name});
-                                    })
-                                }
-                            },
-                            error: function (res_request_data) {
-                            }
-                        })
+                        // getRoles(() => {
+                        //     getDbdataColumnTableInfo(() => {
+                        //         getMainTableInfo(() => {
+                        //             content();
+                        //         })
+                        //     })
+                        // })
                     });
 
 
                     content = function () {
-                        kl.id('h1').textContent = kl.id('h1').textContent + '/' + serverData.table.title + '/ ' + window.serverData.table_name;
-                        document.title = '【列】' + serverData.table.title + '/' + serverData.table.table_name;
+                        kl.id('h1').textContent = kl.id('h1').textContent + '/' + window.serverData.dataLib.mainTable.tableInfo.title + '/ ' + window.serverData.table_name;
+                        document.title = '【列】' + window.serverData.dataLib.mainTable.tableInfo.title + '/' + serverData.table.table_name;
 
 
-                        var raw_root = kl.id('content_div');
-                        var root = new Emt('div').setPros({className: 'row'});
-                        raw_root.append(root);
+                        let rolesTable = () => {
+                            let role_table = new Emt('table').setAttrsByStr('class="table table-bordered table-striped table-hover"');
+                            let role_table_header = role_table.createTHead();
+                            let role_tr_header = role_table_header.insertRow();
+                            role_tr_header.insertCell().textContent = '角色';
+                            role_tr_header.insertCell().textContent = '读';
+                            role_tr_header.insertCell().textContent = '改(选写)';
+                            role_tr_header.insertCell().textContent = '增/删';
+                            let role_table_body = role_table.createTBody();
 
-                        let colums_vals_map = {
-                            vals_limit: {1: '有限穷举', 2: '[yes,no]', 3: '无限,无法预料'},
-                            yes_or_no: {1: '是', 2: '否'},
+                            role_table.col_read_role_checkboxs = [];
+                            role_table.col_opt_role_checkboxs = [];
+                            role_table.col_add_role_checkboxs = [];
+
+                            window.serverData.dataLib.role.list.forEach(function (roleInfo) {
+                                let body_tr = role_table_body.insertRow();
+                                body_tr.role_td = body_tr.insertCell();
+                                body_tr.read_td = body_tr.insertCell();
+                                body_tr.opts_td = body_tr.insertCell();
+                                body_tr.add_td = body_tr.insertCell();
+                                body_tr.role_td.textContent = roleInfo.role_name;
+                                body_tr.read_role_checkbox = new Emt('input', 'type="checkbox"', '', {value: roleInfo.role_code});
+                                body_tr.read_opt_checkbox = new Emt('input', 'type="checkbox"', '', {value: roleInfo.role_code});
+                                body_tr.read_add_checkbox = new Emt('input', 'type="checkbox"', '', {value: roleInfo.role_code});
+                                role_table.col_read_role_checkboxs.push(body_tr.read_role_checkbox);
+                                role_table.col_opt_role_checkboxs.push(body_tr.read_opt_checkbox);
+                                role_table.col_add_role_checkboxs.push(body_tr.read_add_checkbox);
+                                body_tr.read_td.append(new Emt('label', '', '#').addNodes([body_tr.read_role_checkbox, new Emt('span', '', '#')]));
+                                body_tr.opts_td.append(new Emt('label', '', '#').addNodes([body_tr.read_opt_checkbox, new Emt('span', '', '#')]));
+                                body_tr.add_td.append(new Emt('label', '', '#').addNodes([body_tr.read_add_checkbox, new Emt('span', '', '#')]));
+
+                            });
+                            role_table.loadColumnsRoles = (dataRow) => {
+                                role_table.col_read_role_checkboxs.forEach((checkbox) => {
+                                    checkbox.checked = dataRow.read_roles.indexOf(checkbox.value) > -1;
+                                });
+                                role_table.col_opt_role_checkboxs.forEach((checkbox) => {
+                                    checkbox.checked = dataRow.update_roles.indexOf(checkbox.value) > -1;
+                                });
+                                role_table.col_add_role_checkboxs.forEach((checkbox) => {
+                                    checkbox.checked = dataRow.all_roles.indexOf(checkbox.value) > -1;
+                                });
+                            };
+                            role_table.getRoleCodes = () => {
+                                let res = {read: [], opt: [], add: []};
+                                role_table.col_read_role_checkboxs.forEach((checkbox) => {
+                                    if (checkbox.checked) {
+                                        res.read.push(checkbox.value);
+                                    }
+                                });
+                                role_table.col_opt_role_checkboxs.forEach((checkbox) => {
+                                    if (checkbox.checked) {
+                                        res.opt.push(checkbox.value);
+                                    }
+                                });
+                                role_table.col_add_role_checkboxs.forEach((checkbox) => {
+                                    if (checkbox.checked) {
+                                        res.add.push(checkbox.value);
+                                    }
+                                });
+                                return res;
+                            };
+                            return role_table;
                         };
+                        let createValueItemsTable = () => {
+                            let items_table = new Emt('table').setAttrsByStr('class="table table-bordered table-striped table-hover"');
+                            let ele_vals_submit_btn = new Emt('button', 'type="button"').setPros({textContent: '应用到取值范围'});
+                            let tmp_table_header = items_table.createTHead();
+                            let tmp_tr_header = tmp_table_header.insertRow();
+                            tmp_tr_header.insertCell().textContent = '序号';
+                            tmp_tr_header.insertCell().textContent = '值';
+                            tmp_tr_header.insertCell().textContent = '标签/含义';
+                            tmp_tr_header.insertCell().textContent = '启用';
+
+                            items_table.TBody = items_table.createTBody();
+                            items_table.apiHandle = {
+                                trs: [],
+                                acceptJsonInputElement: false
+                            };
+                            items_table.apiHandle.addItemRow = function (val_info) {
+                                let item_tr = items_table.TBody.insertRow();
+                                items_table.apiHandle.trs.push(item_tr);
+                                item_tr.val_input = new Emt('input').setAttrsByStr('type="text"');
+                                item_tr.text_input = new Emt('input').setAttrsByStr('type="text"');
+                                item_tr.check_input = new Emt('input').setAttrsByStr('type="checkbox"');
+                                item_tr.insertCell().textContent = items_table.apiHandle.trs.length.toString();
+                                item_tr.insertCell().append(item_tr.val_input);
+                                item_tr.insertCell().append(item_tr.text_input);
+                                item_tr.insertCell().append(item_tr.check_input);
+                                item_tr.loadInfo = (valItemInfo) => {
+                                    item_tr.val_input.value = valItemInfo.val || '';
+                                    item_tr.text_input.value = valItemInfo.text || '';
+                                    item_tr.check_input.checked = true;
+                                };
+                                return item_tr;
+                            };
+
+                            let tmp_table_footer = items_table.createTFoot();
+
+                            let tmp_tr_footer = tmp_table_footer.insertRow();
+                            let add_val_setting_btn = new Emt('button', 'type="button"').setPros({textContent: '添加item'});
+                            tmp_tr_footer.insertCell().textContent = '#';
+                            //tmp_tr_footer.insertCell().textContent = '#';
+                            tmp_tr_footer.insertCell().append(add_val_setting_btn);
+                            tmp_tr_footer.insertCell().append(ele_vals_submit_btn);
+
+
+                            ele_vals_submit_btn.addEventListener('click', function () {
+                                if (items_table.apiHandle.acceptJsonInputElement === false) {
+                                    console.log('没有设置 acceptJsonInputElement:', items_table.getItems());
+                                } else {
+                                    items_table.apiHandle.acceptJsonInputElement.value = JSON.stringify(items_table.getItems());
+                                }
+                            });
+                            add_val_setting_btn.addEventListener('click', function () {
+                                items_table.apiHandle.addItemRow().check_input.checked = true;
+                            });
+                            items_table.clearItems = () => {
+                                items_table.TBody.innerHTML = '';
+                                items_table.apiHandle.trs = [];
+                                return items_table;
+                            };
+                            items_table.getItems = () => {
+                                let items = [];
+                                items_table.apiHandle.trs.forEach((tr) => {
+                                    if (tr.check_input.checked === true) {
+                                        items.push({
+                                            val: tr.val_input.value,
+                                            text: tr.text_input.value,
+                                        });
+                                    }
+                                });
+                                return items;
+                            };
+                            items_table.loadItems = (items) => {
+                                items.forEach((itemInfo) => {
+                                    items_table.apiHandle.addItemRow().loadInfo(itemInfo);
+                                });
+                            };
+                            items_table.setAcceptJsonInputElement = (inputElement) => {
+                                items_table.apiHandle.acceptJsonInputElement = inputElement;
+                                return items_table;
+                            };
+                            return items_table;
+                        };
+
+                        let raw_root = kl.id('content_div');
+                        let root = new Emt('div').setPros({className: 'row'});
+                        raw_root.append(root);
 
 
                         let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
-                        let handle_modal_edit = hammerYii2Bootstarp1.modal({title: '修改字段设置'});
-                        let handle_modal_vals = hammerYii2Bootstarp1.modal({title: '编辑字段取值穷举'});
-                        let handle_form_edit = hammerYii2Bootstarp1.form({name_tpl: 'attr[$name_key]'});
+                        let modal_edit = hammerYii2Bootstarp1.createModal({title: '修改字段设置'});
+                        let form_edit = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
 
-                        handle_modal_edit.body_ele.addNodes([handle_form_edit.root_ele]);
-                        handle_form_edit.createInputText('字段', '', 'input_column_key_ele').input_column_key_ele.setPros({readOnly: true});
-                        let column_id = handle_form_edit.createInputHide('input_column_id_ele', 'id').input_column_id_ele.setPros({readOnly: true});
-                        let column_title = handle_form_edit.createInputText('字段标题', '用于当成label显示', 'input_title_ele', 'title').input_title_ele;
-                        let column_sn = handle_form_edit.createInputText('字段序号', '最小的在前面', 'input_sn_ele', 'column_sn').input_sn_ele;
-                        let column_rearmk = handle_form_edit.createInputTextArea('字段描述', '备注', 'input_remark_ele', 'remark').input_remark_ele;
+                        modal_edit.apiHandle.ele.body.addNodes([form_edit]);
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('字段').setIndexKey('column_name').create('text');
+                        let column_name_input = form_edit.apiHandle.ele.input.column_name;
 
-                        let handle_out_datatype_select = hammerYii2Bootstarp1.select({list: ['string', 'int', 'date', 'img_uri']});
-                        let handle_in_datatype_select = hammerYii2Bootstarp1.select({list: ['string', 'int', 'date']});
+                        form_edit.apiHandle.addGroupPreCreate().setNameVar('id').setIndexKey('id').create('hide');
+                        let column_id_input = form_edit.apiHandle.ele.input.id;
 
-                        let handle_read_roles_select = hammerYii2Bootstarp1.select({list: []});
-                        let handle_opt_roles_select = hammerYii2Bootstarp1.select({list: []});
-                        let handle_add_roles_select = hammerYii2Bootstarp1.select({list: []});
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('字段标题').setPlaceHolder('用于当成label显示').setIndexKey('title').setNameVar('title').create('text');
+                        let column_title_input = form_edit.apiHandle.ele.input.title;
 
 
-                        //let handle_vals_range_textarea = hammerYii2Bootstarp1.textarea({});
-                        let column_vals_range = handle_form_edit.createInputTextArea('取值范围', '代表值对应含义', 'input_val_range_ele', 'val_range').input_val_range_ele;
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('字段序号').setPlaceHolder('大->小').setIndexKey('sn').setNameVar('column_sn').create('number');
+                        let column_sn_input = form_edit.apiHandle.ele.input.sn;
 
 
-                        handle_form_edit.root_ele.addNodes([
-                            handle_form_edit.createInputGroup('输出类型', handle_out_datatype_select.root_ele),
-                        ]);
-                        handle_form_edit.root_ele.addNodes([
-                            handle_form_edit.createInputGroup('接收类型', handle_in_datatype_select.root_ele),
-                        ]);
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('字段描述').setPlaceHolder('备注').setIndexKey('remark').setNameVar('remark').create('textarea');
+                        let column_remark_input = form_edit.apiHandle.ele.input.remark;
+
+
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('取值范围').setPlaceHolder('代表值对应含义').setIndexKey('val_items').setNameVar('val_items').create('textarea');
+                        let column_valRange_input = form_edit.apiHandle.ele.input.val_items;
 
 
                         let edit_vals_div = new Emt('div').setAttrsByStr('class="table-responsive"');
-                        handle_form_edit.root_ele.addNodes([
-                            handle_form_edit.createInputGroup('修改取值范围', edit_vals_div),
+
+                        let tmp_group = hammerYii2Bootstarp1.createFormInputGroupDiv({});
+                        tmp_group.apiHandle.setText('').apiHandle.addInputEle(edit_vals_div);
+                        form_edit.addNode(tmp_group);
+                        let valueRangeTable = createValueItemsTable();
+                        edit_vals_div.addNodes([
+                            new Emt('div').setAttrsByStr('class="table-responsive"').addNodes([valueRangeTable])
                         ]);
+                        valueRangeTable.setAcceptJsonInputElement(column_valRange_input);
 
 
-                        handle_form_edit.root_ele.addNodes([
-                            handle_form_edit.createInputGroup('读角色', handle_read_roles_select.root_ele),
-                        ]);
-                        handle_form_edit.root_ele.addNodes([
-                            handle_form_edit.createInputGroup('写(选择角色)', handle_opt_roles_select.root_ele),
-                        ]);
-                        handle_form_edit.root_ele.addNodes([
-                            handle_form_edit.createInputGroup('写(全授权)', handle_add_roles_select.root_ele),
-                        ]);
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('输出类型').setIndexKey('out_datatype').setNameVar('out_datatype').setItems([
+                            {text: 'string', val: 'string'},
+                            {text: 'int', val: 'int'},
+                            {text: 'date', val: 'date'},
+                            {text: 'img_uri', val: 'img_uri'}
+                        ]).create('select');
+                        let column_outDataType_input = form_edit.apiHandle.ele.input.out_datatype;
 
-                        handle_form_edit.createSubmitButton('', '保存', 'button_submit_ele', function (btn, form) {
+
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('接收类型').setIndexKey('in_datatype').setNameVar('in_datatype').setItems([
+                            {text: 'string', val: 'string'},
+                            {text: 'int', val: 'int'},
+                            {text: 'date', val: 'date'}
+                        ]).create('select');
+                        let column_inDataType_input = form_edit.apiHandle.ele.input.in_datatype;
+
+
+                        let role_table = rolesTable();
+                        let role_groupDiv = hammerYii2Bootstarp1.createFormInputGroupDiv({});
+                        role_groupDiv.apiHandle.setText('权限控制').apiHandle.addInputEle(role_table);
+                        form_edit.addNode(role_groupDiv);
+
+
+                        //label, text, handle_ele_key, callback
+                        form_edit.apiHandle.addGroupPreCreate().setType('button').setContentText('保存').setIndexKey('submit').setClickCall(function (btn) {
+                            let rolecodes_map = role_table.getRoleCodes();
+
+                            console.log(btn, this, form_edit.apiHandle, rolecodes_map);
+                            //  return false;
                             kl.ajax({
                                 url: '/_dp/v1/dbdata/update?user_token=' + utk,
-                                attr: form,
+                                //attr: form,
                                 data: {
                                     attr: {
-                                        id: handle_form_edit.input_column_id_ele.value,
-                                        title: handle_form_edit.input_title_ele.value,
-                                        column_sn: handle_form_edit.input_sn_ele.value,
-                                        out_datatype: handle_out_datatype_select.getValue(),
-                                        in_datatype: handle_in_datatype_select.getValue(),
-                                        val_range: handle_form_edit.input_val_range_ele.value,
-                                        remark: handle_form_edit.input_remark_ele.value,
+                                        id: form_edit.apiHandle.ele.input.id.apiHandle.getVal(),
+                                        title: form_edit.apiHandle.ele.input.title.apiHandle.getVal(),
+                                        column_sn: form_edit.apiHandle.ele.input.sn.apiHandle.getVal(),
+                                        out_datatype: form_edit.apiHandle.ele.input.out_datatype.apiHandle.getVal(),
+                                        in_datatype: form_edit.apiHandle.ele.input.in_datatype.apiHandle.getVal(),
+                                        val_items: form_edit.apiHandle.ele.input.val_items.apiHandle.getVal(),
+                                        remark: form_edit.apiHandle.ele.input.remark.apiHandle.getVal(),
+                                        read_roles: JSON.stringify(rolecodes_map.read),
+                                        update_roles: JSON.stringify(rolecodes_map.opt),
+                                        all_roles: JSON.stringify(rolecodes_map.add),
                                     },
-                                    table_name: 'bg_db_column',
+                                    dbconf_name: serverData.dataLib.bgDataApi.config.dbconf_name,
+                                    table_name: window.serverData.dataLib.bgDataApi.config.dbdata_column_tableName,
                                 },
                                 type: 'json',
                                 success: function (res_save_column) {
                                     if (res_save_column.status) {
                                         if (res_save_column.status === 200) {
-                                            hanndle_datagrid.requestData('init');
+                                            datagrid.api.requestData('init');
                                             //res_save_column(res_save_column.data);
-                                            handle_modal_edit.hide();
+                                            modal_edit.apiHandle.hide();
                                         } else {
                                             alert('错误:' + (res_save_column.msg || '未知'))
                                         }
@@ -265,125 +364,75 @@
                                     alert('网络异常');
                                 }
                             })
-                        });
+                        }).create('button');
 
-
-                        let ele_vals_table = new Emt('table').setAttrsByStr('class="table table-bordered table-striped table-hover"');
-                        let ele_vals_submit_btn = new Emt('button', 'type="button"').setPros({textContent: '应用到取值范围'});
-                        let tmp_table_header = ele_vals_table.createTHead();
-                        let tmp_tr_header = tmp_table_header.insertRow();
-                        tmp_tr_header.insertCell().textContent = '序号';
-                        tmp_tr_header.insertCell().textContent = '值';
-                        tmp_tr_header.insertCell().textContent = '标签/含义';
-                        tmp_tr_header.insertCell().textContent = '启用';
-
-                        let edit_vals_range_table_body = ele_vals_table.createTBody();
-                        let createColumnValEle = function (val_info) {
-                            let tmp_tr = edit_vals_range_table_body.insertRow();
-                            [
-                                {input_ele_key: 'val_sn', input_ele: new Emt('input').setAttrsByStr('type="text" class="col-sm-12"').setPros({value: val_info.sn || edit_vals_range_table_body.childElementCount})},
-
-                                {input_ele_key: 'column_val', input_ele: new Emt('input').setAttrsByStr('type="text"').setPros({value: val_info.val || ''})},
-                                {input_ele_key: 'title', input_ele: new Emt('input').setAttrsByStr('type="text"').setPros({value: val_info.text || ''})},
-                                {input_ele_key: 'is_ok', input_ele: new Emt('input').setAttrsByStr('type="checkbox"').setPros({checked: !!val_info})}
-                            ].forEach(function (tmp_info) {
-                                let tmp_td = tmp_tr.insertCell();
-                                tmp_td.append(tmp_info.input_ele);
-                                tmp_tr['input_' + tmp_info.input_ele_key] = tmp_info.input_ele;
-                            });
-
-                        };
-
-                        let tmp_table_footer = ele_vals_table.createTFoot();
-
-                        let tmp_tr_footer = tmp_table_footer.insertRow();
-                        let column_name_input_ele = new Emt('input', 'type="button"').setAttrsByStr('type="text" readonly="readonly"');
-                        let add_val_setting_btn = new Emt('button', 'type="button"').setPros({textContent: '添加值'});
-                        tmp_tr_footer.insertCell().textContent = '#';
-                        tmp_tr_footer.insertCell().textContent = '#';
-                        tmp_tr_footer.insertCell().append(add_val_setting_btn);
-
-
-                        edit_vals_div.addNodes([new Emt('div').setAttrsByStr('class="table-responsive"').addNodes([ele_vals_table]), ele_vals_submit_btn]);
-                        ele_vals_submit_btn.addEventListener('click', function () {
-                            let trs = edit_vals_range_table_body.getElementsByTagName('tr');
-                            let val_infos = [];
-                            for (let i = 0; i < trs.length; i++) {
-                                let tr = trs[i];
-                                if (tr.input_is_ok.checked === true) {
-                                    val_infos.push({
-                                        val: tr.input_column_val.value,
-                                        text: tr.input_title.value,
-                                        sn: tr.input_val_sn.value
-                                    });
-                                }
-                            }
-                            console.log(val_infos);
-                            column_vals_range.value = JSON.stringify(val_infos);
-
-
-                        });
-                        add_val_setting_btn.addEventListener('click', function () {
-                            createColumnValEle({});
-                        });
-
-
-                        // let column_title=form_edit.createInputText('字段标题', '用于当成label显示', 'input_title_ele').input_title_ele;
 
                         let id_list = [];
                         let sort_bar_list = [];
-                        let hanndle_datagrid = hammerBootstarpDatagrid({
-                            ele: kl.id('content_div'),
-                            requestDataFun: function (event_type, page_data, handle_callback) {
-                                id_list = [];
-                                sort_bar_list = [];
-                                console.log(event_type, page_data);
-                                if (event_type === 'filter') {
-                                    console.log('这个不做理会，不然请求太频繁了');
-                                    return false;
-                                }
-                                let post_data = {
-                                    page: {index: 1, size: 1000},
-                                    attr: page_data.filter,
-                                    table_name: 'bg_db_column',
-                                };
-                                post_data.attr.table_name = window.serverData.table_name;
+                        let datagrid = hammerBootstarpDatagrid({});
+                        console.log('datagrid', datagrid);
+                        datagrid.api.setDstDivElement(kl.id('content_div'));
+                        datagrid.api.setRequestDataRowsFunction(function (event_type, dataGrid) {
+                            id_list = [];
+                            sort_bar_list = [];
+                            let page_data = dataGrid.api.getRequestParam();
+                            console.log(event_type, page_data);
+                            if (event_type === 'filter') {
+                                console.log('这个不做理会，不然请求太频繁了');
+                                return false;
+                            }
+                            let post_data = {
+                                //page: {index: 1, size: 1000},
+                                page_index: 1, page_size: 1000,
+                                attr: page_data.filter,
+                                dbconf_name: serverData.dataLib.bgDataApi.config.dbconf_name,
+                                table_name: window.serverData.dataLib.bgDataApi.config.dbdata_column_tableName,
+                            };
+                            post_data.attr.table_name = window.serverData.dataLib.mainTable.tableInfo.table_name;
+                            post_data.attr.dbconf_name = window.serverData.dataLib.mainTable.tableInfo.dbconf_name;
 
-                                if (!page_data.sort.key || !page_data.sort.type) {
-                                    console.log('没有排序');
-                                } else {
-                                    // post_data.sort = page_data.sort;
-                                    post_data.sort = {};
-                                    post_data.sort[page_data.sort.key] = page_data.sort.type;
-                                }
-                                kl.ajax({
-                                    url: '/_dp/v1/dbdata/select?user_token=' + utk,
-                                    data: post_data,
-                                    type: 'json',
-                                    success: function (res_request_data) {
-                                        if (res_request_data.status) {
-                                            if (res_request_data.status === 200) {
-                                                handle_callback(res_request_data.data.dataRows);
-                                            } else {
-                                                alert('错误:' + (res_request_data.msg || '未知'))
-                                            }
+                            if (!page_data.sort.key || !page_data.sort.type) {
+                                console.log('没有排序');
+                            } else {
+                                // post_data.sort = page_data.sort;
+                                post_data.sort = {};
+                                post_data.sort[page_data.sort.key] = page_data.sort.type;
+                            }
+                            kl.ajax({
+                                url: '/_dp/v1/dbdata/select?user_token=' + utk,
+                                data: post_data,
+                                type: 'json',
+                                success: function (res_request_data) {
+                                    console.log('请求成功');
+                                    if (res_request_data.status) {
+                                        if (res_request_data.status === 200) {
+                                            //handle_callback(res_request_data.data.dataRows);
+                                            dataGrid.api.reloadDataRows(res_request_data.data);
                                         } else {
-                                            console.log(res_request_data.status);
-                                            alert('请求结果异常')
+                                            alert('错误:' + (res_request_data.msg || '未知'))
                                         }
-                                    },
-                                    error: function (res_request_data) {
-                                        console.log(res_request_data);
-                                        alert('网络异常');
+                                    } else {
+                                        console.log(res_request_data.status);
+                                        alert('请求结果异常')
                                     }
-                                })
-                            },
+                                },
+                                error: function (res_request_data) {
+                                    console.log('datagrid.api.setRequestDataRowsFunction 网络异常:' + res_request_data);
+                                    alert('网络异常');
+                                }
+                            });
+
+
                         });
 
+                        datagrid.api.preCreateColumn('id').setColumnInfo({}).setHeaderText('ID').setSortable(true).setFixedFilterInputConfig({valueItems: []});
 
-                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), 'id', 'id', true);
-                        hanndle_datagrid.addHeader('字段序号', '字段序号', 'column_sn', true, function (cell, row_data) {
-                            let input_data = hanndle_datagrid.getInputData();
+                        datagrid.api.preCreateColumn('dbconf_name').setColumnInfo({}).setHeaderText('库配置').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                        datagrid.api.preCreateColumn('table_name').setColumnInfo({}).setHeaderText('表名').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+
+
+                        datagrid.api.preCreateColumn('column_sn').setColumnInfo({}).setHeaderText('字段序号').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                            let input_data = datagrid.api.getRequestParam();
                             //                            console.log(input_data);
                             if (input_data.sort.key === 'column_sn' && input_data.sort.type === 'desc') {
                                 id_list.push(parseInt(row_data.id));
@@ -391,7 +440,7 @@
                                 let pre_area = new Emt('div', '', '<--', {sn: parseInt(row_data.column_sn), data_id: parseInt(row_data.id)});
                                 let next_area = new Emt('div', '', '-->', {sn: parseInt(row_data.column_sn), data_id: parseInt(row_data.id)});
                                 sort_bar_list.push(bar_btn);
-                                let tmp_div = new Emt('div');
+                                let tmp_div = new Emt('div', 'class="drag_sort_div"');
                                 tmp_div.addNodes([pre_area, bar_btn, next_area]);
                                 cell.appendChild(tmp_div);
 
@@ -431,7 +480,7 @@
                                         },
                                         type: 'json',
                                         success: function (tmp_res) {
-                                            hanndle_datagrid.requestData('init');
+                                            datagrid.api.requestData('init');
                                         },
                                         error: function (res_save_column) {
                                             alert('报错了');
@@ -472,7 +521,7 @@
                                         },
                                         type: 'json',
                                         success: function (tmp_res) {
-                                            hanndle_datagrid.requestData('init');
+                                            datagrid.api.requestData('init');
                                         },
                                         error: function (res_save_column) {
                                             alert('报错了');
@@ -495,18 +544,21 @@
 
 
                         });
-                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), '标题', 'title', true);
-                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), '表名', 'table_name', true);
-                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), '列字段名', 'column_name', true);
-                        hanndle_datagrid.addHeader('', '类型', 'data_type', false, function (cell, row_data) {
-                            cell.addNodes([
-                                new Emt('p').setAttrsByStr('存储:', row_data.db_datatype + '(' + row_data.db_datatype_len.toString() + '])'),
-                                new Emt('p').setAttrsByStr('', '接收:' + row_data.in_datatype),
-                                new Emt('p').setAttrsByStr('', '展示:' + row_data.out_datatype),
-                            ]);
+                        datagrid.api.preCreateColumn('title').setColumnInfo({}).setHeaderText('标题').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+
+                        datagrid.api.preCreateColumn('column_name').setColumnInfo({}).setHeaderText('列字段名').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                        datagrid.api.preCreateColumn('data_type').setColumnInfo({}).setHeaderText('类型').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                            cell.textContent = row_data.db_datatype + '(' + row_data.db_datatype_len.toString() + '])';
                         });
 
-                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), '字段值范围', 'val_range', false, function (cell, row_data) {
+                        datagrid.api.preCreateColumn('in_datatype').setColumnInfo({}).setHeaderText('接收类型').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                            cell.textContent = row_data.in_datatype;
+                        });
+                        datagrid.api.preCreateColumn('out_datatype').setColumnInfo({}).setHeaderText('展示类型').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                            cell.textContent = row_data.out_datatype;
+                        });
+
+                        datagrid.api.preCreateColumn('val_items').setColumnInfo({}).setHeaderText('字段值范围').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
                             let tmp_pre = new Emt('pre');
                             console.log(row_data.column_name);
                             if (0) {
@@ -521,11 +573,11 @@
                                     tmp_pre.textContent = '自由定义';
                                 }
                             } else {
-                                if (row_data.val_range !== undefined && row_data.val_range !== null && row_data.val_range.length && row_data.val_range !== '[]') {
-                                    let tmp_val_range = JSON.parse(row_data.val_range);
-                                    console.log(row_data.val_range, typeof row_data.val_range);
+                                if (row_data.val_items !== undefined && row_data.val_items !== null && row_data.val_items.length && row_data.val_items !== '[]') {
+                                    let tmp_val_items = JSON.parse(row_data.val_items);
+                                    console.log(row_data.val_items, typeof row_data.val_items);
                                     let tmp_strs = [];
-                                    tmp_val_range.forEach(function (val_opt_info) {
+                                    tmp_val_items.forEach(function (val_opt_info) {
                                         tmp_strs.push(JSON.stringify(val_opt_info));
                                     });
                                     tmp_pre.textContent = tmp_strs.join("\n");
@@ -538,62 +590,70 @@
                                 tmp_pre
                             ]);
 
-                            //edit_vals_range_table_body
-
                         });
 
-                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), '禁用', 'is_ok', true, function (cell, row_data) {
+
+                        datagrid.api.preCreateColumn('is_ok').setColumnInfo({}).setHeaderText('禁用').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
                             cell.addNodes([
-                                new Emt('p').setAttrsByStr('', (window.serverData.vals_map.is_ok[row_data.is_ok] || '错误信息')),
+                                new Emt('p').setAttrsByStr('', (window.serverData.dataLib.dbdataColumnTable.__column.map.is_ok.valItemMap[row_data.is_ok] || '错误信息')),
                             ]);
                         });
 
-                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), '备注', 'remark', true);
+                        datagrid.api.preCreateColumn('remark').setColumnInfo({}).setHeaderText('备注').setSortable(true).setFixedFilterInputConfig({valueItems: []});
 
-                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), 'read_roles', 'read_roles', true);
-                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), 'opt_roles', 'opt_roles', true);
-                        hanndle_datagrid.addHeader(hanndle_datagrid.createInputText(), 'add_roles', 'add_roles', true);
+                        datagrid.api.preCreateColumn('read_roles').setColumnInfo({}).setHeaderText('read_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                        datagrid.api.preCreateColumn('update_roles').setColumnInfo({}).setHeaderText('update_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
 
-                        hanndle_datagrid.addHeader(new Emt('span').setAttrsByStr('', '#'), '操作', 'op', false, function (cell, row_data) {
+                        datagrid.api.preCreateColumn('all_roles').setColumnInfo({}).setHeaderText('all_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+
+                        datagrid.api.preCreateColumn('op').setColumnInfo({}).setHeaderText('操作').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
                             let btn_import_column = new Emt('button').setPros({textContent: '修改'});
                             btn_import_column.addEventListener('click', function () {
-                                if (role_infos.length === 0) {
-                                    alert('等待加载role_info');
-                                    return false;
-                                }
+
                                 console.log('修改', cell, row_data);
-                                edit_vals_range_table_body.innerHTML = '';
-                                column_name_input_ele.value = row_data.column_name;
+                                valueRangeTable.clearItems();
+                                // column_name_input_ele.value = row_data.column_name;
 
-                                handle_modal_edit.data_info = {cell: cell, row_data: row_data};
-                                column_id.value = row_data.id;
-                                handle_form_edit.input_column_key_ele.value = row_data.column_name;
-                                column_title.value = row_data.title;
-                                column_sn.value = row_data.column_sn;
-                                column_rearmk.value = row_data.remark;
-                                handle_in_datatype_select.loadVal(row_data.in_datatype);
-                                handle_out_datatype_select.loadVal(row_data.out_datatype);
-
-                                if (row_data.val_range === null) {
-                                    row_data.val_range = '[]';
-                                }
-                                column_vals_range.value = row_data.val_range;
-
-                                let tmp_val_range = JSON.parse(row_data.val_range);
-                                tmp_val_range.forEach(function (info) {
-                                    createColumnValEle(info);
+                                modal_edit.data_info = {cell: cell, row_data: row_data};
+                                column_id_input.value = row_data.id;
+                                column_name_input.value = row_data.column_name;
+                                column_title_input.value = row_data.title;
+                                column_sn_input.value = row_data.column_sn;
+                                column_remark_input.value = row_data.remark;
+                                column_inDataType_input.apiHandle.setInitVal(row_data.in_datatype);
+                                column_outDataType_input.apiHandle.setInitVal(row_data.out_datatype);
+                                let tmp_obj = {};
+                                ['read_roles', 'update_roles', 'all_roles'].forEach((column_name) => {
+                                    if (row_data[column_name] === null) {
+                                        tmp_obj[column_name] = [];
+                                    } else {
+                                        try {
+                                            tmp_obj[column_name] = JSON.parse(row_data[column_name]);
+                                        } catch (e) {
+                                            tmp_obj[column_name] = [];
+                                        }
+                                    }
                                 });
+                                role_table.loadColumnsRoles(tmp_obj);
+
+                                if (row_data.val_items === null) {
+                                    row_data.val_items = '[]';
+                                }
+                                column_valRange_input.value = row_data.val_items;
+
+                                let tmp_val_items = JSON.parse(row_data.val_items);
+                                valueRangeTable.loadItems(tmp_val_items);
 
                                 //handle_in_datatype_select.loadVal([row_data.out_datatype,'string','int','date']);
 
 
-                                handle_modal_edit.show();
+                                modal_edit.apiHandle.show();
                             });
                             cell.addNodes([btn_import_column]);
                         });
 
 
-                        hanndle_datagrid.requestData('init');
+                        datagrid.api.run().api.requestData('init');
 
 
                     }
@@ -601,7 +661,15 @@
             );
         </script>
         <style>
+            .drag_sort_div {
+                float: left;
+                width: 100px;
+            }
 
+            .drag_sort_div > * {
+                display: block;
+                float: left;
+            }
         </style>
     </div>
 </div>

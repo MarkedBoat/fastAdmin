@@ -8,11 +8,11 @@ use models\common\sys\Sys;
 
 /**
  * @property int id
- * @property string db_name 主表 db
+ * @property string dbconf_name 主表 db
  * @property string table_name 主表 表名
  * @property string column_name 主表 列名
  * @property string ext_filter_sql 主表 列值，可能用 src 和 src_id 的组合代表的意思，甚至  a=x and b=x and c=x 才能确定src_id 是对应的哪个表的值
- * @property string src_db_name
+ * @property string src_dbconf_name
  * @property string src_table_name
  * @property string src_val_column_name 被关联表的对应的字段
  * @property string src_label_column_name 从被关联表中 取出一个字段作为label, src_safe_columns取的信息会作为 info 附加上去(于label同级)
@@ -26,11 +26,11 @@ use models\common\sys\Sys;
 class DbRelationDao extends ORM
 {
     public $id                    = null;
-    public $db_name               = '';
+    public $dbconf_name               = '';
     public $table_name            = '';
     public $column_name           = '';
     public $ext_filter_sql        = '';
-    public $src_db_name           = '';
+    public $src_dbconf_name           = '';
     public $src_table_name        = '';
     public $src_val_column_name   = '';
     public $src_label_column_name = '';
@@ -47,11 +47,11 @@ class DbRelationDao extends ORM
     public static $pk           = 'id';
     public static $field_config = [
         'id'                    => ['db_type' => 'int', 'length' => 0, 'def' => null, 'pro_def' => null],
-        'db_name'               => ['db_type' => 'varchar', 'length' => 16, 'def' => '', 'pro_def' => ''],
+        'dbconf_name'               => ['db_type' => 'varchar', 'length' => 16, 'def' => '', 'pro_def' => ''],
         'table_name'            => ['db_type' => 'varchar', 'length' => 64, 'def' => '', 'pro_def' => ''],
         'column_name'           => ['db_type' => 'varchar', 'length' => 32, 'def' => '', 'pro_def' => ''],
         'ext_filter_sql'        => ['db_type' => 'varchar', 'length' => 120, 'def' => '', 'pro_def' => ''],
-        'src_db_name'           => ['db_type' => 'varchar', 'length' => 64, 'def' => '', 'pro_def' => ''],
+        'src_dbconf_name'           => ['db_type' => 'varchar', 'length' => 64, 'def' => '', 'pro_def' => ''],
         'src_table_name'        => ['db_type' => 'varchar', 'length' => 64, 'def' => '', 'pro_def' => ''],
         'src_val_column_name'   => ['db_type' => 'varchar', 'length' => 64, 'def' => '', 'pro_def' => ''],
         'src_label_column_name' => ['db_type' => 'varchar', 'length' => 64, 'def' => '', 'pro_def' => ''],
@@ -66,7 +66,7 @@ class DbRelationDao extends ORM
 
     public function getDbConfName()
     {
-        return 'dp';
+        return 'fast_bg';
     }
 
 }
