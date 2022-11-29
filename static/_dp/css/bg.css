@@ -111,33 +111,42 @@ td > input[type="text"], td > input[type="number"], td > select {
     color: #FFF;
     background: #000;
     cursor: pointer;
+    width: 150px;
+    margin-left: 0px !important;
 }
 
-.menu_root_div {
+._dp_menu_root_div {
     float: left;
     width: 150px;
     border-right: 1px solid #000;
     padding-top: 80px;
     padding-bottom: 80px;
     height: 100%;
-    overflow: scroll;
+    overflow: auto;
+    margin-right: 1em;
+    position: fixed;
 }
 
 .body_content_div {
     position: absolute;
     left: 150px;
+    padding-left: 2em;
 }
 
 #w0 > h3 {
     margin-left: 100px;
     color: #FFF;
 }
-.menu_div {
+._dp_menu_div {
     border-left: 1px solid #000;
     padding-top: 0.5em;
 }
-.menus_div > .menu_div {
+._dp_menus_div > ._dp_menu_div {
     margin-left: 0.5em;
     padding-left: 0.5em;
 }
 
+.page_title{
+    margin-left: 120px !important;
+    color: #FFF !important;
+}

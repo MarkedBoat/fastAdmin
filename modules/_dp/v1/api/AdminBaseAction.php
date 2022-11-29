@@ -67,7 +67,7 @@ abstract class AdminBaseAction extends ActionBase
             $action_codes = $action->getRoleCodes();
             if (count(array_intersect($this->user->role_codes, $action->getRoleCodes())) === 0)
             {
-                throw new AdvError(AdvError::rbac_deny, "您没有对应权限：{$this->user->id}/{$action->id}:" . join(',', $action_codes));
+                throw new AdvError(AdvError::rbac_deny, "您没有对应权限：user:{$this->user->id}  action:{$action->id} action_role_codes:[" . join(',', $action_codes).']');
             }
         }
     }

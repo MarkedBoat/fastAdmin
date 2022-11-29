@@ -9,35 +9,25 @@
     <link href="/static/_dp/css/bg.css" rel="stylesheet">
     <script src="/static/_dp/js/jquery.js"></script>
     <script src="/static/_dp/js/bootstrap.js"></script>
+
+    <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
+    <script src="/static/_dp/js/string/string.js"></script>
+    <script src="/static/_dp/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
+    <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2022.11.16.js"></script>
+    <script src="/static/_dp/js/bg.js"></script>
+    <script src="/static/_dp/js/hammer-bg-dbdata.js"></script>
+
 </head>
 <body>
 <div class="wrap">
     <nav id="w0" class="navbar-inverse navbar-fixed-top navbar">
         <div class="container">
-            <div class="navbar-header"></div>
-            <div id="bg_menus_div" class="navbar-brand menus_root">导航</div>
-            <div id="w0-collapse" class="collapse navbar-collapse">
-                <ul id="w1" class="navbar-nav navbar-right nav">
-                    <li><a href="/admin/dbdata/tables.html">所有表</a></li>
-                </ul>
-            </div>
+            <div id="menu_toggle_btn" class="navbar-brand menu_toggle_btn">导航</div>
+            <div id="page_title" class="navbar-brand page_title">【管理所有表】</div>
         </div>
     </nav>
     <div class="container">
-        <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
-        <script src="/static/_dp/js/string/string.js"></script>
-        <script src="/static/_dp/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
-        <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2022.11.16.js"></script>
-        <script src="/static/_dp/js/bg.js"></script>
-        <script src="/static/_dp/js/hammer-bg-dbdata.js"></script>
-
         <div class="site-index">
-
-            <div>
-
-            </div>
-
-
             <div class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="page-header" id="user_nickname">【管理所有表】</h3>
@@ -46,394 +36,369 @@
                     <p id="subject_detail"></p>
                 </div>
             </div>
-
-
             <div class="body-content" id="content_div">
-
-
             </div>
-
         </div>
-        <script>
-            domLoaded(function () {
-                    let utk = '';
-
-                    bg_init(function () {
-                        utk = window.utk;
-
-                        window.serverData.dataLib = {
-                            admin: {items: [], list: [], map: {}},
-                            role: {items: [], list: [], map: {}},
-                            mainTable: {},
-                            dbdataTablesTable: {}
-
-                        };
-                        window.serverData.dataLib.bgDataApi = hammerBgDataApi();
-                        window.serverData.dataLib.bgDataApi.setUserToken(utk);
-
-
-                        (async function () {
-
-                            await window.serverData.dataLib.bgDataApi.init_DbTableConf_ConfigInfo(function () {
-                                console.log('数据库配置初始化 1');
-                            });
-                            console.log('数据库配置初始化');
-
-                            await window.serverData.dataLib.bgDataApi.initRoles(() => {
-                                console.log('角色初始化 1');
-                            });
-                            console.log('角色初始化');
-
-                            content();
-                        })();
-
-                    });
-                    let content = function () {
-
-                        let raw_root = kl.id('content_div');
-                        let root = new Emt('div').setPros({className: 'row'});
-                        raw_root.append(root);
-
-
-                        let rolesTable = () => {
-                            let role_table = new Emt('table').setAttrsByStr('class="table table-bordered table-striped table-hover"');
-                            let role_table_header = role_table.createTHead();
-                            let role_tr_header = role_table_header.insertRow();
-                            role_tr_header.insertCell().textContent = '角色';
-                            role_tr_header.insertCell().textContent = '读';
-                            role_tr_header.insertCell().textContent = '增/删';
-                            let role_table_body = role_table.createTBody();
-
-                            role_table.col_read_role_checkboxs = [];
-                            role_table.col_opt_role_checkboxs = [];
-                            role_table.col_add_role_checkboxs = [];
-
-                            window.serverData.dataLib.role.list.forEach(function (roleInfo) {
-                                let body_tr = role_table_body.insertRow();
-                                body_tr.role_td = body_tr.insertCell();
-                                body_tr.read_td = body_tr.insertCell();
-                                body_tr.add_td = body_tr.insertCell();
-                                body_tr.role_td.textContent = roleInfo.role_name;
-                                body_tr.read_role_checkbox = new Emt('input', 'type="checkbox"', '', {value: roleInfo.role_code});
-                                body_tr.read_add_checkbox = new Emt('input', 'type="checkbox"', '', {value: roleInfo.role_code});
-                                role_table.col_read_role_checkboxs.push(body_tr.read_role_checkbox);
-                                role_table.col_add_role_checkboxs.push(body_tr.read_add_checkbox);
-                                body_tr.read_td.append(new Emt('label', '', '#').addNodes([body_tr.read_role_checkbox, new Emt('span', '', '#')]));
-                                body_tr.add_td.append(new Emt('label', '', '#').addNodes([body_tr.read_add_checkbox, new Emt('span', '', '#')]));
-
-                            });
-                            role_table.loadColumnsRoles = (dataRow) => {
-                                role_table.col_read_role_checkboxs.forEach((checkbox) => {
-                                    checkbox.checked = dataRow.read_roles.indexOf(checkbox.value) > -1;
-                                });
-                                role_table.col_add_role_checkboxs.forEach((checkbox) => {
-                                    checkbox.checked = dataRow.all_roles.indexOf(checkbox.value) > -1;
-                                });
-                            };
-                            role_table.getRoleCodes = () => {
-                                let res = {read: [], add: []};
-                                role_table.col_read_role_checkboxs.forEach((checkbox) => {
-                                    if (checkbox.checked) {
-                                        res.read.push(checkbox.value);
-                                    }
-                                });
-
-                                role_table.col_add_role_checkboxs.forEach((checkbox) => {
-                                    if (checkbox.checked) {
-                                        res.add.push(checkbox.value);
-                                    }
-                                });
-                                return res;
-                            };
-                            return role_table;
-                        };
-
-                        let rowIndexCount = 0;
-                        let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
-
-
-                        let editTableConfig_Modal = hammerYii2Bootstarp1.createModal({title: '修改表配置信息'});
-                        let editTableConfig_Form = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
-                        editTableConfig_Modal.apiHandle.ele.body.addNodes([editTableConfig_Form]);
-                        editTableConfig_Form.apiHandle.addGroupPreCreate().setLabelText('ID').setIndexKey('idInput').create('text');
-                        editTableConfig_Form.apiHandle.addGroupPreCreate().setLabelText('数据库').setIndexKey('dbConf').create('text');
-                        editTableConfig_Form.apiHandle.addGroupPreCreate().setLabelText('表名').setIndexKey('tableName').create('text');
-                        editTableConfig_Form.apiHandle.addGroupPreCreate().setNameVar('id').setIndexKey('id').create('hide');
-                        editTableConfig_Form.apiHandle.addGroupPreCreate().setLabelText('表名(汉语)').setPlaceHolder('表名(汉语)').setIndexKey('title').setNameVar('title').create('text');
-
-                        editTableConfig_Form.apiHandle.addGroupPreCreate().setLabelText('表描述').setPlaceHolder('备注').setIndexKey('remark').setNameVar('remark').create('textarea');
-                        editTableConfig_Form.apiHandle.ele.input.idInput.readOnly = true;
-                        editTableConfig_Form.apiHandle.ele.input.dbConf.readOnly = true;
-                        editTableConfig_Form.apiHandle.ele.input.tableName.readOnly = true;
-
-                        let role_table = rolesTable();
-                        let role_groupDiv = hammerYii2Bootstarp1.createFormInputGroupDiv({});
-                        role_groupDiv.apiHandle.setText('权限控制').apiHandle.addInputEle(role_table);
-                        editTableConfig_Form.addNode(role_groupDiv);
-
-
-                        //label, text, handle_ele_key, callback
-                        editTableConfig_Form.apiHandle.addGroupPreCreate().setType('button').setContentText('保存').setIndexKey('submit').setClickCall(function (btn) {
-                            let rolecodes_map = role_table.getRoleCodes();
-                            let attr = {
-                                id: editTableConfig_Form.apiHandle.ele.input.idInput.apiHandle.getVal(),
-                                title: editTableConfig_Form.apiHandle.ele.input.title.apiHandle.getVal(),
-                                remark: editTableConfig_Form.apiHandle.ele.input.remark.apiHandle.getVal(),
-                                read_roles: JSON.stringify(rolecodes_map.read),
-                                all_roles: JSON.stringify(rolecodes_map.add),
-                            };
-                            console.log(btn, this, editTableConfig_Form.apiHandle, rolecodes_map, attr);
-                            //return false;
-                            kl.ajax({
-                                url: '/_dp/v1/dbdata/update?user_token=' + utk,
-                                //attr: form,
-                                data: {
-                                    attr: attr,
-                                    dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name, table_name: window.serverData.dataLib.bgDataApi.config.dbdata_table_tableName,
-                                },
-                                type: 'json',
-                                success: function (update_tableConfig_res) {
-                                    if (update_tableConfig_res.status) {
-                                        if (update_tableConfig_res.status === 200) {
-                                            datagrid.api.requestData('init');
-                                            //update_tableConfig_res(update_tableConfig_res.data);
-                                            editTableConfig_Modal.apiHandle.hide();
-                                        } else {
-                                            alert('修改table config错误:' + (update_tableConfig_res.msg || '未知'))
-                                        }
-                                    } else {
-                                        console.log(update_tableConfig_res);
-                                        alert('修改table config 结果异常')
-                                    }
-                                },
-                                error: function (update_tableConfig_res) {
-                                    console.log(update_tableConfig_res);
-                                    alert('修改table config 网络异常');
-                                }
-                            })
-                        }).create('button');
-
-
-                        let datagrid = hammerBootstarpDatagrid({});
-                        console.log('datagrid', datagrid);
-                        datagrid.api.setDstDivElement(kl.id('content_div'));
-                        datagrid.api.setRequestDataRowsFunction(function (event_type, dataGrid) {
-
-                            let page_data = dataGrid.api.getRequestParam();
-                            console.log(event_type, page_data);
-                            if (event_type === 'filter') {
-                                console.log('这个不做理会，不然请求太频繁了');
-                                return false;
-                            }
-                            let post_data = {
-                                //page: page_data.page,
-                                page_index: page_data.page.index,
-                                page_size: page_data.page.size,
-                                attr: page_data.filter,
-                                dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name, table_name: window.serverData.dataLib.bgDataApi.config.dbdata_table_tableName,
-                            };
-                            // post_data.attr.table_name = window.serverData.table_name;
-
-                            if (!page_data.sort.key || !page_data.sort.type) {
-                                console.log('没有排序');
-                            } else {
-                                // post_data.sort = page_data.sort;
-                                post_data.sort = {};
-                                post_data.sort[page_data.sort.key] = page_data.sort.type;
-                            }
-
-                            for (let attr_key in post_data.attr) {
-                                console.log(attr_key);
-                                if (post_data.attr[attr_key][0] === ':') {
-                                    post_data.attr[attr_key] = 'like:%' + post_data.attr[attr_key].substring(1) + '%';
-                                }
-                            }
-
-
-                            kl.ajax({
-                                url: '/_dp/v1/dbdata/select?user_token=' + utk,
-                                data: post_data,
-                                type: 'json',
-                                success: function (res_request_data) {
-                                    console.log('请求成功');
-                                    if (res_request_data.status) {
-                                        if (res_request_data.status === 200) {
-                                            //handle_callback(res_request_data.data.dataRows);
-                                            rowIndexCount = 0;
-                                            dataGrid.api.reloadDataRows(res_request_data.data);
-                                        } else {
-                                            alert('错误:' + (res_request_data.msg || '未知'))
-                                        }
-                                    } else {
-                                        console.log(res_request_data.status);
-                                        alert('请求结果异常')
-                                    }
-                                },
-                                error: function (res_request_data) {
-                                    console.log('datagrid.api.setRequestDataRowsFunction 网络异常:' + res_request_data);
-                                    alert('网络异常');
-                                }
-                            });
-
-
-                        });
-
-                        datagrid.api.preCreateColumn('_rowIndexCount').setColumnInfo({}).setHeaderText('i').setSortable(false).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
-                            rowIndexCount++;
-                            cell.textContent = rowIndexCount.toString();
-                        });
-
-                        datagrid.api.preCreateColumn('id').setColumnInfo({}).setHeaderText('ID').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-
-                        datagrid.api.preCreateColumn('title').setColumnInfo({}).setHeaderText('标题').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-                        datagrid.api.preCreateColumn('dbconf_name').setColumnInfo({}).setHeaderText('数据库').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-                        datagrid.api.preCreateColumn('table_name').setColumnInfo({}).setHeaderText('表名').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-
-
-                        datagrid.api.preCreateColumn('is_ok').setColumnInfo({}).setHeaderText('禁用').setSortable(true).setFixedFilterInputConfig({valueItems: window.serverData.dataLib.dbdataTablesTable.__column.map.is_ok.val_items}).setRenderFunction((cell, row_data) => {
-                            cell.addNodes([
-                                new Emt('p').setAttrsByStr('', (window.serverData.dataLib.dbdataTablesTable.__column.map.is_ok.valItemMap[row_data.is_ok] || '错误信息')),
-                            ]);
-                        });
-
-                        datagrid.api.preCreateColumn('remark').setColumnInfo({}).setHeaderText('备注').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-
-                        datagrid.api.preCreateColumn('read_roles').setColumnInfo({}).setHeaderText('read_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-                        datagrid.api.preCreateColumn('update_roles').setColumnInfo({}).setHeaderText('update_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-                        datagrid.api.preCreateColumn('add_roles').setColumnInfo({}).setHeaderText('add_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-                        datagrid.api.preCreateColumn('all_roles').setColumnInfo({}).setHeaderText('all_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-
-                        datagrid.api.preCreateColumn('create_time').setColumnInfo({}).setHeaderText('创建时间').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-
-                        datagrid.api.preCreateColumn('op').setColumnInfo({}).setHeaderText('操作').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
-                            let edit_btn = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '修改'});
-                            let btn_import_column = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '导入字段'});
-
-                            let tmp_info = {dbconf_name:row_data.dbconf_name, table_name: row_data.table_name};
-                            //let tmp_json = JSON.stringify(tmp_info).urlencode();
-                            let tmp_json = JSON.stringify(tmp_info);
-
-                            console.log(tmp_info, tmp_json);
-                            let a_column = new Emt('a').setPros({className: 'btn btn-info btn-sm', href: '/_dp/data/columns.html?' + tmp_json, target: '_blank', textContent: 'go管理字段'});
-                            let a_select = new Emt('a').setPros({className: 'btn btn-info btn-sm', href: '/_dp/data/select.html?' + tmp_json, target: '_blank', textContent: 'go查询数据-表'});
-                            let a_orm = new Emt('a').setPros({
-                                className: 'btn btn-info btn-sm',
-                                href: '/dev/v1/mysql/orm?conf=' + window.serverData.dataLib.bgDataApi.config.dbconf_name + '&table=' + row_data.table_name,
-                                target: '_blank',
-                                textContent: 'ORM'
-                            });
-
-
-                            edit_btn.addEventListener('click', function () {
-
-                                console.log('修改', cell, row_data);
-
-                                editTableConfig_Modal.data_info = {cell: cell, row_data: row_data};
-                                editTableConfig_Form.apiHandle.ele.input.idInput.value = row_data.id;
-                                editTableConfig_Form.apiHandle.ele.input.dbConf.value = row_data.dbconf_name;
-                                editTableConfig_Form.apiHandle.ele.input.tableName.value = row_data.table_name;
-                                editTableConfig_Form.apiHandle.ele.input.title.value = row_data.title;
-                                editTableConfig_Form.apiHandle.ele.input.remark.value = row_data.remark;
-
-
-                                let tmp_obj = {};
-                                ['read_roles', 'all_roles'].forEach((column_name) => {
-                                    if (row_data[column_name] === null) {
-                                        tmp_obj[column_name] = [];
-                                    } else {
-                                        try {
-                                            tmp_obj[column_name] = JSON.parse(row_data[column_name]);
-                                        } catch (e) {
-                                            tmp_obj[column_name] = [];
-                                        }
-                                    }
-                                });
-                                role_table.loadColumnsRoles(tmp_obj);
-
-
-                                editTableConfig_Modal.apiHandle.show();
-                            });
-
-                            btn_import_column.addEventListener('click', function () {
-                                kl.ajax({
-                                    url: '/_dp/v1/dbdata/importTableColumns?user_token=' + utk + '&dbconf_code=' + row_data.dbconf_name + '&table=' + row_data.table_name,
-                                    method: 'GET',
-                                    type: 'text',
-                                    success: function (res_import_columns) {
-                                        if (res_import_columns.indexOf('SUCCESS')) {
-                                            alert('导入字段成功');
-                                        } else {
-                                            alert('导入字段 请求结果异常')
-                                        }
-                                    },
-                                    error: function (res_import_columns) {
-                                        console.log(res_import_columns);
-                                        alert('导入字段 网络异常');
-                                    }
-                                })
-                            });
-
-
-                            cell.addNodes([edit_btn, btn_import_column, a_column, a_select, a_orm]);
-                        });
-
-
-                        datagrid.api.run().api.requestData('init');
-
-
-                    }
-                }
-            );
-        </script>
-        <style>
-            .container {
-                width: 100% !important;
-            }
-
-            .hide_btn_sort_asc > .btn_sort_asc {
-                display: none;
-            }
-
-            .hide_btn_sort_desc > .btn_sort_desc {
-                display: none;
-            }
-
-            .hide_btn_sort > .btn_sort_asc, .hide_btn_sort > .btn_sort_desc {
-                display: none;
-            }
-
-            .table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
-                padding: 3px !important;
-
-            }
-
-            td > input[type="text"], td > input[type="number"], td > select {
-                min-width: 45px !important;
-                padding: 0 !important;
-            }
-        </style>
-        <script>serverData = {
-            "user": {
-                "id": 7,
-                "nickname": "\u5357\u67ef\u592a\u5b88",
-                "avatar": "http:\/\/q.qlogo.cn\/qqapp\/101319400\/05A814DB0159CD4A68A5C2C30BDA44B3\/100",
-                "rbac_tasks": [{"task_name": "\u8bdd\u9898\u4e00\u822c\u7ba1\u7406", "task_code": "qa_subject_add"}, {"task_name": "\u89c6\u9891\u8bfb\u5199", "task_code": "video_rw"}],
-                "rbac_task_codes": ["qa_subject_add", "video_rw"],
-                "rbac_role_codes": ["admin", "qa_subject_add", "video_rw", "backend_admin", "da_data_admin", "mark_admin", "mark_adder", "all_data_viewer"],
-                "rbac_roles": [{"id": "1", "role_name": "\u8d85\u7ea7\u7ba1\u7406\u5458", "role_code": "admin"}, {"id": "2", "role_name": "\u8bdd\u9898\u4e00\u822c\u7ba1\u7406", "role_code": "qa_subject_add"}, {
-                    "id": "3",
-                    "role_name": "\u89c6\u9891\u4e00\u822c\u8bfb\u5199",
-                    "role_code": "video_rw"
-                }, {"id": "4", "role_name": "\u540e\u53f0\u7ba1\u7406\u5458", "role_code": "backend_admin"}, {"id": "5", "role_name": "\u6570\u636e\u7ba1\u7406\u5458", "role_code": "da_data_admin"}, {
-                    "id": "7",
-                    "role_name": "\u6587\u7ae0\u7ba1\u7406\u5458",
-                    "role_code": "mark_admin"
-                }, {"id": "8", "role_name": "\u6587\u7ae0\u64b0\u5199", "role_code": "mark_adder"}, {"id": "9", "role_name": "\u67e5\u770b\u6240\u6709\u6570\u636e", "role_code": "all_data_viewer"}],
-                "role_codes": ["admin", "qa_subject_add", "video_rw", "backend_admin", "da_data_admin", "mark_admin", "mark_adder", "all_data_viewer"]
-            }, "csrf": "e4wIR_nnZmZ8EQ1vU_2L_oBtnCFNCMpIp-XOVSHXETs3_lsFt4VVMz13NSgEtM3TuALqdxV5mxzIgacfFZxgVQ==", "classname": "common\\models\\dbdata\\KzDbdataTable", "preCondtion": {"attrs": [], "sort": []}
-        };</script>
     </div>
 </div>
+<script>
+    domLoaded(function () {
+            let utk = '';
+
+            bg_init(function () {
+                utk = window.utk;
+
+                window.serverData.dataLib = {
+                    admin: {items: [], list: [], map: {}},
+                    role: {items: [], list: [], map: {}},
+                    mainTable: {},
+                    dbdataTablesTable: {}
+
+                };
+                window.serverData.dataLib.bgDataApi = hammerBgDataApi();
+                window.serverData.dataLib.bgDataApi.setUserToken(utk);
+
+
+                (async function () {
+
+                    await window.serverData.dataLib.bgDataApi.init_DbTableConf_ConfigInfo(function () {
+                        console.log('数据库配置初始化 1');
+                    });
+                    console.log('数据库配置初始化');
+
+                    await window.serverData.dataLib.bgDataApi.initRoles(() => {
+                        console.log('角色初始化 1');
+                    });
+                    console.log('角色初始化');
+
+                    content();
+                })();
+
+            });
+            let content = function () {
+
+                let raw_root = kl.id('content_div');
+                let root = new Emt('div').setPros({className: 'row'});
+                raw_root.append(root);
+
+
+                let rolesTable = () => {
+                    let role_table = new Emt('table').setAttrsByStr('class="table table-bordered table-striped table-hover"');
+                    let role_table_header = role_table.createTHead();
+                    let role_tr_header = role_table_header.insertRow();
+                    role_tr_header.insertCell().textContent = '角色';
+                    role_tr_header.insertCell().textContent = '读';
+                    role_tr_header.insertCell().textContent = '增/删';
+                    let role_table_body = role_table.createTBody();
+
+                    role_table.col_read_role_checkboxs = [];
+                    role_table.col_opt_role_checkboxs = [];
+                    role_table.col_add_role_checkboxs = [];
+
+                    window.serverData.dataLib.role.list.forEach(function (roleInfo) {
+                        let body_tr = role_table_body.insertRow();
+                        body_tr.role_td = body_tr.insertCell();
+                        body_tr.read_td = body_tr.insertCell();
+                        body_tr.add_td = body_tr.insertCell();
+                        body_tr.role_td.textContent = roleInfo.role_name;
+                        body_tr.read_role_checkbox = new Emt('input', 'type="checkbox"', '', {value: roleInfo.role_code});
+                        body_tr.read_add_checkbox = new Emt('input', 'type="checkbox"', '', {value: roleInfo.role_code});
+                        role_table.col_read_role_checkboxs.push(body_tr.read_role_checkbox);
+                        role_table.col_add_role_checkboxs.push(body_tr.read_add_checkbox);
+                        body_tr.read_td.append(new Emt('label', '', '#').addNodes([body_tr.read_role_checkbox, new Emt('span', '', '#')]));
+                        body_tr.add_td.append(new Emt('label', '', '#').addNodes([body_tr.read_add_checkbox, new Emt('span', '', '#')]));
+
+                    });
+                    role_table.loadColumnsRoles = (dataRow) => {
+                        role_table.col_read_role_checkboxs.forEach((checkbox) => {
+                            checkbox.checked = dataRow.read_roles.indexOf(checkbox.value) > -1;
+                        });
+                        role_table.col_add_role_checkboxs.forEach((checkbox) => {
+                            checkbox.checked = dataRow.all_roles.indexOf(checkbox.value) > -1;
+                        });
+                    };
+                    role_table.getRoleCodes = () => {
+                        let res = {read: [], add: []};
+                        role_table.col_read_role_checkboxs.forEach((checkbox) => {
+                            if (checkbox.checked) {
+                                res.read.push(checkbox.value);
+                            }
+                        });
+
+                        role_table.col_add_role_checkboxs.forEach((checkbox) => {
+                            if (checkbox.checked) {
+                                res.add.push(checkbox.value);
+                            }
+                        });
+                        return res;
+                    };
+                    return role_table;
+                };
+
+                let rowIndexCount = 0;
+                let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
+
+
+                let editTableConfig_Modal = hammerYii2Bootstarp1.createModal({title: '修改表配置信息'});
+                let editTableConfig_Form = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
+                editTableConfig_Modal.apiHandle.ele.body.addNodes([editTableConfig_Form]);
+                editTableConfig_Form.apiHandle.addGroupPreCreate().setLabelText('ID').setIndexKey('idInput').create('text');
+                editTableConfig_Form.apiHandle.addGroupPreCreate().setLabelText('数据库').setIndexKey('dbConf').create('text');
+                editTableConfig_Form.apiHandle.addGroupPreCreate().setLabelText('表名').setIndexKey('tableName').create('text');
+                editTableConfig_Form.apiHandle.addGroupPreCreate().setNameVar('id').setIndexKey('id').create('hide');
+                editTableConfig_Form.apiHandle.addGroupPreCreate().setLabelText('表名(汉语)').setPlaceHolder('表名(汉语)').setIndexKey('title').setNameVar('title').create('text');
+
+                editTableConfig_Form.apiHandle.addGroupPreCreate().setLabelText('表描述').setPlaceHolder('备注').setIndexKey('remark').setNameVar('remark').create('textarea');
+                editTableConfig_Form.apiHandle.ele.input.idInput.readOnly = true;
+                editTableConfig_Form.apiHandle.ele.input.dbConf.readOnly = true;
+                editTableConfig_Form.apiHandle.ele.input.tableName.readOnly = true;
+
+                let role_table = rolesTable();
+                let role_groupDiv = hammerYii2Bootstarp1.createFormInputGroupDiv({});
+                role_groupDiv.apiHandle.setText('权限控制').apiHandle.addInputEle(role_table);
+                editTableConfig_Form.addNode(role_groupDiv);
+
+
+                //label, text, handle_ele_key, callback
+                editTableConfig_Form.apiHandle.addGroupPreCreate().setType('button').setContentText('保存').setIndexKey('submit').setClickCall(function (btn) {
+                    let rolecodes_map = role_table.getRoleCodes();
+                    let attr = {
+                        id: editTableConfig_Form.apiHandle.ele.input.idInput.apiHandle.getVal(),
+                        title: editTableConfig_Form.apiHandle.ele.input.title.apiHandle.getVal(),
+                        remark: editTableConfig_Form.apiHandle.ele.input.remark.apiHandle.getVal(),
+                        read_roles: JSON.stringify(rolecodes_map.read),
+                        all_roles: JSON.stringify(rolecodes_map.add),
+                    };
+                    console.log(btn, this, editTableConfig_Form.apiHandle, rolecodes_map, attr);
+                    //return false;
+                    kl.ajax({
+                        url: '/_dp/v1/dbdata/update?user_token=' + utk,
+                        //attr: form,
+                        data: {
+                            attr: attr,
+                            dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name, table_name: window.serverData.dataLib.bgDataApi.config.dbdata_table_tableName,
+                        },
+                        type: 'json',
+                        success: function (update_tableConfig_res) {
+                            if (update_tableConfig_res.status) {
+                                if (update_tableConfig_res.status === 200) {
+                                    datagrid.api.requestData('init');
+                                    //update_tableConfig_res(update_tableConfig_res.data);
+                                    editTableConfig_Modal.apiHandle.hide();
+                                } else {
+                                    alert('修改table config错误:' + (update_tableConfig_res.msg || '未知'))
+                                }
+                            } else {
+                                console.log(update_tableConfig_res);
+                                alert('修改table config 结果异常')
+                            }
+                        },
+                        error: function (update_tableConfig_res) {
+                            console.log(update_tableConfig_res);
+                            alert('修改table config 网络异常');
+                        }
+                    })
+                }).create('button');
+
+
+                let datagrid = hammerBootstarpDatagrid({});
+                console.log('datagrid', datagrid);
+                datagrid.api.setDstDivElement(kl.id('content_div'));
+                datagrid.api.setRequestDataRowsFunction(function (event_type, dataGrid) {
+
+                    let page_data = dataGrid.api.getRequestParam();
+                    console.log(event_type, page_data);
+                    if (event_type === 'filter') {
+                        console.log('这个不做理会，不然请求太频繁了');
+                        return false;
+                    }
+                    let post_data = {
+                        //page: page_data.page,
+                        page_index: page_data.page.index,
+                        page_size: page_data.page.size,
+                        attr: page_data.filter,
+                        dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name, table_name: window.serverData.dataLib.bgDataApi.config.dbdata_table_tableName,
+                    };
+                    // post_data.attr.table_name = window.serverData.table_name;
+
+                    if (!page_data.sort.key || !page_data.sort.type) {
+                        console.log('没有排序');
+                    } else {
+                        // post_data.sort = page_data.sort;
+                        post_data.sort = {};
+                        post_data.sort[page_data.sort.key] = page_data.sort.type;
+                    }
+
+                    for (let attr_key in post_data.attr) {
+                        console.log(attr_key);
+                        if (post_data.attr[attr_key][0] === ':') {
+                            post_data.attr[attr_key] = 'like:%' + post_data.attr[attr_key].substring(1) + '%';
+                        }
+                    }
+
+
+                    kl.ajax({
+                        url: '/_dp/v1/dbdata/select?user_token=' + utk,
+                        data: post_data,
+                        type: 'json',
+                        success: function (res_request_data) {
+                            console.log('请求成功');
+                            if (res_request_data.status) {
+                                if (res_request_data.status === 200) {
+                                    //handle_callback(res_request_data.data.dataRows);
+                                    rowIndexCount = 0;
+                                    dataGrid.api.reloadDataRows(res_request_data.data);
+                                } else {
+                                    alert('错误:' + (res_request_data.msg || '未知'))
+                                }
+                            } else {
+                                console.log(res_request_data.status);
+                                alert('请求结果异常')
+                            }
+                        },
+                        error: function (res_request_data) {
+                            console.log('datagrid.api.setRequestDataRowsFunction 网络异常:' + res_request_data);
+                            alert('网络异常');
+                        }
+                    });
+
+
+                });
+
+                datagrid.api.preCreateColumn('_rowIndexCount').setColumnInfo({}).setHeaderText('i').setSortable(false).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                    rowIndexCount++;
+                    cell.textContent = rowIndexCount.toString();
+                });
+
+                datagrid.api.preCreateColumn('id').setColumnInfo({}).setHeaderText('ID').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+
+                datagrid.api.preCreateColumn('title').setColumnInfo({}).setHeaderText('标题').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('dbconf_name').setColumnInfo({}).setHeaderText('数据库').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('table_name').setColumnInfo({}).setHeaderText('表名').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+
+
+                datagrid.api.preCreateColumn('is_ok').setColumnInfo({}).setHeaderText('禁用').setSortable(true).setFixedFilterInputConfig({valueItems: window.serverData.dataLib.dbdataTablesTable.__column.map.is_ok.val_items}).setRenderFunction((cell, row_data) => {
+                    cell.addNodes([
+                        new Emt('p').setAttrsByStr('', (window.serverData.dataLib.dbdataTablesTable.__column.map.is_ok.valItemMap[row_data.is_ok] || '错误信息')),
+                    ]);
+                });
+
+                datagrid.api.preCreateColumn('remark').setColumnInfo({}).setHeaderText('备注').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+
+                datagrid.api.preCreateColumn('read_roles').setColumnInfo({}).setHeaderText('read_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('update_roles').setColumnInfo({}).setHeaderText('update_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('add_roles').setColumnInfo({}).setHeaderText('add_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('all_roles').setColumnInfo({}).setHeaderText('all_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+
+                datagrid.api.preCreateColumn('create_time').setColumnInfo({}).setHeaderText('创建时间').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+
+                datagrid.api.preCreateColumn('op').setColumnInfo({}).setHeaderText('操作').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                    let edit_btn = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '修改'});
+                    let btn_import_column = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '导入字段'});
+
+                    let tmp_info = {dbconf_name: row_data.dbconf_name, table_name: row_data.table_name};
+                    //let tmp_json = JSON.stringify(tmp_info).urlencode();
+                    let tmp_json = JSON.stringify(tmp_info);
+
+                    console.log(tmp_info, tmp_json);
+                    let a_column = new Emt('a').setPros({className: 'btn btn-info btn-sm', href: '/_dp/data/columns.html?' + tmp_json, target: '_blank', textContent: 'go管理字段'});
+                    let a_select = new Emt('a').setPros({className: 'btn btn-info btn-sm', href: '/_dp/data/select.html?' + tmp_json, target: '_blank', textContent: 'go查询数据-表'});
+                    let a_orm = new Emt('a').setPros({
+                        className: 'btn btn-info btn-sm',
+                        href: '/dev/v1/mysql/orm?conf=' + window.serverData.dataLib.bgDataApi.config.dbconf_name + '&table=' + row_data.table_name,
+                        target: '_blank',
+                        textContent: 'ORM'
+                    });
+
+
+                    edit_btn.addEventListener('click', function () {
+
+                        console.log('修改', cell, row_data);
+
+                        editTableConfig_Modal.data_info = {cell: cell, row_data: row_data};
+                        editTableConfig_Form.apiHandle.ele.input.idInput.value = row_data.id;
+                        editTableConfig_Form.apiHandle.ele.input.dbConf.value = row_data.dbconf_name;
+                        editTableConfig_Form.apiHandle.ele.input.tableName.value = row_data.table_name;
+                        editTableConfig_Form.apiHandle.ele.input.title.value = row_data.title;
+                        editTableConfig_Form.apiHandle.ele.input.remark.value = row_data.remark;
+
+
+                        let tmp_obj = {};
+                        ['read_roles', 'all_roles'].forEach((column_name) => {
+                            if (row_data[column_name] === null) {
+                                tmp_obj[column_name] = [];
+                            } else {
+                                try {
+                                    tmp_obj[column_name] = JSON.parse(row_data[column_name]);
+                                } catch (e) {
+                                    tmp_obj[column_name] = [];
+                                }
+                            }
+                        });
+                        role_table.loadColumnsRoles(tmp_obj);
+
+
+                        editTableConfig_Modal.apiHandle.show();
+                    });
+
+                    btn_import_column.addEventListener('click', function () {
+                        kl.ajax({
+                            url: '/_dp/v1/dbdata/importTableColumns?user_token=' + utk + '&dbconf_code=' + row_data.dbconf_name + '&table=' + row_data.table_name,
+                            method: 'GET',
+                            type: 'text',
+                            success: function (res_import_columns) {
+                                if (res_import_columns.indexOf('SUCCESS')) {
+                                    alert('导入字段成功');
+                                } else {
+                                    alert('导入字段 请求结果异常')
+                                }
+                            },
+                            error: function (res_import_columns) {
+                                console.log(res_import_columns);
+                                alert('导入字段 网络异常');
+                            }
+                        })
+                    });
+
+
+                    cell.addNodes([edit_btn, btn_import_column, a_column, a_select, a_orm]);
+                });
+
+
+                datagrid.api.run().api.requestData('init');
+
+
+            }
+        }
+    );
+</script>
+<style>
+    .container {
+        width: 100% !important;
+    }
+
+    .hide_btn_sort_asc > .btn_sort_asc {
+        display: none;
+    }
+
+    .hide_btn_sort_desc > .btn_sort_desc {
+        display: none;
+    }
+
+    .hide_btn_sort > .btn_sort_asc, .hide_btn_sort > .btn_sort_desc {
+        display: none;
+    }
+
+    .table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
+        padding: 3px !important;
+
+    }
+
+    td > input[type="text"], td > input[type="number"], td > select {
+        min-width: 45px !important;
+        padding: 0 !important;
+    }
+</style>
 
 
 <footer class="footer">

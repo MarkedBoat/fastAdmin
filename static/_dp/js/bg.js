@@ -32,18 +32,18 @@ let bg_init = function (page_init_fun) {
 
     let rander_tree = function (dataTree) {
 
-        let menu_root_div = new Emt('div', 'class="menu_root_div"');
+        let menu_root_div = new Emt('div', 'class="_dp_menu_root_div"');
         menu_root_div.apiHandle = {
             menu: {list: [], map: {}},
         };
         menu_root_div.createMenuDiv = function () {
-            let menu_div = new Emt('div', 'class="menu_div"');
+            let menu_div = new Emt('div', 'class="_dp_menu_div"');
             menu_div.apiHandle = {};
 
-            menu_div.apiHandle.title_td = new Emt('div', 'class="title_td"');
-            menu_div.apiHandle.body_div = new Emt('div', 'class="menu_body_div"');
+            menu_div.apiHandle.title_td = new Emt('div', 'class="_dp_title_td"');
+            menu_div.apiHandle.body_div = new Emt('div', 'class="_dp_menu_body_div"');
             menu_div.apiHandle.body_div.apiHandle = menu_div.apiHandle;
-            menu_div.apiHandle.menus_div = new Emt('div', 'class="menus_div"');
+            menu_div.apiHandle.menus_div = new Emt('div', 'class="_dp_menus_div"');
 
             menu_div.addNodes([
                 menu_div.apiHandle.body_div.addNodes([
@@ -58,7 +58,7 @@ let bg_init = function (page_init_fun) {
                 if (menuInfo.sub_menus.length === 0) {
                     menu_div.apiHandle.title_td.append(new Emt('a').setPros({target: '_blank', textContent: menuInfo.title, href: kl.isUndefined(menuInfo, 'opts.link') ? '#' : menuInfo.opts.link}));
                 } else {
-                    let title_div = new Emt('div', 'class="menu_title_div"');
+                    let title_div = new Emt('div', 'class="_dp_menu_title_div"');
                     title_div.addNode(new Emt('div', '', menuInfo.title));
                     menu_div.apiHandle.title_td.append(title_div);
                 }
@@ -110,15 +110,14 @@ let bg_init = function (page_init_fun) {
                 console.log(res_menu);
                 if (res_menu.status) {
                     if (res_menu.status === 200) {
-                        let btn = new Emt('span', 'class="menu_toggle_btn"', '##导航##');
+                        let btn = kl.id('menu_toggle_btn');
+                        btn.textContent = '导航';
                         let menu_root_div = rander_tree(res_menu.data);
-                        document.body.append(btn);
                         document.body.insertBefore(menu_root_div, document.body.firstElementChild);
                         menu_root_div.classList.add('hide');
                         btn.addEventListener('click', function () {
                             menu_root_div.classList.toggle('hide');
                             kl.id('w0').parentElement.classList.toggle('body_content_div');
-
                         });
                         page_init_fun();
                     } else {

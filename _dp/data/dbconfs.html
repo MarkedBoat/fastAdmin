@@ -9,35 +9,25 @@
     <link href="/static/_dp/css/bg.css" rel="stylesheet">
     <script src="/static/_dp/js/jquery.js"></script>
     <script src="/static/_dp/js/bootstrap.js"></script>
+
+    <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
+    <script src="/static/_dp/js/string/string.js"></script>
+    <script src="/static/_dp/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
+    <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2022.11.16.js"></script>
+    <script src="/static/_dp/js/bg.js"></script>
+    <script src="/static/_dp/js/hammer-bg-dbdata.js"></script>
+
 </head>
 <body>
 <div class="wrap">
     <nav id="w0" class="navbar-inverse navbar-fixed-top navbar">
         <div class="container">
-            <div class="navbar-header"></div>
-            <div id="bg_menus_div" class="navbar-brand menus_root">导航</div>
-            <div id="w0-collapse" class="collapse navbar-collapse">
-                <ul id="w1" class="navbar-nav navbar-right nav">
-                    <li><a href="#">#</a></li>
-                </ul>
-            </div>
+            <div id="menu_toggle_btn" class="navbar-brand menu_toggle_btn">导航</div>
+            <div id="page_title" class="navbar-brand page_title">【管理数据库配置】</div>
         </div>
     </nav>
     <div class="container">
-        <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
-        <script src="/static/_dp/js/string/string.js"></script>
-        <script src="/static/_dp/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
-        <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2022.11.16.js"></script>
-        <script src="/static/_dp/js/bg.js"></script>
-        <script src="/static/_dp/js/hammer-bg-dbdata.js"></script>
-
         <div class="site-index">
-
-            <div>
-
-            </div>
-
-
             <div class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="page-header" id="user_nickname">【管理数据库配置】</h3>
@@ -46,425 +36,421 @@
                     <p id="subject_detail"></p>
                 </div>
             </div>
-
-
             <div class="body-content" id="content_div">
-
-
             </div>
-
         </div>
-        <script>
-            domLoaded(function () {
-                    let utk = '';
-
-
-                    bg_init(function () {
-                        utk = window.utk;
-                        window.serverData.dataLib = {
-                            admin: {items: [], list: [], map: {}},
-                            role: {items: [], list: [], map: {}},
-                            mainTable: {},
-                            dbdataTablesTable: {}
-
-                        };
-
-
-                        window.serverData.dataLib.bgDataApi = hammerBgDataApi();
-                        window.serverData.dataLib.bgDataApi.setUserToken(utk);
-
-                        (async function () {
-
-                            await window.serverData.dataLib.bgDataApi.init_DbConnectConf_ConfigInfo(function () {
-                                console.log('数据库配置初始化 1');
-                            });
-                            console.log('数据库配置初始化');
-
-                            await window.serverData.dataLib.bgDataApi.initRoles(() => {
-                                console.log('角色初始化 1');
-                            });
-                            console.log('角色初始化');
-
-                            content();
-                        })();
-
-                    });
-                    let content = function () {
-
-                        let raw_root = kl.id('content_div');
-                        let root = new Emt('div').setPros({className: 'row'});
-                        raw_root.append(root);
-
-                        let add_row_btn = new Emt('button', '', '新增');
-                        let operation_div = new Emt('div');
-
-                        let info_div = new Emt('div');
-                        let datagrid_div = new Emt('div');
-                        let fixed_tools_div = new Emt('div', 'class="fixed_tools_div"');
-
-
-                        root.addNodes([
-                            operation_div.addNodes([
-                                add_row_btn
-                            ]),
-                            info_div.addNodes([]),
-                            datagrid_div,
-                            fixed_tools_div.addNodes([])
-                        ]);
-
-
-                        let rowIndexCount = 0;
-                        let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
-
-
-                        let addDbConf_Modal = hammerYii2Bootstarp1.createModal({title: '增加配置'});
-                        let addDbConf_Form = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
-                        addDbConf_Modal.apiHandle.ele.body.addNodes([addDbConf_Form]);
-
-                        addDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('表名').setIndexKey('dbTitle').create('text');
-                        addDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('数据库Code').setIndexKey('dbCode').create('text');
-                        addDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('host').setIndexKey('confHost').create('text');
-                        addDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('port').setIndexKey('confPort').create('text');
-                        addDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('uesrname').setIndexKey('confUesrname').create('text');
-                        addDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('password').setIndexKey('confPassword').create('text');
-                        addDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('dbname').setIndexKey('confDbname').create('text');
-                        addDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('charset').setIndexKey('confCharset').create('text');
-                        addDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('描述').setIndexKey('remark').create('textarea');
-                        addDbConf_Form.apiHandle.addGroupPreCreate().setType('button').setContentText('保存').setIndexKey('submitButton').create('button');
-                        addDbConf_Form.apiHandle.ele.input.confCharset.apiHandle.setInitVal('utf8');
-
-                        let editDbConf_Modal = hammerYii2Bootstarp1.createModal({title: '修改配置'});
-                        let editDbConf_Form = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
-                        editDbConf_Modal.apiHandle.ele.body.addNodes([editDbConf_Form]);
-
-                        editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('ID').setIndexKey('rowId').create('text');
-                        editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('数据库Code').setIndexKey('dbCode').create('text');
-                        editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('表名').setIndexKey('dbTitle').create('text');
-                        editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('host').setIndexKey('confHost').create('text');
-                        editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('port').setIndexKey('confPort').create('text');
-                        editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('uesrname').setIndexKey('confUesrname').create('text');
-                        editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('password').setIndexKey('confPassword').create('text');
-                        editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('dbname').setIndexKey('confDbname').create('text');
-                        editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('charset').setIndexKey('confCharset').create('text');
-                        editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('描述').setIndexKey('remark').create('textarea');
-
-
-                        let role_table = window.serverData.dataLib.bgDataApi.createVerticalTable(window.serverData.dataLib.role.codeItems, [{val: 'read_roles', text: '读 '}, {val: 'all_roles', text: '所有权限'}]);
-                        let role_groupDiv = hammerYii2Bootstarp1.createFormInputGroupDiv({});
-                        role_groupDiv.apiHandle.setText('权限控制').apiHandle.addInputEle(role_table);
-                        editDbConf_Form.addNode(role_groupDiv);
-                        editDbConf_Form.apiHandle.addGroupPreCreate().setType('button').setContentText('保存').setIndexKey('submitButton').create('button');
-                        //editDbConf_Form.apiHandle.ele.input.confCharset.apiHandle.setInitVal('utf8');
-                        editDbConf_Form.apiHandle.ele.input.rowId.readOnly = true;
-                        editDbConf_Form.apiHandle.ele.input.dbCode.readOnly = true;
-
-
-                        let datagrid = hammerBootstarpDatagrid({});
-                        console.log('datagrid', datagrid);
-                        datagrid.api.setDstDivElement(datagrid_div);
-                        datagrid.api.setRequestDataRowsFunction(function (event_type, dataGrid) {
-
-                            let page_data = dataGrid.api.getRequestParam();
-                            console.log(event_type, page_data);
-                            if (event_type === 'filter') {
-                                console.log('这个不做理会，不然请求太频繁了');
-                                return false;
-                            }
-                            let post_data = {
-                                //page: page_data.page,
-                                page_index: page_data.page.index,
-                                page_size: page_data.page.size,
-                                attr: page_data.filter,
-                                dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name, table_name: window.serverData.dataLib.bgDataApi.config.dbdata_dbconf_tableName,
-                            };
-                            // post_data.attr.table_name = window.serverData.table_name;
-
-                            if (!page_data.sort.key || !page_data.sort.type) {
-                                console.log('没有排序');
-                            } else {
-                                // post_data.sort = page_data.sort;
-                                post_data.sort = {};
-                                post_data.sort[page_data.sort.key] = page_data.sort.type;
-                            }
-
-                            for (let attr_key in post_data.attr) {
-                                console.log(attr_key);
-                                if (post_data.attr[attr_key][0] === ':') {
-                                    post_data.attr[attr_key] = 'like:%' + post_data.attr[attr_key].substring(1) + '%';
-                                }
-                            }
-
-
-                            kl.ajax({
-                                url: '/_dp/v1/dbdata/select?user_token=' + utk,
-                                data: post_data,
-                                type: 'json',
-                                success: function (res_request_data) {
-                                    console.log('请求成功');
-                                    if (res_request_data.status) {
-                                        if (res_request_data.status === 200) {
-                                            //handle_callback(res_request_data.data.dataRows);
-                                            rowIndexCount = 0;
-                                            dataGrid.api.reloadDataRows(res_request_data.data);
-                                        } else {
-                                            alert('错误:' + (res_request_data.msg || '未知'))
-                                        }
-                                    } else {
-                                        console.log(res_request_data.status);
-                                        alert('请求结果异常')
-                                    }
-                                },
-                                error: function (res_request_data) {
-                                    console.log('datagrid.api.setRequestDataRowsFunction 网络异常:' + res_request_data);
-                                    alert('网络异常');
-                                }
-                            });
-
-
-                        });
-
-                        datagrid.api.preCreateColumn('_rowIndexCount').setColumnInfo({}).setHeaderText('i').setSortable(false).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
-                            rowIndexCount++;
-                            cell.textContent = rowIndexCount.toString();
-                        });
-
-                        datagrid.api.preCreateColumn('id').setColumnInfo({}).setHeaderText('ID').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-
-                        datagrid.api.preCreateColumn('title').setColumnInfo({}).setHeaderText('标题').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-
-                        datagrid.api.preCreateColumn('db_code').setColumnInfo({}).setHeaderText('数据库code').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-                        datagrid.api.preCreateColumn('conf_dbname').setColumnInfo({}).setHeaderText('dbname').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-                        datagrid.api.preCreateColumn('conf_username').setColumnInfo({}).setHeaderText('user').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-
-                        // datagrid.api.preCreateColumn('table_name').setColumnInfo({}).setHeaderText('表名').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-
-
-                        datagrid.api.preCreateColumn('is_ok').setColumnInfo({}).setHeaderText('禁用').setSortable(true).setFixedFilterInputConfig({valueItems: serverData.dataLib.dbdataDbConfTable.__column.map.is_ok.valItems}).setRenderFunction((cell, row_data) => {
-                            cell.addNodes([
-                                new Emt('p').setAttrsByStr('', (serverData.dataLib.dbdataDbConfTable.__column.map.is_ok.valItemMap[row_data.is_ok] || '错误信息')),
-                            ]);
-                        });
-
-                        datagrid.api.preCreateColumn('remark').setColumnInfo({}).setHeaderText('备注').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-
-                        datagrid.api.preCreateColumn('read_roles').setColumnInfo({}).setHeaderText('read_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-
-                        datagrid.api.preCreateColumn('all_roles').setColumnInfo({}).setHeaderText('all_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-
-                        datagrid.api.preCreateColumn('create_time').setColumnInfo({}).setHeaderText('创建时间').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-
-                        datagrid.api.preCreateColumn('op').setColumnInfo({}).setHeaderText('操作').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
-                            let edit_btn = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '修改'});
-
-
-                            //    let a_orm = new Emt('a').setPros({className: 'btn btn-info btn-sm', href: '/dev/v1/mysql/orm?conf=' + dbconf_name + '&table=' + row_data.table_name, target: '_blank', textContent: 'ORM'});
-
-
-                            let import_tables_btn = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '导入所有表'});
-
-                            edit_btn.addEventListener('click', function () {
-
-                                console.log('修改', cell, row_data);
-                                editDbConf_Form.apiHandle.ele.input.rowId.apiHandle.setInitVal(row_data.id);
-                                editDbConf_Form.apiHandle.ele.input.dbTitle.apiHandle.setInitVal(row_data.title);
-                                editDbConf_Form.apiHandle.ele.input.remark.apiHandle.setInitVal(row_data.remark);
-                                editDbConf_Form.apiHandle.ele.input.dbCode.apiHandle.setInitVal(row_data.db_code);
-                                editDbConf_Form.apiHandle.ele.input.confHost.apiHandle.setInitVal(row_data.conf_host);
-                                editDbConf_Form.apiHandle.ele.input.confPort.apiHandle.setInitVal(row_data.conf_port);
-                                editDbConf_Form.apiHandle.ele.input.confUesrname.apiHandle.setInitVal(row_data.conf_username);
-                                editDbConf_Form.apiHandle.ele.input.confPassword.apiHandle.setInitVal(row_data.conf_password);
-                                editDbConf_Form.apiHandle.ele.input.confDbname.apiHandle.setInitVal(row_data.conf_dbname);
-                                editDbConf_Form.apiHandle.ele.input.confCharset.apiHandle.setInitVal(row_data.conf_charset);
-
-                                let tmp_obj = {};
-                                ['read_roles', 'all_roles'].forEach((column_name) => {
-                                    if (row_data[column_name] === null) {
-                                        tmp_obj[column_name] = [];
-                                    } else {
-                                        try {
-                                            tmp_obj[column_name] = JSON.parse(row_data[column_name]);
-                                        } catch (e) {
-                                            tmp_obj[column_name] = [];
-                                        }
-                                    }
-                                });
-                                role_table.loadColumnIndexVals(tmp_obj);
-
-
-                                editDbConf_Modal.apiHandle.show();
-                            });
-
-
-                            import_tables_btn.addEventListener('click', function () {
-                                kl.ajax({
-                                    url: '/_dp/v1/dbdata/importDbconfTables?user_token=' + utk + '&dbconf_code=' + row_data.db_code,
-                                    method: 'GET',
-                                    type: 'text',
-                                    success: function (import_tables_res) {
-                                        if (import_tables_res.indexOf('SUCCESS')) {
-                                            alert('导入 tables 成功');
-                                        } else {
-                                            alert('导入 tables 请求结果异常')
-                                        }
-                                    },
-                                    error: function (import_tables_res) {
-                                        console.log(import_tables_res);
-                                        alert('导入 tables 网络异常');
-                                    }
-                                })
-                            });
-
-
-                            cell.addNodes([edit_btn, import_tables_btn]);
-                        });
-
-
-                        add_row_btn.addEventListener('click', function () {
-                            addDbConf_Modal.apiHandle.show();
-                        });
-                        console.log(addDbConf_Form.apiHandle.ele);
-                        addDbConf_Form.apiHandle.ele.input.submitButton.addEventListener('click', function () {
-                            let changed_attrs = {};
-                            changed_attrs.title = addDbConf_Form.apiHandle.ele.input.dbTitle.apiHandle.getVal();
-                            changed_attrs.remark = addDbConf_Form.apiHandle.ele.input.remark.apiHandle.getVal();
-                            changed_attrs.db_code = addDbConf_Form.apiHandle.ele.input.dbCode.apiHandle.getVal();
-                            changed_attrs.conf_host = addDbConf_Form.apiHandle.ele.input.confHost.apiHandle.getVal();
-                            changed_attrs.conf_port = addDbConf_Form.apiHandle.ele.input.confPort.apiHandle.getVal();
-                            changed_attrs.conf_username = addDbConf_Form.apiHandle.ele.input.confUesrname.apiHandle.getVal();
-                            changed_attrs.conf_password = addDbConf_Form.apiHandle.ele.input.confPassword.apiHandle.getVal();
-                            changed_attrs.conf_dbname = addDbConf_Form.apiHandle.ele.input.confDbname.apiHandle.getVal();
-                            changed_attrs.conf_charset = addDbConf_Form.apiHandle.ele.input.confCharset.apiHandle.getVal();
-
-                            console.log(window.serverData.dataLib.bgDataApi, changed_attrs);
-                            Object.values(changed_attrs).forEach((val) => {
-                                if (val.trim().length === 0) {
-                                    alert('不许空值');
-                                    return false;
-                                }
-                            });
-                            //return false;
-                            kl.ajax({
-                                url: '/_dp/v1/dbdata/add?user_token=' + utk,
-                                data: {
-                                    attr: changed_attrs,
-                                    dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name
-                                    , table_name: window.serverData.dataLib.bgDataApi.config.dbdata_dbconf_tableName,
-                                },
-                                type: 'json',
-                                success: function (add_res) {
-                                    if (kl.isUndefined(add_res, 'data.insert.pk')) {
-                                        alert('新增 失败:' + (kl.isUndefined(add_res, 'msg') ? '未知' : add_res.msg));
-                                    } else {
-                                        datagrid.api.requestData('row_insert');
-                                        addDbConf_Modal.apiHandle.hide();
-                                    }
-                                },
-                                error: function (res_request_data) {
-                                    alert('新增 网络异常');
-                                }
-                            })
-                        });
-                        editDbConf_Form.apiHandle.ele.input.submitButton.addEventListener('click', function () {
-
-                            let changed_attrs = {};
-                            changed_attrs.id = editDbConf_Form.apiHandle.ele.input.rowId.apiHandle.getVal();
-                            if (editDbConf_Form.apiHandle.ele.input.dbTitle.apiHandle.isChange()) {
-                                changed_attrs.title = editDbConf_Form.apiHandle.ele.input.dbTitle.apiHandle.getVal();
-                            }
-                            if (editDbConf_Form.apiHandle.ele.input.remark.apiHandle.isChange()) {
-                                changed_attrs.remark = editDbConf_Form.apiHandle.ele.input.remark.apiHandle.getVal();
-                            }
-
-                            if (editDbConf_Form.apiHandle.ele.input.confHost.apiHandle.isChange()) {
-                                changed_attrs.conf_host = editDbConf_Form.apiHandle.ele.input.confHost.apiHandle.getVal();
-                            }
-                            if (editDbConf_Form.apiHandle.ele.input.confPort.apiHandle.isChange()) {
-                                changed_attrs.conf_port = editDbConf_Form.apiHandle.ele.input.confPort.apiHandle.getVal();
-                            }
-                            if (editDbConf_Form.apiHandle.ele.input.confUesrname.apiHandle.isChange()) {
-                                changed_attrs.conf_username = editDbConf_Form.apiHandle.ele.input.confUesrname.apiHandle.getVal();
-                            }
-                            if (editDbConf_Form.apiHandle.ele.input.confPassword.apiHandle.isChange()) {
-                                changed_attrs.conf_password = editDbConf_Form.apiHandle.ele.input.confPassword.apiHandle.getVal();
-                            }
-                            if (editDbConf_Form.apiHandle.ele.input.confDbname.apiHandle.isChange()) {
-                                changed_attrs.conf_dbname = editDbConf_Form.apiHandle.ele.input.confDbname.apiHandle.getVal();
-                            }
-                            if (editDbConf_Form.apiHandle.ele.input.confCharset.apiHandle.isChange()) {
-                                changed_attrs.conf_charset = editDbConf_Form.apiHandle.ele.input.confCharset.apiHandle.getVal();
-                            }
-                            let tmp_res = role_table.getData();
-                            changed_attrs.read_roles = JSON.stringify(tmp_res.read_roles);
-                            changed_attrs.all_roles = JSON.stringify(tmp_res.all_roles);
-                            console.log(window.serverData.dataLib.bgDataApi, changed_attrs, tmp_res);
-                            Object.values(changed_attrs).forEach((val) => {
-                                if (val.trim().length === 0) {
-                                    alert('不许空值');
-                                    return false;
-                                }
-                            });
-                            //return false;
-                            kl.ajax({
-                                url: '/_dp/v1/dbdata/update?user_token=' + utk,
-                                data: {
-                                    attr: changed_attrs,
-                                    dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name
-                                    , table_name: window.serverData.dataLib.bgDataApi.config.dbdata_dbconf_tableName,
-                                },
-                                type: 'json',
-                                success: function (update_res) {
-                                    if (kl.isUndefined(update_res, 'data.update.res') || update_res.data.update.res === 0) {
-                                        alert('修改 失败:' + (kl.isUndefined(update_res, 'msg') ? '未知' : update_res.msg));
-                                    } else {
-                                        datagrid.api.requestData('row_update');
-                                        editDbConf_Modal.apiHandle.hide();
-                                    }
-                                },
-                                error: function (res_request_data) {
-                                    console.log(res_request_data);
-                                    alert('修改 网络异常');
-                                }
-                            })
-                        });
-
-
-                        datagrid.api.run().api.requestData('init');
-
-
-                    }
-                }
-            );
-        </script>
-        <style>
-            .container {
-                width: 100% !important;
-            }
-
-            .hide_btn_sort_asc > .btn_sort_asc {
-                display: none;
-            }
-
-            .hide_btn_sort_desc > .btn_sort_desc {
-                display: none;
-            }
-
-            .hide_btn_sort > .btn_sort_asc, .hide_btn_sort > .btn_sort_desc {
-                display: none;
-            }
-
-            .table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
-                padding: 3px !important;
-
-            }
-
-            td > input[type="text"], td > input[type="number"], td > select {
-                min-width: 45px !important;
-                padding: 0 !important;
-            }
-        </style>
-        <script></script>
     </div>
 </div>
+
+<script>
+    domLoaded(function () {
+            let utk = '';
+
+
+            bg_init(function () {
+                utk = window.utk;
+                window.serverData.dataLib = {
+                    admin: {items: [], list: [], map: {}},
+                    role: {items: [], list: [], map: {}},
+                    mainTable: {},
+                    dbdataTablesTable: {}
+
+                };
+
+
+                window.serverData.dataLib.bgDataApi = hammerBgDataApi();
+                window.serverData.dataLib.bgDataApi.setUserToken(utk);
+
+                (async function () {
+
+                    await window.serverData.dataLib.bgDataApi.init_DbConnectConf_ConfigInfo(function () {
+                        console.log('数据库配置初始化 1');
+                    });
+                    console.log('数据库配置初始化');
+
+                    await window.serverData.dataLib.bgDataApi.initRoles(() => {
+                        console.log('角色初始化 1');
+                    });
+                    console.log('角色初始化');
+
+                    content();
+                })();
+
+            });
+            let content = function () {
+
+                let raw_root = kl.id('content_div');
+                let root = new Emt('div').setPros({className: 'row'});
+                raw_root.append(root);
+
+                let add_row_btn = new Emt('button', '', '新增');
+                let operation_div = new Emt('div');
+
+                let info_div = new Emt('div');
+                let datagrid_div = new Emt('div');
+                let fixed_tools_div = new Emt('div', 'class="fixed_tools_div"');
+
+
+                root.addNodes([
+                    operation_div.addNodes([
+                        add_row_btn
+                    ]),
+                    info_div.addNodes([]),
+                    datagrid_div,
+                    fixed_tools_div.addNodes([])
+                ]);
+
+
+                let rowIndexCount = 0;
+                let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
+
+
+                let addDbConf_Modal = hammerYii2Bootstarp1.createModal({title: '增加配置'});
+                let addDbConf_Form = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
+                addDbConf_Modal.apiHandle.ele.body.addNodes([addDbConf_Form]);
+
+                addDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('表名').setIndexKey('dbTitle').create('text');
+                addDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('数据库Code').setIndexKey('dbCode').create('text');
+                addDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('host').setIndexKey('confHost').create('text');
+                addDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('port').setIndexKey('confPort').create('text');
+                addDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('uesrname').setIndexKey('confUesrname').create('text');
+                addDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('password').setIndexKey('confPassword').create('text');
+                addDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('dbname').setIndexKey('confDbname').create('text');
+                addDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('charset').setIndexKey('confCharset').create('text');
+                addDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('描述').setIndexKey('remark').create('textarea');
+                addDbConf_Form.apiHandle.addGroupPreCreate().setType('button').setContentText('保存').setIndexKey('submitButton').create('button');
+                addDbConf_Form.apiHandle.ele.input.confCharset.apiHandle.setInitVal('utf8');
+
+                let editDbConf_Modal = hammerYii2Bootstarp1.createModal({title: '修改配置'});
+                let editDbConf_Form = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
+                editDbConf_Modal.apiHandle.ele.body.addNodes([editDbConf_Form]);
+
+                editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('ID').setIndexKey('rowId').create('text');
+                editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('数据库Code').setIndexKey('dbCode').create('text');
+                editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('表名').setIndexKey('dbTitle').create('text');
+                editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('host').setIndexKey('confHost').create('text');
+                editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('port').setIndexKey('confPort').create('text');
+                editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('uesrname').setIndexKey('confUesrname').create('text');
+                editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('password').setIndexKey('confPassword').create('text');
+                editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('dbname').setIndexKey('confDbname').create('text');
+                editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('charset').setIndexKey('confCharset').create('text');
+                editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('描述').setIndexKey('remark').create('textarea');
+
+
+                let role_table = window.serverData.dataLib.bgDataApi.createVerticalTable(window.serverData.dataLib.role.codeItems, [{val: 'read_roles', text: '读 '}, {val: 'all_roles', text: '所有权限'}]);
+                let role_groupDiv = hammerYii2Bootstarp1.createFormInputGroupDiv({});
+                role_groupDiv.apiHandle.setText('权限控制').apiHandle.addInputEle(role_table);
+                editDbConf_Form.addNode(role_groupDiv);
+                editDbConf_Form.apiHandle.addGroupPreCreate().setType('button').setContentText('保存').setIndexKey('submitButton').create('button');
+                //editDbConf_Form.apiHandle.ele.input.confCharset.apiHandle.setInitVal('utf8');
+                editDbConf_Form.apiHandle.ele.input.rowId.readOnly = true;
+                editDbConf_Form.apiHandle.ele.input.dbCode.readOnly = true;
+
+
+                let datagrid = hammerBootstarpDatagrid({});
+                console.log('datagrid', datagrid);
+                datagrid.api.setDstDivElement(datagrid_div);
+                datagrid.api.setRequestDataRowsFunction(function (event_type, dataGrid) {
+
+                    let page_data = dataGrid.api.getRequestParam();
+                    console.log(event_type, page_data);
+                    if (event_type === 'filter') {
+                        console.log('这个不做理会，不然请求太频繁了');
+                        return false;
+                    }
+                    let post_data = {
+                        //page: page_data.page,
+                        page_index: page_data.page.index,
+                        page_size: page_data.page.size,
+                        attr: page_data.filter,
+                        dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name, table_name: window.serverData.dataLib.bgDataApi.config.dbdata_dbconf_tableName,
+                    };
+                    // post_data.attr.table_name = window.serverData.table_name;
+
+                    if (!page_data.sort.key || !page_data.sort.type) {
+                        console.log('没有排序');
+                    } else {
+                        // post_data.sort = page_data.sort;
+                        post_data.sort = {};
+                        post_data.sort[page_data.sort.key] = page_data.sort.type;
+                    }
+
+                    for (let attr_key in post_data.attr) {
+                        console.log(attr_key);
+                        if (post_data.attr[attr_key][0] === ':') {
+                            post_data.attr[attr_key] = 'like:%' + post_data.attr[attr_key].substring(1) + '%';
+                        }
+                    }
+
+
+                    kl.ajax({
+                        url: '/_dp/v1/dbdata/select?user_token=' + utk,
+                        data: post_data,
+                        type: 'json',
+                        success: function (res_request_data) {
+                            console.log('请求成功');
+                            if (res_request_data.status) {
+                                if (res_request_data.status === 200) {
+                                    //handle_callback(res_request_data.data.dataRows);
+                                    rowIndexCount = 0;
+                                    dataGrid.api.reloadDataRows(res_request_data.data);
+                                } else {
+                                    alert('错误:' + (res_request_data.msg || '未知'))
+                                }
+                            } else {
+                                console.log(res_request_data.status);
+                                alert('请求结果异常')
+                            }
+                        },
+                        error: function (res_request_data) {
+                            console.log('datagrid.api.setRequestDataRowsFunction 网络异常:' + res_request_data);
+                            alert('网络异常');
+                        }
+                    });
+
+
+                });
+
+                datagrid.api.preCreateColumn('_rowIndexCount').setColumnInfo({}).setHeaderText('i').setSortable(false).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                    rowIndexCount++;
+                    cell.textContent = rowIndexCount.toString();
+                });
+
+                datagrid.api.preCreateColumn('id').setColumnInfo({}).setHeaderText('ID').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+
+                datagrid.api.preCreateColumn('title').setColumnInfo({}).setHeaderText('标题').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+
+                datagrid.api.preCreateColumn('db_code').setColumnInfo({}).setHeaderText('数据库code').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('conf_dbname').setColumnInfo({}).setHeaderText('dbname').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('conf_username').setColumnInfo({}).setHeaderText('user').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+
+                // datagrid.api.preCreateColumn('table_name').setColumnInfo({}).setHeaderText('表名').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+
+
+                datagrid.api.preCreateColumn('is_ok').setColumnInfo({}).setHeaderText('禁用').setSortable(true).setFixedFilterInputConfig({valueItems: serverData.dataLib.dbdataDbConfTable.__column.map.is_ok.valItems}).setRenderFunction((cell, row_data) => {
+                    cell.addNodes([
+                        new Emt('p').setAttrsByStr('', (serverData.dataLib.dbdataDbConfTable.__column.map.is_ok.valItemMap[row_data.is_ok] || '错误信息')),
+                    ]);
+                });
+
+                datagrid.api.preCreateColumn('remark').setColumnInfo({}).setHeaderText('备注').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+
+                datagrid.api.preCreateColumn('read_roles').setColumnInfo({}).setHeaderText('read_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+
+                datagrid.api.preCreateColumn('all_roles').setColumnInfo({}).setHeaderText('all_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+
+                datagrid.api.preCreateColumn('create_time').setColumnInfo({}).setHeaderText('创建时间').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+
+                datagrid.api.preCreateColumn('op').setColumnInfo({}).setHeaderText('操作').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                    let edit_btn = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '修改'});
+
+
+                    //    let a_orm = new Emt('a').setPros({className: 'btn btn-info btn-sm', href: '/dev/v1/mysql/orm?conf=' + dbconf_name + '&table=' + row_data.table_name, target: '_blank', textContent: 'ORM'});
+
+
+                    let import_tables_btn = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '导入所有表'});
+
+                    edit_btn.addEventListener('click', function () {
+
+                        console.log('修改', cell, row_data);
+                        editDbConf_Form.apiHandle.ele.input.rowId.apiHandle.setInitVal(row_data.id);
+                        editDbConf_Form.apiHandle.ele.input.dbTitle.apiHandle.setInitVal(row_data.title);
+                        editDbConf_Form.apiHandle.ele.input.remark.apiHandle.setInitVal(row_data.remark);
+                        editDbConf_Form.apiHandle.ele.input.dbCode.apiHandle.setInitVal(row_data.db_code);
+                        editDbConf_Form.apiHandle.ele.input.confHost.apiHandle.setInitVal(row_data.conf_host);
+                        editDbConf_Form.apiHandle.ele.input.confPort.apiHandle.setInitVal(row_data.conf_port);
+                        editDbConf_Form.apiHandle.ele.input.confUesrname.apiHandle.setInitVal(row_data.conf_username);
+                        editDbConf_Form.apiHandle.ele.input.confPassword.apiHandle.setInitVal(row_data.conf_password);
+                        editDbConf_Form.apiHandle.ele.input.confDbname.apiHandle.setInitVal(row_data.conf_dbname);
+                        editDbConf_Form.apiHandle.ele.input.confCharset.apiHandle.setInitVal(row_data.conf_charset);
+
+                        let tmp_obj = {};
+                        ['read_roles', 'all_roles'].forEach((column_name) => {
+                            if (row_data[column_name] === null) {
+                                tmp_obj[column_name] = [];
+                            } else {
+                                try {
+                                    tmp_obj[column_name] = JSON.parse(row_data[column_name]);
+                                } catch (e) {
+                                    tmp_obj[column_name] = [];
+                                }
+                            }
+                        });
+                        role_table.loadColumnIndexVals(tmp_obj);
+
+
+                        editDbConf_Modal.apiHandle.show();
+                    });
+
+
+                    import_tables_btn.addEventListener('click', function () {
+                        kl.ajax({
+                            url: '/_dp/v1/dbdata/importDbconfTables?user_token=' + utk + '&dbconf_code=' + row_data.db_code,
+                            method: 'GET',
+                            type: 'text',
+                            success: function (import_tables_res) {
+                                if (import_tables_res.indexOf('SUCCESS')) {
+                                    alert('导入 tables 成功');
+                                } else {
+                                    alert('导入 tables 请求结果异常')
+                                }
+                            },
+                            error: function (import_tables_res) {
+                                console.log(import_tables_res);
+                                alert('导入 tables 网络异常');
+                            }
+                        })
+                    });
+
+
+                    cell.addNodes([edit_btn, import_tables_btn]);
+                });
+
+
+                add_row_btn.addEventListener('click', function () {
+                    addDbConf_Modal.apiHandle.show();
+                });
+                console.log(addDbConf_Form.apiHandle.ele);
+                addDbConf_Form.apiHandle.ele.input.submitButton.addEventListener('click', function () {
+                    let changed_attrs = {};
+                    changed_attrs.title = addDbConf_Form.apiHandle.ele.input.dbTitle.apiHandle.getVal();
+                    changed_attrs.remark = addDbConf_Form.apiHandle.ele.input.remark.apiHandle.getVal();
+                    changed_attrs.db_code = addDbConf_Form.apiHandle.ele.input.dbCode.apiHandle.getVal();
+                    changed_attrs.conf_host = addDbConf_Form.apiHandle.ele.input.confHost.apiHandle.getVal();
+                    changed_attrs.conf_port = addDbConf_Form.apiHandle.ele.input.confPort.apiHandle.getVal();
+                    changed_attrs.conf_username = addDbConf_Form.apiHandle.ele.input.confUesrname.apiHandle.getVal();
+                    changed_attrs.conf_password = addDbConf_Form.apiHandle.ele.input.confPassword.apiHandle.getVal();
+                    changed_attrs.conf_dbname = addDbConf_Form.apiHandle.ele.input.confDbname.apiHandle.getVal();
+                    changed_attrs.conf_charset = addDbConf_Form.apiHandle.ele.input.confCharset.apiHandle.getVal();
+
+                    console.log(window.serverData.dataLib.bgDataApi, changed_attrs);
+                    Object.values(changed_attrs).forEach((val) => {
+                        if (val.trim().length === 0) {
+                            alert('不许空值');
+                            return false;
+                        }
+                    });
+                    //return false;
+                    kl.ajax({
+                        url: '/_dp/v1/dbdata/add?user_token=' + utk,
+                        data: {
+                            attr: changed_attrs,
+                            dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name
+                            , table_name: window.serverData.dataLib.bgDataApi.config.dbdata_dbconf_tableName,
+                        },
+                        type: 'json',
+                        success: function (add_res) {
+                            if (kl.isUndefined(add_res, 'data.insert.pk')) {
+                                alert('新增 失败:' + (kl.isUndefined(add_res, 'msg') ? '未知' : add_res.msg));
+                            } else {
+                                datagrid.api.requestData('row_insert');
+                                addDbConf_Modal.apiHandle.hide();
+                            }
+                        },
+                        error: function (res_request_data) {
+                            alert('新增 网络异常');
+                        }
+                    })
+                });
+                editDbConf_Form.apiHandle.ele.input.submitButton.addEventListener('click', function () {
+
+                    let changed_attrs = {};
+                    changed_attrs.id = editDbConf_Form.apiHandle.ele.input.rowId.apiHandle.getVal();
+                    if (editDbConf_Form.apiHandle.ele.input.dbTitle.apiHandle.isChange()) {
+                        changed_attrs.title = editDbConf_Form.apiHandle.ele.input.dbTitle.apiHandle.getVal();
+                    }
+                    if (editDbConf_Form.apiHandle.ele.input.remark.apiHandle.isChange()) {
+                        changed_attrs.remark = editDbConf_Form.apiHandle.ele.input.remark.apiHandle.getVal();
+                    }
+
+                    if (editDbConf_Form.apiHandle.ele.input.confHost.apiHandle.isChange()) {
+                        changed_attrs.conf_host = editDbConf_Form.apiHandle.ele.input.confHost.apiHandle.getVal();
+                    }
+                    if (editDbConf_Form.apiHandle.ele.input.confPort.apiHandle.isChange()) {
+                        changed_attrs.conf_port = editDbConf_Form.apiHandle.ele.input.confPort.apiHandle.getVal();
+                    }
+                    if (editDbConf_Form.apiHandle.ele.input.confUesrname.apiHandle.isChange()) {
+                        changed_attrs.conf_username = editDbConf_Form.apiHandle.ele.input.confUesrname.apiHandle.getVal();
+                    }
+                    if (editDbConf_Form.apiHandle.ele.input.confPassword.apiHandle.isChange()) {
+                        changed_attrs.conf_password = editDbConf_Form.apiHandle.ele.input.confPassword.apiHandle.getVal();
+                    }
+                    if (editDbConf_Form.apiHandle.ele.input.confDbname.apiHandle.isChange()) {
+                        changed_attrs.conf_dbname = editDbConf_Form.apiHandle.ele.input.confDbname.apiHandle.getVal();
+                    }
+                    if (editDbConf_Form.apiHandle.ele.input.confCharset.apiHandle.isChange()) {
+                        changed_attrs.conf_charset = editDbConf_Form.apiHandle.ele.input.confCharset.apiHandle.getVal();
+                    }
+                    let tmp_res = role_table.getData();
+                    changed_attrs.read_roles = JSON.stringify(tmp_res.read_roles);
+                    changed_attrs.all_roles = JSON.stringify(tmp_res.all_roles);
+                    console.log(window.serverData.dataLib.bgDataApi, changed_attrs, tmp_res);
+                    Object.values(changed_attrs).forEach((val) => {
+                        if (val.trim().length === 0) {
+                            alert('不许空值');
+                            return false;
+                        }
+                    });
+                    //return false;
+                    kl.ajax({
+                        url: '/_dp/v1/dbdata/update?user_token=' + utk,
+                        data: {
+                            attr: changed_attrs,
+                            dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name
+                            , table_name: window.serverData.dataLib.bgDataApi.config.dbdata_dbconf_tableName,
+                        },
+                        type: 'json',
+                        success: function (update_res) {
+                            if (kl.isUndefined(update_res, 'data.update.res') || update_res.data.update.res === 0) {
+                                alert('修改 失败:' + (kl.isUndefined(update_res, 'msg') ? '未知' : update_res.msg));
+                            } else {
+                                datagrid.api.requestData('row_update');
+                                editDbConf_Modal.apiHandle.hide();
+                            }
+                        },
+                        error: function (res_request_data) {
+                            console.log(res_request_data);
+                            alert('修改 网络异常');
+                        }
+                    })
+                });
+
+
+                datagrid.api.run().api.requestData('init');
+
+
+            }
+        }
+    );
+</script>
+<style>
+    .container {
+        width: 100% !important;
+    }
+
+    .hide_btn_sort_asc > .btn_sort_asc {
+        display: none;
+    }
+
+    .hide_btn_sort_desc > .btn_sort_desc {
+        display: none;
+    }
+
+    .hide_btn_sort > .btn_sort_asc, .hide_btn_sort > .btn_sort_desc {
+        display: none;
+    }
+
+    .table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
+        padding: 3px !important;
+
+    }
+
+    td > input[type="text"], td > input[type="number"], td > select {
+        min-width: 45px !important;
+        padding: 0 !important;
+    }
+</style>
+<script></script>
 
 
 <footer class="footer">
