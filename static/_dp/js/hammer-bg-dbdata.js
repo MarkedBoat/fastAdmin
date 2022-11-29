@@ -3,7 +3,7 @@ let hammerBgDataApi = function () {
     let apiHandle = {
         config: {
             utk: false,
-            dbconf_name: 'fast_bg',
+            dbconf_name: '_sys_',
             rbac_role_tableName: '$rbac_role_tableName',
             dbdata_dbconf_tableName: '$dbdata_dbconf_tableName',
             dbdata_column_tableName: '$dbdata_column_tableName',
@@ -60,6 +60,7 @@ let hammerBgDataApi = function () {
         });
         //比如加载   {read_role_codes:[admin,dev],update_role_codes:[],}
         vertical_table.loadColumnIndexVals = (dataInfo) => {
+            console.log('vertical_table.loadColumnIndexVals ', dataInfo);
             vertical_table.columnItems.forEach((columnItem) => {
                 if (dataInfo[columnItem.val] !== undefined && typeof dataInfo[columnItem.val].forEach === 'function') {
                     vertical_table.columnItemMap[columnItem.val].checkboxs.forEach((checkbox) => {
@@ -125,10 +126,11 @@ let hammerBgDataApi = function () {
             } else {
                 window.serverData.dataLib.dbconf = window.serverData.dataLib.dbconf || {};
                 window.serverData.dataLib.dbconf.list = res.result.data.dataRows;
-
-                window.serverData.dataLib.role.list.forEach((dbConfInfo) => {
-                    window.serverData.dataLib.dbconf.items.push({val: dbConfInfo.id, text: dbConfInfo.db_code});
-                    window.serverData.dataLib.dbconf.map[dbConfInfo.id] = dbConfInfo.db_code;
+                window.serverData.dataLib.dbconf.codeItems = [{val: 'fast_bg', text: 'fast_bg'}];
+                window.serverData.dataLib.dbconf.codeMap = {fast_bg: 'fast_bg'};
+                window.serverData.dataLib.dbconf.list.forEach((dbConfInfo) => {
+                    window.serverData.dataLib.dbconf.codeItems.push({val: dbConfInfo.db_code, text: dbConfInfo.title});
+                    window.serverData.dataLib.dbconf.codeMap[dbConfInfo.db_code] = dbConfInfo.title;
                 });
                 if (typeof fun === "function") {
                     fun();

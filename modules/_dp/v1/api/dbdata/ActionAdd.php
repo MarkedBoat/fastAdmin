@@ -11,6 +11,7 @@ use modules\_dp\v1\api\AdminBaseAction;
 use modules\_dp\v1\dao\dbdata\DbOpLogDao;
 use modules\_dp\v1\dao\rbac\RbacRoleDao;
 use modules\_dp\v1\model\dbdata\DbColumn;
+use modules\_dp\v1\model\dbdata\DbDbConf;
 use modules\_dp\v1\model\dbdata\DbTable;
 use modules\_dp\v1\model\rbac\RbacAction;
 
@@ -23,33 +24,29 @@ class ActionAdd extends AdminBaseAction
     {
         //  $this->dispatcher->setOutType(Api::outTypeText);
         //  \models\Api::$hasOutput = true;
-        $db_code = $this->inputDataBox->getStringNotNull('dbconf_name');
+        $db_code     = $this->inputDataBox->getStringNotNull('dbconf_name');
         $table_name  = $this->inputDataBox->getStringNotNull('table_name');
         $attr        = $this->inputDataBox->tryGetArray('attr');
         $update_attr = $this->inputDataBox->tryGetArray('update_attr');
 
-        if (isset(Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$table_name]))
+
+        $is_super      = in_array('super_admin', $this->user->role_codes, true);
+        $db_conf_model = DbDbConf::model()->findOneByWhere(['db_code' => $db_code, 'is_ok' => Opt::YES]);
+        if ($is_super === false && $db_conf_model->checkAllAccess($this->user) === false )
         {
-            $table_name = Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$table_name];
+            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权访问Db:[{$db_code}]", false);
+        }
+        $table_name       = DbTable::replaceFakeTableName($table_name);
+        $table_conf_model = DbTable::model()->findOneByWhere(['dbconf_name' => $db_code, 'table_name' => $table_name, 'is_ok' => Opt::YES]);
+        if ($is_super === false && $table_conf_model->checkAllAccess($this->user) === false && $table_conf_model->checkAddRowAccess($this->user) === false)
+        {
+            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权访问表:[{$db_code}.{$table_name}]", false);
         }
 
-        if ($db_code === '$sys' || $db_code === 'fast_bg')
-        {
-            // $db_cnn      = DbTable::model()->getDbConnect();
-            $dbconf_name = 'fast_bg';
-        }
-        else
-        {
-            // $conf_model  = DbDbConf::model()->findOneByWhere(['db_code' => $db_code]);
-            $dbconf_name = $db_code;
-            //  $db_cnn      = $conf_model->getConfDbConnect();
-
-        }
-
-        $is_super     = in_array('super_admin', $this->user->role_codes, true);
+        $dbconf_name  = $db_code;
         $user_roles   = $this->user->role_codes;
         $user_roles[] = '*';
-        $db_table     = DbTable::model()->setTable($dbconf_name, $table_name);
+        $db_table     = DbTable::model()->setBizTableModel($table_conf_model)->setTable($dbconf_name, $table_name);
         $table_model  = $db_table->getBizTableInfo();
         $errors       = [];
         $bind         = [];

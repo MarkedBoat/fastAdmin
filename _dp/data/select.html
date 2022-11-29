@@ -44,8 +44,6 @@
 
     domLoaded(function () {
         let utk = '';
-        let dbconf_name = 'fast_bg';
-
 
         bg_init(function () {
             utk = window.utk;
@@ -68,10 +66,10 @@
             (async function () {
 
 
-                await window.serverData.dataLib.bgDataApi.initRoles(() => {
-                    console.log('角色初始化 1');
-                });
-                console.log('角色初始化');
+                // await window.serverData.dataLib.bgDataApi.initRoles(() => {
+                //     console.log('角色初始化 1');
+                // });
+                // console.log('角色初始化');
 
                 await window.serverData.dataLib.bgDataApi.init_MainTable_ConfigInfo(() => {
                     console.log('主表初始化 1');

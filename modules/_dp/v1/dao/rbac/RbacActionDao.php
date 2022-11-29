@@ -42,7 +42,7 @@ class RbacActionDao extends ORM
 
     public function getDbConfName()
     {
-        return 'fast_bg';
+        return '_sys_';
     }
 
 }

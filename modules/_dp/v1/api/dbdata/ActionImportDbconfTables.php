@@ -30,22 +30,13 @@ class ActionImportDbconfTables extends AdminBaseAction
         }
 
         $db_code = $this->inputDataBox->getStringNotNull('dbconf_code');
-        if ($db_code === '$sys' || $db_code === 'fast_bg')
-        {
-            $db_name     = 'fast_bg';
-            $db_cnn      = DbTable::model()->getDbConnect();
-            $dbconf_name = 'fast_bg';
-        }
-        else
-        {
-            $conf_model  = DbDbConf::model()->findOneByWhere(['db_code' => $db_code]);
-            $dbconf_name = $db_code;
-            $db_name     = $conf_model->conf_dbname;
-            $db_cnn      = $conf_model->getConfDbConnect();
 
-        }
-        //$dbconf_name = 'fast_bg';
-        // $db_name     = 'fast_bg';
+        $conf_model  = DbDbConf::model()->findOneByWhere(['db_code' => $db_code]);
+        $dbconf_name = $db_code;
+        $db_name     = $conf_model->conf_dbname;
+        $db_cnn      = $conf_model->getConfDbConnect();
+
+
         $rows        = $db_cnn->setText("SELECT `table_schema`,`table_name`,table_comment FROM information_schema.Tables WHERE table_schema = '{$db_name}';")->queryAll();
         $tn          = DbTable::model()->getTableName();
         $sqls        = [];

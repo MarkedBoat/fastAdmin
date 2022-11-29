@@ -29,24 +29,17 @@ class ActionImportTableColumns extends AdminBaseAction
         //  $db = $this->inputDataBox->getStringNotNull('dbconf_name');
         $tn = $this->inputDataBox->getStringNotNull('table');
 
-        if (isset(Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$tn]))
-        {
-            $tn = Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$tn];
-        }
+        $tn = DbTable::replaceFakeTableName($tn);
+
+
 
         $db_code = $this->inputDataBox->getStringNotNull('dbconf_code');
-        if ($db_code === '$sys' || $db_code === 'fast_bg')
-        {
-            $db_cnn      = DbTable::model()->getDbConnect();
-            $dbconf_name = 'fast_bg';
-        }
-        else
-        {
-            $conf_model  = DbDbConf::model()->findOneByWhere(['db_code' => $db_code]);
-            $dbconf_name = $db_code;
-            $db_cnn      = $conf_model->getConfDbConnect();
 
-        }
+        $conf_model  = DbDbConf::model()->findOneByWhere(['db_code' => $db_code]);
+        $dbconf_name = $db_code;
+        $db_name     = $conf_model->conf_dbname;
+        $db_cnn      = $conf_model->getConfDbConnect();
+
 
         $tn_table    = DbTable::model()->getTableName();
         $tn_col      = DbColumn::model()->getTableName();

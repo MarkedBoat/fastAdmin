@@ -23,28 +23,17 @@ class ActionInfo extends AdminBaseAction
         //  $this->dispatcher->setOutType(Api::outTypeText);
         //  \models\Api::$hasOutput = true;
 
-      //  $dbconf_name = $this->inputDataBox->getStringNotNull('dbconf_name');
-        $table_name  = $this->inputDataBox->getStringNotNull('table_name');
+        //  $dbconf_name = $this->inputDataBox->getStringNotNull('dbconf_name');
+        $table_name = $this->inputDataBox->getStringNotNull('table_name');
 
-        if (isset(Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$table_name]))
-        {
-            $table_name = Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$table_name];
-        }
+        $table_name = DbTable::replaceFakeTableName($table_name);
+
 
 
         $db_code = $this->inputDataBox->getStringNotNull('dbconf_name');
-        if ($db_code === '$sys' || $db_code === 'fast_bg')
-        {
-            // $db_cnn      = DbTable::model()->getDbConnect();
-            $dbconf_name = 'fast_bg';
-        }
-        else
-        {
-            $conf_model  = DbDbConf::model()->findOneByWhere(['db_code' => $db_code]);
-            $dbconf_name = $db_code;
-            //  $db_cnn      = $conf_model->getConfDbConnect();
 
-        }
+        $conf_model  = DbDbConf::model()->findOneByWhere(['db_code' => $db_code]);
+        $dbconf_name = $db_code;
 
 
         $info                         = DbTable::model()->setTable($dbconf_name, $table_name)->getInfo();

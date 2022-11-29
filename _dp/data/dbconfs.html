@@ -137,9 +137,9 @@
                 editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('描述').setIndexKey('remark').create('textarea');
 
 
-                let role_table = window.serverData.dataLib.bgDataApi.createVerticalTable(window.serverData.dataLib.role.codeItems, [{val: 'read_roles', text: '读 '}, {val: 'all_roles', text: '所有权限'}]);
+                let roleVerticalTable = window.serverData.dataLib.bgDataApi.createVerticalTable(window.serverData.dataLib.role.codeItems, [{val: 'read_roles', text: '读 '}, {val: 'all_roles', text: '所有权限'}]);
                 let role_groupDiv = hammerYii2Bootstarp1.createFormInputGroupDiv({});
-                role_groupDiv.apiHandle.setText('权限控制').apiHandle.addInputEle(role_table);
+                role_groupDiv.apiHandle.setText('权限控制').apiHandle.addInputEle(roleVerticalTable);
                 editDbConf_Form.addNode(role_groupDiv);
                 editDbConf_Form.apiHandle.addGroupPreCreate().setType('button').setContentText('保存').setIndexKey('submitButton').create('button');
                 //editDbConf_Form.apiHandle.ele.input.confCharset.apiHandle.setInitVal('utf8');
@@ -276,7 +276,7 @@
                                 }
                             }
                         });
-                        role_table.loadColumnIndexVals(tmp_obj);
+                        roleVerticalTable.loadColumnIndexVals(tmp_obj);
 
 
                         editDbConf_Modal.apiHandle.show();
@@ -381,7 +381,7 @@
                     if (editDbConf_Form.apiHandle.ele.input.confCharset.apiHandle.isChange()) {
                         changed_attrs.conf_charset = editDbConf_Form.apiHandle.ele.input.confCharset.apiHandle.getVal();
                     }
-                    let tmp_res = role_table.getData();
+                    let tmp_res = roleVerticalTable.getData();
                     changed_attrs.read_roles = JSON.stringify(tmp_res.read_roles);
                     changed_attrs.all_roles = JSON.stringify(tmp_res.all_roles);
                     console.log(window.serverData.dataLib.bgDataApi, changed_attrs, tmp_res);

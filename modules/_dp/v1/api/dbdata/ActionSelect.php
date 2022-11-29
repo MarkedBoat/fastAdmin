@@ -30,34 +30,23 @@ class ActionSelect extends AdminBaseAction
         $page_size  = $this->inputDataBox->tryGetInt('page_size');
         $sort_map   = $this->inputDataBox->tryGetArray('sort');
 
-        if (isset(Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$table_name]))
-        {
-            $table_name = Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$table_name];
-        }
-
-        if ($db_code === '$sys' || $db_code === 'fast_bg')
-        {
-            // $db_cnn      = DbTable::model()->getDbConnect();
-            $dbconf_name = 'fast_bg';
-        }
-        else
-        {
-           // $conf_model  = DbDbConf::model()->findOneByWhere(['db_code' => $db_code]);
-            $dbconf_name = $db_code;
-            //  $db_cnn      = $conf_model->getConfDbConnect();
-
-        }
-
         $is_super = in_array('super_admin', $this->user->role_codes, true);
-
-
-        $dbtable = DbTable::model()->setTable($dbconf_name, $table_name);
-        $info    = $dbtable->getInfo();
-
-        if (!($is_super || count($info['table']['read_roles']) === 0 || count(array_intersect($this->user->role_codes, $info['table']['read_roles'])) === 0))
+        $db_conf_model = DbDbConf::model()->findOneByWhere(['db_code' => $db_code, 'is_ok' => Opt::YES]);
+        if ($is_super === false && $db_conf_model->checkAllAccess($this->user) === false && $db_conf_model->checkReadAccess($this->user) === false)
         {
-            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权访问:[{$table_name}]", false);
+            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权访问Db:[{$db_code}]", false);
         }
+        $table_name       = DbTable::replaceFakeTableName($table_name);
+        $table_conf_model = DbTable::model()->findOneByWhere(['dbconf_name' => $db_code, 'table_name' => $table_name, 'is_ok' => Opt::YES]);
+        if ($is_super === false && $table_conf_model->checkAllAccess($this->user) === false && $table_conf_model->checkReadAccess($this->user) === false)
+        {
+            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权访问表:[{$db_code}.{$table_name}]", false);
+        }
+        $dbconf_name = $db_code;
+
+
+        $dbtable = DbTable::model()->setBizTableModel($table_conf_model)->setTable($dbconf_name, $table_name);
+        $info    = $dbtable->getInfo();
 
 
         $dbtable->setAttrs($attr)->setPage($page_index, $page_size);

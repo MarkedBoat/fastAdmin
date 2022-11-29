@@ -26,8 +26,8 @@ $fast_bg_cfg = [
 
 return array_merge_recursive(include __ROOT_DIR__ . '/config/env/common_param.php', [
     'db'    => [
-        'fast_bg' => $fast_bg_cfg,
-        'dp'      => $dev_cfg,
+        '_sys_' => $fast_bg_cfg,
+        'dp'    => $dev_cfg,
     ],
     'redis' => [
         'default' => ['host' => 'redis_server', 'port' => 6379, 'password' => '', 'db' => 0],

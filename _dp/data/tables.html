@@ -61,10 +61,16 @@
 
                 (async function () {
 
-                    await window.serverData.dataLib.bgDataApi.init_DbTableConf_ConfigInfo(function () {
-                        console.log('数据库配置初始化 1');
+
+                    await window.serverData.dataLib.bgDataApi.initDbConfs(function () {
+                        console.log('data-db 配置初始化 1');
                     });
-                    console.log('数据库配置初始化');
+                    console.log('data-db 配置初始化');
+
+                    await window.serverData.dataLib.bgDataApi.init_DbTableConf_ConfigInfo(function () {
+                        console.log('data-table 配置初始化 1');
+                    });
+                    console.log('data-table 配置初始化');
 
                     await window.serverData.dataLib.bgDataApi.initRoles(() => {
                         console.log('角色初始化 1');
@@ -81,59 +87,6 @@
                 let root = new Emt('div').setPros({className: 'row'});
                 raw_root.append(root);
 
-
-                let rolesTable = () => {
-                    let role_table = new Emt('table').setAttrsByStr('class="table table-bordered table-striped table-hover"');
-                    let role_table_header = role_table.createTHead();
-                    let role_tr_header = role_table_header.insertRow();
-                    role_tr_header.insertCell().textContent = '角色';
-                    role_tr_header.insertCell().textContent = '读';
-                    role_tr_header.insertCell().textContent = '增/删';
-                    let role_table_body = role_table.createTBody();
-
-                    role_table.col_read_role_checkboxs = [];
-                    role_table.col_opt_role_checkboxs = [];
-                    role_table.col_add_role_checkboxs = [];
-
-                    window.serverData.dataLib.role.list.forEach(function (roleInfo) {
-                        let body_tr = role_table_body.insertRow();
-                        body_tr.role_td = body_tr.insertCell();
-                        body_tr.read_td = body_tr.insertCell();
-                        body_tr.add_td = body_tr.insertCell();
-                        body_tr.role_td.textContent = roleInfo.role_name;
-                        body_tr.read_role_checkbox = new Emt('input', 'type="checkbox"', '', {value: roleInfo.role_code});
-                        body_tr.read_add_checkbox = new Emt('input', 'type="checkbox"', '', {value: roleInfo.role_code});
-                        role_table.col_read_role_checkboxs.push(body_tr.read_role_checkbox);
-                        role_table.col_add_role_checkboxs.push(body_tr.read_add_checkbox);
-                        body_tr.read_td.append(new Emt('label', '', '#').addNodes([body_tr.read_role_checkbox, new Emt('span', '', '#')]));
-                        body_tr.add_td.append(new Emt('label', '', '#').addNodes([body_tr.read_add_checkbox, new Emt('span', '', '#')]));
-
-                    });
-                    role_table.loadColumnsRoles = (dataRow) => {
-                        role_table.col_read_role_checkboxs.forEach((checkbox) => {
-                            checkbox.checked = dataRow.read_roles.indexOf(checkbox.value) > -1;
-                        });
-                        role_table.col_add_role_checkboxs.forEach((checkbox) => {
-                            checkbox.checked = dataRow.all_roles.indexOf(checkbox.value) > -1;
-                        });
-                    };
-                    role_table.getRoleCodes = () => {
-                        let res = {read: [], add: []};
-                        role_table.col_read_role_checkboxs.forEach((checkbox) => {
-                            if (checkbox.checked) {
-                                res.read.push(checkbox.value);
-                            }
-                        });
-
-                        role_table.col_add_role_checkboxs.forEach((checkbox) => {
-                            if (checkbox.checked) {
-                                res.add.push(checkbox.value);
-                            }
-                        });
-                        return res;
-                    };
-                    return role_table;
-                };
 
                 let rowIndexCount = 0;
                 let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
@@ -153,21 +106,26 @@
                 editTableConfig_Form.apiHandle.ele.input.dbConf.readOnly = true;
                 editTableConfig_Form.apiHandle.ele.input.tableName.readOnly = true;
 
-                let role_table = rolesTable();
+                let roleVerticalTable = window.serverData.dataLib.bgDataApi.createVerticalTable(window.serverData.dataLib.role.codeItems, [{val: 'read_roles', text: '读 '}, {val: 'update_roles', text: '改'}, {
+                    val: 'add_roles',
+                    text: '增'
+                }, {val: 'all_roles', text: '所有权限'}]);
                 let role_groupDiv = hammerYii2Bootstarp1.createFormInputGroupDiv({});
-                role_groupDiv.apiHandle.setText('权限控制').apiHandle.addInputEle(role_table);
+                role_groupDiv.apiHandle.setText('权限控制').apiHandle.addInputEle(roleVerticalTable);
                 editTableConfig_Form.addNode(role_groupDiv);
 
 
                 //label, text, handle_ele_key, callback
                 editTableConfig_Form.apiHandle.addGroupPreCreate().setType('button').setContentText('保存').setIndexKey('submit').setClickCall(function (btn) {
-                    let rolecodes_map = role_table.getRoleCodes();
+                    let rolecodes_map = roleVerticalTable.getData();
                     let attr = {
                         id: editTableConfig_Form.apiHandle.ele.input.idInput.apiHandle.getVal(),
                         title: editTableConfig_Form.apiHandle.ele.input.title.apiHandle.getVal(),
                         remark: editTableConfig_Form.apiHandle.ele.input.remark.apiHandle.getVal(),
-                        read_roles: JSON.stringify(rolecodes_map.read),
-                        all_roles: JSON.stringify(rolecodes_map.add),
+                        read_roles: JSON.stringify(rolecodes_map.read_roles),
+                        update_roles: JSON.stringify(rolecodes_map.update_roles),
+                        add_roles: JSON.stringify(rolecodes_map.add_roles),
+                        all_roles: JSON.stringify(rolecodes_map.all_roles),
                     };
                     console.log(btn, this, editTableConfig_Form.apiHandle, rolecodes_map, attr);
                     //return false;
@@ -176,7 +134,8 @@
                         //attr: form,
                         data: {
                             attr: attr,
-                            dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name, table_name: window.serverData.dataLib.bgDataApi.config.dbdata_table_tableName,
+                            dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name,
+                            table_name: window.serverData.dataLib.bgDataApi.config.dbdata_table_tableName,
                         },
                         type: 'json',
                         success: function (update_tableConfig_res) {
@@ -273,7 +232,7 @@
                 datagrid.api.preCreateColumn('id').setColumnInfo({}).setHeaderText('ID').setSortable(true).setFixedFilterInputConfig({valueItems: []});
 
                 datagrid.api.preCreateColumn('title').setColumnInfo({}).setHeaderText('标题').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-                datagrid.api.preCreateColumn('dbconf_name').setColumnInfo({}).setHeaderText('数据库').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('dbconf_name').setColumnInfo({}).setHeaderText('数据库').setSortable(true).setFixedFilterInputConfig({valueItems: window.serverData.dataLib.dbconf.codeItems});
                 datagrid.api.preCreateColumn('table_name').setColumnInfo({}).setHeaderText('表名').setSortable(true).setFixedFilterInputConfig({valueItems: []});
 
 
@@ -324,7 +283,7 @@
 
 
                         let tmp_obj = {};
-                        ['read_roles', 'all_roles'].forEach((column_name) => {
+                        ['read_roles', 'update_roles', 'add_roles', 'all_roles'].forEach((column_name) => {
                             if (row_data[column_name] === null) {
                                 tmp_obj[column_name] = [];
                             } else {
@@ -335,8 +294,7 @@
                                 }
                             }
                         });
-                        role_table.loadColumnsRoles(tmp_obj);
-
+                        roleVerticalTable.loadColumnIndexVals(tmp_obj);
 
                         editTableConfig_Modal.apiHandle.show();
                     });
@@ -403,9 +361,7 @@
 
 <footer class="footer">
     <div class="container">
-        <p class="pull-left">&copy; My Company 2022</p>
 
-        <p class="pull-right">Powered by <a href="http://www.yiiframework.com/" rel="external">Yii Framework</a></p>
     </div>
 </footer>
 
