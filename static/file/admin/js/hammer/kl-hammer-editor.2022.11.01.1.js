@@ -363,7 +363,7 @@ function lookLargeImage() {
     return handle;
 }
 
-let hanndle_lookLargeImage = lookLargeImage();
+let hanndle_lookLargeImage = lookLargeImage;
 
 function formatEditorText2Element(root_ele, ext_opts_input) {
     let ext_opts = ext_opts_input || {isExistVideoPlayer: true};

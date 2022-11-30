@@ -4,6 +4,7 @@ let hammerBgDataApi = function () {
         config: {
             utk: false,
             dbconf_name: '_sys_',
+            rbac_admin_tableName: '$user_admin_tableName',
             rbac_role_tableName: '$rbac_role_tableName',
             dbdata_dbconf_tableName: '$dbdata_dbconf_tableName',
             dbdata_column_tableName: '$dbdata_column_tableName',
@@ -85,6 +86,41 @@ let hammerBgDataApi = function () {
     };
 
 
+    apiHandle.getTableAllDataRows = (dbconfCode, tableName, resultAsKey, fun) => {
+        return kl.ajax({
+            url: '/_dp/v1/dbdata/select?user_token=' + apiHandle.config.utk,
+            data: {dbconf_name: dbconfCode, table_name: tableName, page_index: 1, page_size: 1000},
+            type: 'json',
+            async: true,
+        }).then(res => {
+            if (kl.isUndefined(res, 'result.data.dataRows') || typeof res.result.data.dataRows.forEach !== "function") {
+                alert('init role 失败:' + (kl.isUndefined(res, 'result.msg') ? '未知' : res.result.msg));
+            } else {
+                window.serverData.dataLib[resultAsKey] = {items: [], list: [], map: {}};
+                window.serverData.dataLib[resultAsKey].list = res.result.data.dataRows;
+                if (typeof fun === "function") {
+                    fun();
+                }
+            }
+            return apiHandle;
+        });
+    };
+
+
+    apiHandle.initAdmins = (fun) => {
+        return apiHandle.getTableAllDataRows(apiHandle.config.dbconf_name, apiHandle.config.rbac_admin_tableName, 'admin', function () {
+            window.serverData.dataLib.admin.items = [{val: '#', text: '不选择'}];
+            window.serverData.dataLib.admin.list.forEach((dataInfo) => {
+                window.serverData.dataLib.admin.items.push({val: dataInfo.id, text: dataInfo.real_name});
+                window.serverData.dataLib.admin.map[dataInfo.id] = dataInfo.real_name;
+            });
+            if (typeof fun === "function") {
+                fun();
+            }
+        });
+
+    };
+
     apiHandle.initRoles = (fun) => {
         return kl.ajax({
             url: '/_dp/v1/dbdata/select?user_token=' + apiHandle.config.utk,
@@ -113,6 +149,7 @@ let hammerBgDataApi = function () {
             return apiHandle;
         });
     };
+
 
     apiHandle.initDbConfs = (fun) => {
         return kl.ajax({
@@ -157,7 +194,7 @@ let hammerBgDataApi = function () {
 
                 res.result.data.columns.forEach(function (colInfo) {
                     let tmp = kl.jsonDecode(colInfo.val_items, []);
-                    console.log(tmp, 'x', colInfo.val_items);
+                    //console.log(tmp, 'x', colInfo.val_items);
                     colInfo.valItemMap = {};
                     tmp.forEach((itemInfo) => {
                         colInfo.valItemMap[itemInfo.val] = itemInfo.text;

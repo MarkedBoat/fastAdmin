@@ -136,7 +136,7 @@ let bg_init = function (page_init_fun) {
     };
 
     kl.ajax({
-        url: '/dp/v1/admin/user/Info?user_token=' + utk,
+        url: '/_dp/v1/user/info?user_token=' + utk,
         data: {},
         method: 'POST',
         success: function (admin_info_res) {
@@ -149,7 +149,7 @@ let bg_init = function (page_init_fun) {
                 } else {
                     if (admin_info_res.code.indexOf('user_error_token') === 0) {
                         alert('未登录，跳转到登录');
-                        document.location = '/admin/login.html';
+                        document.location = '/_dp/admin/login.html';
                     } else {
                         alert('失败:' + (admin_info_res.msg || '未知'))
                     }

@@ -7,34 +7,25 @@
     <link href="/static/_dp/css/bootstrap.css" rel="stylesheet">
     <link href="/static/_dp/css/site.css" rel="stylesheet">
     <link href="/static/_dp/css/bg.css" rel="stylesheet">
+
+    <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
+    <script src="/static/_dp/js/string/string.js"></script>
+    <script src="/static/_dp/js/bg.js"></script>
+
+    <script src="/static/_dp/js/jquery.js"></script>
+    <script src="/static/_dp/js/bootstrap.js"></script>
+
 </head>
 <body>
 <div class="wrap">
     <nav id="w0" class="navbar-inverse navbar-fixed-top navbar">
         <div class="container">
-            <div class="navbar-header"></div>
-            <div id="bg_menus_div" class="navbar-brand menus_root">DP导航</div>
-            <div id="w0-collapse" class="collapse navbar-collapse">
-                <ul id="w1" class="navbar-nav navbar-right nav">
-
-                </ul>
-            </div>
+            <div id="menu_toggle_btn" class="navbar-brand menu_toggle_btn">导航</div>
+            <div id="page_title" class="navbar-brand page_title">【首页】</div>
         </div>
     </nav>
     <div class="container">
-        <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
-        <script src="/static/_dp/js/string/string.js"></script>
-        <script src="/static/_dp/js/hammer-yii2/bootstrap.min.20211016.1.js"></script>
-        <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.20211020.1.js"></script>
-        <script src="/static/_dp/js/bg.js"></script>
-
         <div class="site-index">
-
-            <div>
-
-            </div>
-
-
             <div class="panel panel-primary">
                 <div class="panel-heading">
                     <h3 class="page-header" id="h1">【DP-后台首页】</h3>
@@ -43,10 +34,7 @@
                     <p id="subject_detail"></p>
                 </div>
             </div>
-
-
             <div class="body-content" id="content_div">
-
                 <pre>
                     菜单导航，见左上角【导航】
 
@@ -77,23 +65,22 @@
             </div>
 
         </div>
-        <script>
-            domLoaded(function () {
-                    let utk = '';
-                    bg_init(function () {
-                        utk = window.utk;
-                    });
-                }
-            );
-        </script>
+
         <style>
 
         </style>
     </div>
 </div>
 
+<script>
+    domLoaded(function () {
+            let utk = '';
+            bg_init(function () {
+                utk = window.utk;
+            });
+        }
+    );
+</script>
 
-<script src="/static/_dp/js/jquery.js"></script>
-<script src="/static/_dp/js/bootstrap.js"></script>
 </body>
 </html>

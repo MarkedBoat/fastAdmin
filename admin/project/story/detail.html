@@ -4,52 +4,51 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>story:</title>
-    <link href="/static/file/admin/css/bootstrap.css" rel="stylesheet">
-    <link href="/static/file/admin/css/site.css" rel="stylesheet">
-    <link href="/static/file/admin/css/bg.css" rel="stylesheet">
+
+    <link href="/static/_dp/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/_dp/css/site.css" rel="stylesheet">
+    <link href="/static/_dp/css/bg.css" rel="stylesheet">
+
+
+    <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
+    <script src="/static/_dp/js/string/string.js"></script>
+    <script src="/static/_dp/js/bg.js"></script>
+    <script src="/static/_dp/js/hammer-bg-dbdata.js"></script>
+
+    <script src="/static/file/admin/js/jquery.js"></script>
+    <script src="/static/file/admin/js/bootstrap.js"></script>
+
+    <script src="/static/file/js/hammer-data.js"></script>
+    <script src="/static/file/admin/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
+    <script src="/static/file/admin/js/hammer-yii2/datagrid/datagrid.min.2022.10.07.0.js"></script>
+
+    <script src="/static/file/admin/js/hammer/kl-hammer-editor.2022.11.01.1.js"></script>
+
 </head>
 <body>
 <div class="wrap">
     <nav id="w0" class="navbar-inverse navbar-fixed-top navbar">
         <div class="container">
-            <div class="navbar-header"></div>
-            <div id="bg_menus_div" class="navbar-brand menus_root">story:</div>
-            <div id="w0-collapse" class="collapse navbar-collapse">
-                <ul id="w1" class="navbar-nav navbar-right nav">
-                    <li><a href="/admin/dbdata/tables.html">story:</a></li>
-                </ul>
-            </div>
+            <div id="menu_toggle_btn" class="navbar-brand menu_toggle_btn">导航</div>
+            <div id="page_title" class="navbar-brand page_title">【项目后台-首页】</div>
         </div>
     </nav>
     <div class="container">
-        <script src="/static/file/admin/js/hammer/kl-hammer.js"></script>
-        <script src="/static/file/js/hammer-data.js"></script>
-        <script src="/static/file/admin/js/string/string.js"></script>
-        <script src="/static/file/admin/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
-        <script src="/static/file/admin/js/hammer-yii2/datagrid/datagrid.min.2022.10.07.0.js"></script>
-        <script src="/static/file/admin/js/bg.js"></script>
-        <script src="/static/file/admin/js/hammer/kl-hammer-editor.2022.11.01.1.js"></script>
+
 
         <div class="site-index">
-
-            <div>
-
-            </div>
-
-
             <div class="body-content" id="content_div">
-
-
             </div>
-
         </div>
         <script>
+
             let storys_condtion = {
                 page: {index: 1, size: 1000},
                 attr: {
                     story_id: 0,
                 },
                 table_name: 'd_story',
+                dbconf_name: 'dev_bg',
                 sort: {story_desc_order: 'desc'}
             };
             let pageData = {
@@ -133,6 +132,14 @@
                 bg_init(function () {
                     utk = window.utk;
                     window.serverData.dataLib = {
+                        config: {
+                            project_dbCode: 'dev_bg',
+                            project_project_tableName: 'd_project',
+                            project_version_tableName: 'd_version',
+                            project_story_tableName: 'd_story',
+                            project_commitType_tableName: 'd_story_commit_step',
+
+                        },
                         admin: {items: [], list: [], map: {}},
                         commitType: {items: [], list: [], map: {}},
                         role: {items: [], list: [], map: {}},
@@ -141,20 +148,6 @@
 
                     };
 
-                    kl.ajax({
-                        url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
-                        data: {table_name: 'bg_rbac_role', page_index: 1, page_size: 1000},
-                        type: 'json',
-                        success: function (res_request_data) {
-                            if (res_request_data.code && res_request_data.code === 'ok') {
-                                res_request_data.data.dataRows.forEach((role_info) => {
-                                    role_infos.push({val: role_info.role_code, text: role_info.role_name});
-                                })
-                            }
-                        },
-                        error: function (res_request_data) {
-                        }
-                    });
 
                     let getAdminList = function (fun) {
                         kl.ajax({
@@ -250,8 +243,12 @@
 
                     let getStoryRowInfo = function () {
                         kl.ajax({
-                            url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
-                            data: {table_name: 'd_story', attr: {id: window.serverData.story_id}},
+                            url: '/_dp/v1/dbdata/select?user_token=' + utk,
+                            data: {
+                                dbconf_name: window.serverData.dataLib.config.project_dbCode,
+                                table_name: 'd_story',
+                                attr: {id: window.serverData.story_id}
+                            },
                             type: 'json',
                             success: function (res_request_data) {
                                 if (res_request_data.code && res_request_data.code === 'ok' && res_request_data.data && res_request_data.data.rowsTotal === 1) {
@@ -729,8 +726,9 @@
 
                     let display_parent_story = function () {
                         kl.ajax({
-                            url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
+                            url: '/_dp/v1/dbdata/select?user_token=' + utk,
                             data: {
+                                dbconf_name: window.serverData.dataLib.config.project_dbCode,
                                 attr: {
                                     id: window.serverData.storyInfo.story_id,
                                 },
@@ -763,8 +761,9 @@
 
                     let display_story_commits = function () {
                         kl.ajax({
-                            url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
+                            url: '/_dp/v1/dbdata/select?user_token=' + utk,
                             data: {
+                                dbconf_name: window.serverData.dataLib.config.project_dbCode,
                                 attr: {
                                     story_id: window.serverData.storyInfo.id,
                                 },
@@ -806,7 +805,7 @@
 
                     let flush_story_list = function () {
                         kl.ajax({
-                            url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
+                            url: '/_dp/v1/dbdata/select?user_token=' + utk,
                             data: storys_condtion,
                             type: 'json',
                             success: function (res_request_data) {
@@ -1074,7 +1073,6 @@
     </div>
 </footer>
 
-<script src="/static/file/admin/js/jquery.js"></script>
-<script src="/static/file/admin/js/bootstrap.js"></script>
+
 </body>
 </html>

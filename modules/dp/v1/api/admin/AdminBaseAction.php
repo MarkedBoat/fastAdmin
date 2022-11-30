@@ -12,7 +12,7 @@ use modules\dp\v1\model\admin\rbac\RbacAction;
 use modules\dp\v1\model\admin\rbac\RbacRole;
 
 
-abstract class AdminBaseAction extends ActionBase
+abstract class AdminBaseAction extends \modules\_dp\v1\api\AdminBaseAction
 {
     public $dataSource = 'POST_ALL';
 
@@ -22,7 +22,7 @@ abstract class AdminBaseAction extends ActionBase
     protected $user;
 
 
-    public function init()
+    public function init_bak()
     {
         parent::init();
         $rsa_token = $this->inputDataBox->tryGetString('user_token');

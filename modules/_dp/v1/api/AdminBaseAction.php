@@ -65,11 +65,17 @@ abstract class AdminBaseAction extends ActionBase
         if (!in_array(RbacRole::superAdmin, $this->user->role_codes, true))
         {
             $action_codes = $action->getRoleCodes();
-            if (count(array_intersect($this->user->role_codes, $action->getRoleCodes())) === 0)
+            if (count(array_intersect($this->user->role_codes, $action_codes)) === 0)
             {
-                throw new AdvError(AdvError::rbac_deny, "您没有对应权限：user:{$this->user->id}  action:{$action->id} action_role_codes:[" . join(',', $action_codes).']');
+                throw new AdvError(AdvError::rbac_deny, "您没有对应权限：user:{$this->user->id}  action:{$action->id} action_role_codes:[" . join(',', $action_codes) . ']');
             }
+            Sys::app()->addLog(['user_codes' => $this->user->role_codes, 'action_codes' => $action_codes,], "action_access_ok intersect");
         }
+        else
+        {
+            Sys::app()->addLog(['user_codes' => $this->user->role_codes], "action_access_ok super_admin");
+        }
+
     }
 
 

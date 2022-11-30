@@ -4,1186 +4,1071 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>INDEX</title>
-    <link href="/static/file/admin/css/bootstrap.css" rel="stylesheet">
-    <link href="/static/file/admin/css/site.css" rel="stylesheet">
-    <link href="/static/file/admin/css/bg.css" rel="stylesheet">
+    <link href="/static/_dp/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/_dp/css/site.css" rel="stylesheet">
+    <link href="/static/_dp/css/bg.css" rel="stylesheet">
+
+
+    <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
+    <script src="/static/_dp/js/string/string.js"></script>
+    <script src="/static/_dp/js/bg.js"></script>
+    <script src="/static/_dp/js/hammer-bg-dbdata.js"></script>
+
+    <script src="/static/file/admin/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
+    <script src="/static/file/admin/js/hammer-yii2/datagrid/datagrid.min.2022.10.07.0.js"></script>
+
+
+    <script src="/static/file/admin/js/jquery.js"></script>
+    <script src="/static/file/admin/js/bootstrap.js"></script>
+
 </head>
 <body>
 <div class="wrap">
     <nav id="w0" class="navbar-inverse navbar-fixed-top navbar">
         <div class="container">
-            <div class="navbar-header"></div>
-            <div id="bg_menus_div" class="navbar-brand menus_root">INDEX</div>
-            <div id="w0-collapse" class="collapse navbar-collapse">
-                <ul id="w1" class="navbar-nav navbar-right nav">
-                    <li><a href="/admin/dbdata/tables.html">INDEX</a></li>
-                </ul>
-            </div>
+            <div id="menu_toggle_btn" class="navbar-brand menu_toggle_btn">导航</div>
+            <div id="page_title" class="navbar-brand page_title">【项目后台-首页】</div>
         </div>
     </nav>
     <div class="container">
-        <script src="/static/file/admin/js/hammer/kl-hammer.js"></script>
-        <script src="/static/file/admin/js/string/string.js"></script>
-        <script src="/static/file/admin/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
-        <script src="/static/file/admin/js/hammer-yii2/datagrid/datagrid.min.2022.10.07.0.js"></script>
-        <script src="/static/file/admin/js/bg.js?t=3"></script>
-
         <div class="site-index">
-
-            <div>
-
-            </div>
-
-
             <div class="panel panel-primary">
-                <div class="panel-heading">
-                    <h3 class="page-header" id="h1">INDEX</h3>
-                </div>
                 <div class="panel-body">
                     <p id="subject_detail"></p>
                 </div>
             </div>
-
-
             <div class="body-content" id="content_div">
-
-
             </div>
-
         </div>
-        <script>
 
-
-            let makeTree = function (data_rows, parent_story_id, lev) {
-                console.log('树第N:', data_rows, parent_story_id);
-                let story_infos = [];
-                data_rows.forEach(function (story_info, tmp_i) {
-                    if (story_info.story_id == parent_story_id) {
-                        story_info.lev = lev;
-                        story_info.asIndex = story_infos.length;
-                        story_info.nodes = makeTree(data_rows, story_info.id, lev + 1);
-                        story_info.nodesCount = story_info.nodes.length;
-                        story_infos.push(story_info);
-                        data_rows[tmp_i].isTreeNode = true;
-                    }
-                });
-                return story_infos;
-            };
-
-            let makeTreePre = function (deep, index, total) {
-                let tmp_div = new Emt(
-                    'div', 'class="tree_pre_div"'
-                );
-                tmp_div.setAttrs({deep: deep});
-                tmp_div.classList.add('tree_pre_div');
-                if (index === 0) {
-                    tmp_div.classList.add('tree_node_prefix_start_div');
-                }
-                if (index === (total - 1)) {
-                    tmp_div.classList.add('tree_node_prefix_end_div');
-                }
-                if (index > 0 && index > (total - 1)) {
-                    tmp_div.classList.add('tree_node_prefix_mid_div');
-                }
-
-                return tmp_div;
-            };
-
-            let ondrop = function () {
-                alert('尚未初始化 ondrop');
-            };
-            let flush_story_list = function () {
-                alert('尚未初始化 flush_story_list');
-            };
-
-            domLoaded(function () {
-                    let utk = '';
-                    let role_infos = [];
-
-
-                    let story_table = new Emt('div', 'class="storys_div"');
-                    story_table.apiHandle = {
-                        tr: {map: {}, list: []},
-                        filterEleMap: {
-                            tracker_select: false,
-                            create_by_select: false,
-                            story_step_select: false
-                        }
-                    };
-
-                    story_table.createRow = function () {
-                        let tr = new Emt('div', 'class="story_row"');
-                        tr.apiHandle = {};
-                        tr.className = "story_row";
-                        tr.apiHandle.tr = tr;
-                        tr.apiHandle.children_div = new Emt('div', 'class="child_story_div"');
-                        tr.apiHandle.id_td = new Emt('div', 'class="story_id_td"');
-                        tr.apiHandle.title_td = new Emt('div', 'class="story_title_td"');
-                        tr.apiHandle.creator_td = new Emt('div', 'class="story_creator_td"');
-                        tr.apiHandle.tracker_td = new Emt('div', 'class="story_tracker_td"');
-                        tr.apiHandle.type_td = new Emt('div', 'class="story_type_td"');
-                        tr.apiHandle.status_td = new Emt('div', 'class="story_status_td"');
-                        tr.apiHandle.desc_order_td = new Emt('div', 'class="story_desc_order_td"');
-                        tr.apiHandle.version_td = new Emt('div', 'class="story_version_td"');
-                        tr.apiHandle.create_date_td = new Emt('div', 'class="story_create_date_td"');
-                        tr.apiHandle.update_date_td = new Emt('div', 'class="story_update_date_td"');
-                        tr.apiHandle.op_td = new Emt('div', 'class="story_op_td"');
-                        tr.apiHandle.storyBody = new Emt('div', 'class="story_body"');
-                        tr.apiHandle.storyBody.tr = tr;
-                        tr.apiHandle.storyBody.draggable = true;
-
-                        tr.apiHandle.selectCheckbox = new Emt('input', 'type="checkbox"');
-                        tr.apiHandle.nodesArray = [
-                            tr.addNodes([
-                                tr.apiHandle.storyBody.addNodes([
-                                    new Emt('div', 'class="story_row_left_div"').addNodes([
-                                        tr.apiHandle.id_td,
-                                        tr.apiHandle.title_td,
-                                    ]),
-                                    new Emt('div', 'class="story_row_right_div"').addNodes([
-                                        tr.apiHandle.creator_td,
-                                        tr.apiHandle.tracker_td,
-                                        tr.apiHandle.type_td,
-                                        tr.apiHandle.status_td,
-                                        tr.apiHandle.desc_order_td,
-                                        tr.apiHandle.version_td,
-                                        tr.apiHandle.create_date_td,
-                                        tr.apiHandle.update_date_td,
-                                        tr.apiHandle.op_td
-                                    ]),
-                                ]),
-                                tr.apiHandle.children_div
-                            ]),
-                        ];
-
-                        tr.apiHandle.setStoryInfo = function (story_info) {
-                            tr.apiHandle.data = story_info;
-                            if (story_info.isJustData === true) {
-                                return false;
-                            }
-                            story_table.apiHandle.tr.map[story_info.id] = tr;
-                            if (story_info.id !== 'ID') {
-                                tr.apiHandle.id_td.append(
-                                    new Emt('div').addNodes([
-                                        new Emt('label').addNodes([
-                                            tr.apiHandle.selectCheckbox,
-                                            new Emt('span', '', story_info.id)
-                                        ])
-                                    ])
-                                );
-                            } else {
-                                tr.apiHandle.id_td.append(new Emt('div', '', story_info.id));
-                            }
-                            let title_div = new Emt('div', 'class="story_title_div"');
-
-                            title_div.addNode(new Emt('div', '', story_info.title));
-                            tr.apiHandle.title_td.append(title_div);
-                            tr.apiHandle.creator_td.append(new Emt('div', '', story_info.__relat.create_by.info.real_name));
-                            tr.apiHandle.tracker_td.append(new Emt('div', '', story_info.__relat.tracker.label ? story_info.__relat.tracker.info.real_name : '#'));
-                            tr.apiHandle.type_td.append(new Emt('div', '', window.serverData.dataLib.storyType.map[story_info.story_type]));
-
-                            tr.apiHandle.status_td.append(new Emt('div', '', window.serverData.dataLib.commitType.map[story_info.step] || story_info.step));
-                            tr.apiHandle.desc_order_td.append(new Emt('div', '', story_info.story_desc_order));
-                            tr.apiHandle.version_td.append(new Emt('div', '', window.serverData.version.map[story_info.version_id] || story_info.version_id));
-                            tr.apiHandle.create_date_td.append(new Emt('div', '', story_info.create_time));
-                            tr.apiHandle.update_date_td.append(new Emt('div', '', story_info.update_time ? story_info.update_time : '#'));
-                            tr.apiHandle.op_td.append(new Emt('div').addNodes([
-                                new Emt('a', '', '查看', {target: '_blank', href: '/admin/project/story/detail.html?{"story_id":' + story_info.id + '}'}),
-                                new Emt('a', '', '添加子问题', {target: '_blank', href: '/admin/project/story/add.html?{"parent_story_id":' + story_info.id + '}'}),
-                            ]));
-                            if (story_info.lev === 1) {
-                                tr.classList.add('top_lev_story_tr');
-                                if (tr.previousElementSibling) {
-                                    tr.previousElementSibling.classList.add('top_lev_story_last_tr');
-                                }
-                            }
-                            tr.classList.add('story_status_' + story_info.step);
-
-                        };
-
-
-                        tr.apiHandle.storyBody.addEventListener('dragstart', function (e) {
-                            console.log('dragstart', e.target);
-                            window.dragedEle = tr.apiHandle.storyBody;
-                            tr.apiHandle.storyBody.classList.add('on_drag_row');
-                        });
-                        tr.apiHandle.storyBody.addEventListener('drag', function (e) {
-                            //console.log('drag');
-
-                        });
-                        tr.apiHandle.storyBody.addEventListener('dragend', function (e) {
-                            console.log('dragend');
-                            window.dragedEle = false;
-                            tr.apiHandle.storyBody.classList.remove('on_drag_row');
-
-
-                        });
-
-                        tr.apiHandle.storyBody.addEventListener('dragenter', function (e) {
-                            if (tr.apiHandle.data === window.dragedEle.tr.apiHandle.data) {
-                                return false;
-                            }
-                            //console.log('dragenter');
-                            tr.apiHandle.storyBody.classList.add('on_drop_row');
-
-                        });
-                        tr.apiHandle.storyBody.addEventListener('drop', function (e) {
-                            if (tr.apiHandle.data === window.dragedEle.tr.apiHandle.data) {
-                                return false;
-                            }
-                            console.log('PRE drop', tr, tr.apiHandle.data, window.dragedEle, window.dragedEle.tr, window.dragedEle.tr.apiHandle.data);
-                            ondrop(tr, window.dragedEle.tr);
-
-                            tr.apiHandle.storyBody.classList.remove('on_drop_row');
-
-
-                        });
-                        tr.apiHandle.storyBody.addEventListener('dragover', function (e) {
-                            // console.log('dragover');
-                            e.preventDefault(); //【重要】一定要加这一行代码，否则，后面的方法 ondrop() 无法触发。
-
-                        });
-                        tr.apiHandle.storyBody.addEventListener('dragleave', function (e) {
-                            //console.log('dragleave');
-                            tr.apiHandle.storyBody.classList.remove('on_drop_row');
-
-                        });
-
-
-                        return tr;
-                    };
-                    story_table.initHeaders = function () {
-                        let story_header = story_table.createRow();
-                        story_table.addNodes([story_header]);
-                        story_header.apiHandle.setStoryInfo({
-                            id: 0,
-                            isJustData: true,
-                        });
-                        story_header.apiHandle.id_td.textContent = 'ID';
-                        story_header.apiHandle.title_td.textContent = '标题';
-                        story_header.apiHandle.type_td.textContent = '归类';
-                        story_header.apiHandle.status_td.append(new Emt('div', '', '状态'));
-                        story_header.apiHandle.tracker_td.append(new Emt('div', '', '跟踪人'));
-                        story_header.apiHandle.creator_td.append(new Emt('div', '', '创建人'));
-                        story_header.apiHandle.version_td.append(new Emt('div', '', '当前目标版本'));
-
-                        story_header.apiHandle.create_date_td.append(new Emt('div', '', '创建时间'));
-                        story_header.apiHandle.update_date_td.append(new Emt('div', '', '更新时间'));
-
-                        story_header.apiHandle.desc_order_td.append(new Emt('div', '', '优先级'));
-
-                        story_header.apiHandle.op_td.append(new Emt('div').addNodes([
-                            new Emt('a', '', '添加子问题', {href: '/admin/project/story/add.html?{"version_id":' + 0 + '}'})
-                        ]));
-                    };
-                    story_table.initHeaders();
-                    story_table.clearRows = function () {
-                        console.log(story_table.apiHandle.tr.list);
-                        story_table.apiHandle.tr.list.forEach((tr) => {
-                            tr.remove();
-                        });
-                        story_table.apiHandle.tr.list = [];
-                        story_table.apiHandle.tr.map = {};
-                    };
-                    story_table.appendStoryRowAsTree = function (story_info) {
-                        let tr = story_table.createRow();
-                        story_table.apiHandle.tr.list.push(tr);
-                        story_table.addNode(tr);
-                        tr.apiHandle.setStoryInfo(story_info);
-                        if (story_info.parentListIndex === undefined) {
-                            tr.setAttrs({tr_index_odd: story_info.listIndex % 2});
-                            tr.setAttrs({is_top_story: 'yes'});
-
-                        } else {
-                            tr.setAttrs({tr_index_odd: (story_info.parentListIndex % 2 + 1 + story_info.listIndex) % 2});
-                        }
-
-                        if (story_info.isTop === true) {
-                            story_table.addNodes([tr]);
-                        } else {
-                            // tr.setAttrs({child_tr_index_odd: story_info_index % 2});
-
-                            if (story_table.apiHandle.tr.map[story_info.story_id] === undefined) {
-                                story_table.addNodes([tr]);
-                            } else {
-                                console.log('children', tr, story_info);
-                                story_table.apiHandle.tr.map[story_info.story_id].apiHandle.children_div.addNodes([tr]);
-                                //story_table.apiHandle.tr.map[story_info.story_id].apiHandle.children_div.setAttrs({style:"min-height:"+ story_table.apiHandle.tr.map[story_info.story_id].apiHandle.children_div.childElementCount*3+'em;'                                        })
-                            }
-                        }
-                        if (story_info.nodes.length > 0) {
-                            story_info.nodes.forEach(function (story_info2, tmp_index) {
-                                story_info2.isNode = true;
-                                story_info2.siblingCount = story_info.nodes.length;
-                                story_info2.siblingIndex = tmp_index;
-                                story_info2.listIndex = tmp_index;
-                                story_info2.parentListIndex = story_info.listIndex;
-
-                                story_table.appendStoryRowAsTree(story_info2);
-                            });
-                        } else {
-                            tr.apiHandle.children_div.remove();
-                        }
-                    };
-                    let rander_storys_list = function (dataRows, display_type) {
-                        story_table.clearRows();
-                        let tmp_arr = makeTree(dataRows, 0, 1);
-                        console.log('makeTree', tmp_arr, dataRows);
-
-                        if (display_type === 'tree') {
-                            tmp_arr.forEach(function (story_info, tmp_i) {
-                                story_info.isTop = true;
-                                story_info.listIndex = tmp_i;
-                                story_table.appendStoryRowAsTree(story_info);
-                            });
-                            dataRows.forEach((story_info) => {
-                                if (story_info.isTreeNode === undefined) {
-                                    story_info.lev = 1;
-                                    story_info.asIndex = 0;
-                                    story_info.nodes = [];
-                                    story_info.nodesCount = 0;
-                                    story_info.isTop = true;
-                                    story_info.listIndex = 0;
-                                    story_info.title = '[ ' + story_info.story_id + ' ] ' + story_info.title;
-                                    story_table.appendStoryRowAsTree(story_info);
-                                }
-
-
-                            });
-                            let status_val = story_table.apiHandle.filterEleMap.story_step_select.apiHandle.getVal();
-                            status_val = status_val && status_val !== '#' ? status_val : false;
-                            let createBy_val = story_table.apiHandle.filterEleMap.create_by_select.apiHandle.getVal();
-                            createBy_val = createBy_val && createBy_val !== '#' ? createBy_val : false;
-                            let tracker_val = story_table.apiHandle.filterEleMap.tracker_select.apiHandle.getVal();
-                            tracker_val = tracker_val && tracker_val !== '#' ? tracker_val : false;
-
-
-                            story_table.apiHandle.tr.list.forEach((tr) => {
-                                tr.apiHandle.storyBody.classList.add('not_important');
-                                let tmp_ar = {
-                                    status: (status_val.length === 0 || (status_val.length === 1 && status_val[0] === '#')) ? 1 : 0,
-                                    createBy: (createBy_val.length === 0 || (createBy_val.length === 1 && createBy_val[0] === '#')) ? 1 : 0,
-                                    tracker: (tracker_val.length === 0 || (tracker_val.length === 1 && tracker_val[0] === '#')) ? 1 : 0,
-                                };
-                                if (status_val.indexOf(tr.apiHandle.data.step) !== -1) {
-                                    tmp_ar.status = 1;
-                                }
-                                if (createBy_val.indexOf(tr.apiHandle.data.create_by) !== -1) {
-                                    tmp_ar.createBy = 1;
-                                }
-                                if (tracker_val.indexOf(tr.apiHandle.data.tracker) !== -1) {
-                                    tmp_ar.tracker = 1;
-                                }
-                                console.log(tmp_ar);
-                                if (Object.values(tmp_ar).indexOf(0) === -1) {
-                                    tr.apiHandle.storyBody.classList.remove('not_important');
-                                }
-                            });
-
-                        } else {
-                            dataRows.forEach(function (story_info, tmp_i) {
-                                let tr = story_table.createRow();
-                                story_info.listIndex = tmp_i;
-                                tr.apiHandle.setStoryInfo(story_info);
-                            })
-                        }
-                    };
-
-
-                    bg_init(function () {
-                        utk = window.utk;
-
-                        window.serverData.dataLib = {
-                            admin: {items: [], list: [], map: {}},
-                            commitType: {items: [], list: [], map: {}},
-                            role: {items: [], list: [], map: {}},
-                            storyType: {items: [], list: [], map: {}},
-                            storyTableConfig: {}
-                        };
-
-
-                        kl.ajax({
-                            url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
-                            data: {table_name: 'bg_rbac_role', page_index: 1, page_size: 1000},
-                            type: 'json',
-                            success: function (res_request_data) {
-                                if (res_request_data.code && res_request_data.code === 'ok') {
-                                    res_request_data.data.dataRows.forEach((role_info) => {
-                                        role_infos.push({val: role_info.role_code, text: role_info.role_name});
-                                    })
-                                }
-                            },
-                            error: function (res_request_data) {
-                            }
-                        });
-
-                        let getAdminList = function (fun) {
-                            kl.ajax({
-                                url: '/dp/v1/project/items?user_token=' + utk,
-                                data: {item_code: 'admin'},
-                                type: 'json',
-                                success: function (res_request_data) {
-                                    if (typeof res_request_data.forEach === "function") {
-                                        window.serverData.admin = {list: res_request_data, map: {}};
-                                        res_request_data.forEach(function (adminInfo) {
-                                            window.serverData.admin.map[adminInfo.val] = adminInfo.text;
-                                        });
-
-                                        window.serverData.dataLib.admin.items = res_request_data;
-                                        window.serverData.dataLib.admin.items.forEach(function (adminItem) {
-                                            window.serverData.dataLib.admin.map[adminItem.val] = adminItem.text;
-                                        });
-
-                                        fun();
-                                    } else {
-                                        alert('获取表信息 请求结果异常');
-                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
-                                    }
-                                },
-                                error: function (res_request_data) {
-                                    console.log(res_request_data);
-                                    alert('获取表信息 网络异常');
-                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
-
-                                }
-                            });
-                        };
-
-                        let getCommitTypeList = function (fun) {
-                            kl.ajax({
-                                url: '/dp/v1/project/items?user_token=' + utk,
-                                data: {item_code: 'commit_type'},
-                                type: 'json',
-                                success: function (res_request_data) {
-                                    if (typeof res_request_data.forEach === "function") {
-                                        window.serverData.dataLib.commitType.items = res_request_data;
-                                        window.serverData.dataLib.commitType.items.forEach(function (commitTypeItem) {
-                                            window.serverData.dataLib.commitType.map[commitTypeItem.val] = commitTypeItem.text;
-                                        });
-                                        fun();
-                                    } else {
-                                        alert('获取表信息 请求结果异常');
-                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
-                                    }
-                                },
-                                error: function (res_request_data) {
-                                    console.log(res_request_data);
-                                    alert('获取表信息 网络异常');
-                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
-
-                                }
-                            });
-                        };
-
-
-                        let getProjectList = function (fun) {
-                            kl.ajax({
-                                url: '/dp/v1/project/items?user_token=' + utk,
-                                data: {item_code: 'project'},
-                                type: 'json',
-                                success: function (res_request_data) {
-                                    if (typeof res_request_data.forEach === "function") {
-                                        window.serverData.project = {list: res_request_data, map: {}};
-                                        res_request_data.forEach(function (projectItem) {
-                                            window.serverData.project.map[projectItem.val] = projectItem.text;
-                                        });
-                                        fun();
-                                    } else {
-                                        alert('获取表信息 请求结果异常');
-                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
-                                    }
-                                },
-                                error: function (res_request_data) {
-                                    console.log(res_request_data);
-                                    alert('获取表信息 网络异常');
-                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
-
-                                }
-                            });
-                        };
-
-                        let getVersionList = function (fun) {
-                            kl.ajax({
-                                url: '/dp/v1/project/items?user_token=' + utk,
-                                data: {item_code: 'version', 'project_id': '#'},
-                                type: 'json',
-                                success: function (res_request_data) {
-                                    if (typeof res_request_data.forEach === "function") {
-                                        window.serverData.version = {list: res_request_data, map: {}};
-                                        res_request_data.forEach(function (versoinItem) {
-                                            window.serverData.version.map[versoinItem.val] = versoinItem.text;
-                                        });
-                                        fun();
-                                    } else {
-                                        alert('获取表信息 请求结果异常');
-                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
-                                    }
-                                },
-                                error: function (res_request_data) {
-                                    console.log(res_request_data);
-                                    alert('获取表信息 网络异常');
-                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
-
-                                }
-                            });
-                        };
-
-
-                        let getStoryTableInfo = function (fun) {
-                            kl.ajax({
-                                url: '/dp/v1/admin/dbdata/info?user_token=' + utk,
-                                data: {table_name: 'd_story'},
-                                type: 'json',
-                                success: function (res_request_data) {
-                                    if (res_request_data.status) {
-                                        if (res_request_data.status === 200) {
-
-                                            res_request_data.data.columns.forEach(function (colInfo) {
-                                                window.serverData.dataLib.storyTableConfig[colInfo.column_name] = colInfo;
-                                            });
-
-                                            //标准
-                                            window.serverData.dataLib.storyType.items = window.serverData.dataLib.storyTableConfig.story_type.val_range;
-                                            window.serverData.dataLib.storyType.items.forEach(function (storyTypItem) {
-                                                window.serverData.dataLib.storyType.map[storyTypItem.val] = storyTypItem.text;
-                                            });
-
-
-                                            fun();
-                                        } else {
-                                            alert(' 获取表信息 错误:' + (res_request_data.message || '未知'));
-                                            throw '别看了，连table info 信息都拿不到，还想干啥?';
-
-                                        }
-                                    } else {
-                                        alert('获取表信息 请求结果异常');
-                                        throw '别看了，连table info 信息都拿不到，还想干啥?';
-                                    }
-                                },
-                                error: function (res_request_data) {
-                                    console.log(res_request_data);
-                                    alert('获取表信息 网络异常');
-                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
-
-                                }
-                            });
-                        };
-
-
-                        getAdminList(() => {
-                            getProjectList(() => {
-                                getVersionList(() => {
-                                    getCommitTypeList(() => {
-                                        getStoryTableInfo(() => {
-                                            content()
-                                        })
-                                    })
-                                })
-                            })
-                        });
-
-                    });
-
-
-                    content = function () {
-                        //  kl.id('h1').textContent = kl.id('h1').textContent + '/' + serverData.table.title + '/ ' + window.serverData.table_name;
-                        //  document.title = '目标版本:' + serverData.table.title + '/' + serverData.table.table_name;
-
-                        let selected_story_ids = [];
-                        let story_tr_handles = [];
-
-
-                        let raw_root = kl.id('content_div');
-                        let root = new Emt('div').setPros({className: 'row'});
-                        raw_root.append(root);
-
-                        let detail_root_div = new Emt('div');
-                        let storys_root_div = new Emt('div');
-                        let storys_list_div = new Emt('div');
-
-                        let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
-
-                        let select_all_btn = hammerYii2Bootstarp1.createButton({text: '全选'}).apiHandle.size.set('lg');
-                        let unselect_all_btn = hammerYii2Bootstarp1.createButton({text: '取消全选'}).apiHandle.size.set('lg');
-
-                        let storys_input_div = Emt('div');
-
-                        let move_project_btn = hammerYii2Bootstarp1.createButton({text: '将勾选中的story 【转移】到指定项目'}).apiHandle.size.set('lg');
-                        let move_project_select = hammerYii2Bootstarp1.createSelect({items: window.serverData.project.list});
-                        let selectInto_version_btn = hammerYii2Bootstarp1.createButton({text: '将勾选中的story 添加至指定目标版本'}).apiHandle.size.set('lg');
-                        let selectInto_version_select = hammerYii2Bootstarp1.createSelect({items: window.serverData.version.list});
-
-                        let moveOut_from_version_btn = hammerYii2Bootstarp1.createButton({text: '将勾选中的story 从目标版本中移出'}).apiHandle.size.set('lg');
-
-
-                        let project_select = hammerYii2Bootstarp1.createSelect({items: window.serverData.project.list});
-                        let version_select = hammerYii2Bootstarp1.createSelect({items: window.serverData.version.list});
-
-                        let storys_display_type_select = hammerYii2Bootstarp1.createSelect({items: [{text: '树形', val: 'tree'}, {text: '优先级', val: 'sort'}]});
-                        let version_his_checkbox = new Emt('input', 'type="checkbox"', {});
-                        version_his_checkbox.checked = true;
-                        let story_step_select = hammerYii2Bootstarp1.createMultipleSelect({}).apiHandle.setItems(window.serverData.dataLib.commitType.items).setAttrs({}).apiHandle.setInitVal([]);
-
-
-                        let create_by_select = hammerYii2Bootstarp1.createMultipleSelect({}).apiHandle.setItems(window.serverData.dataLib.admin.items).setAttrs({}).apiHandle.setInitVal([]);
-
-                        let tracker_select = hammerYii2Bootstarp1.createMultipleSelect({}).apiHandle.setItems(window.serverData.dataLib.admin.items).setAttrs({}).apiHandle.setInitVal([]);
-
-                        // story_table.apiHandle.filterEleMap.story_step_select = story_step_select;
-                        story_table.apiHandle.filterEleMap.story_step_select = story_step_select;
-
-                        story_table.apiHandle.filterEleMap.create_by_select = create_by_select;
-                        story_table.apiHandle.filterEleMap.tracker_select = tracker_select;
-
-                        root.addNodes([
-                            detail_root_div.addNodes([
-                                new Emt('h4', '', '添加至'),
-                                new Emt('div').addNodes([
-                                    move_project_btn,
-                                    new Emt('label', '', '项目:').addNode(move_project_select),
-                                ]),
-                                new Emt('div').addNodes([
-                                    selectInto_version_btn,
-                                    new Emt('label', '', '目标版本:').addNode(selectInto_version_select),]),
-
-                                new Emt('h4', '', '移出'),
-                                new Emt('div').addNodes([
-                                    moveOut_from_version_btn,
-                                ])
-
-                            ]),
-                            storys_root_div.addNodes([
-                                new Emt('h1', '', 'story列表'),
-                                storys_input_div.addNodes([
-                                    new Emt('p').addNodes([
-                                        select_all_btn,
-                                        unselect_all_btn
-                                    ]),
-                                    new Emt('label', '', '展示方式:').addNode(storys_display_type_select),
-                                    new Emt('label', '', '跟踪版本历史:').addNode(version_his_checkbox),
-                                    new Emt('label', '', '项目:').addNode(project_select),
-                                    new Emt('label', '', '目标版本:').addNode(version_select),
-                                    new Emt('label', '', 'story状态:').addNode(story_step_select),
-                                    new Emt('label', '', '创建人:').addNode(create_by_select),
-                                    new Emt('label', '', '跟踪人:').addNode(tracker_select),
-
-                                ]),
-                                new Emt('p'),
-                                storys_list_div.addNodes([
-                                    story_table
-                                ])
-                            ])
-                        ]);
-
-
-                        let modal_edit = hammerYii2Bootstarp1.createModal({title: '修改字段设置'});
-                        let form_edit = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
-
-
-                        window.dragedEle = false;
-
-                        ondrop = function (onDropedTr, dragedTr) {
-                            if (storys_display_type_select.apiHandle.getVal() === 'tree') {
-                                kl.ajax({
-                                    url: '/dp/v1/project/story/tree?user_token=' + utk,
-                                    data: {
-                                        child_story_id: dragedTr.apiHandle.data.id,
-                                        parent_story_id: onDropedTr.apiHandle.data.id
-                                    },
-                                    type: 'json',
-                                    success: function (tmp_res) {
-                                        //hanndle_datagrid.requestData('init');
-                                        story_table.clearRows();
-
-                                        flush_story_list('sql');
-                                    },
-                                    error: function (res_save_column) {
-                                        alert('报错了');
-                                    }
-                                });
-                            } else {
-                                let row_sorts = [];
-                                let len = story_table.rows.length;
-                                let draged_id = dragedTr.apiHandle.data.id;
-                                let be_after_id = onDropedTr.apiHandle.data.id;
-                                let sn = len;
-                                Object.values(story_table.rows).forEach(function (fetch_tr) {
-                                    console.log(fetch_tr);
-                                    if (fetch_tr.apiHandle === undefined) {
-                                        return false;
-                                    }
-                                    if (fetch_tr.apiHandle.data.id === draged_id) {
-                                        return false;
-                                    }
-                                    row_sorts.push({id: fetch_tr.apiHandle.data.id, sn: sn});
-                                    sn = sn - 1;
-                                    if (fetch_tr.apiHandle.data.id === be_after_id) {
-                                        row_sorts.push({id: draged_id, sn: sn});
-                                        sn = sn - 1;
-                                    }
-                                });
-                                console.log('row_sorts', row_sorts);
-                                kl.ajax({
-                                    url: '/dp/v1/project/story/sort?user_token=' + utk,
-                                    data: {
-                                        sorts: row_sorts,
-                                        version_id: serverData.versionInfo.id,
-                                    },
-                                    type: 'json',
-                                    success: function (tmp_res) {
-                                        story_table.clearRows();
-                                        flush_story_list('sql');
-                                    },
-                                    error: function (res_save_column) {
-                                        alert('报错了');
-                                    }
-                                });
-
-                            }
-                        };
-
-                        flush_story_list = function (flush_type) {
-
-                            let search_data = {
-                                page_index: 1, page_size: 1000,
-                                attr: {},
-                                sort: {story_desc_order: 'desc'},
-                                project_id: '#',
-                                version_id: '#',
-                            };
-
-                            search_data.project_id = project_select.apiHandle.getVal();
-
-                            search_data.version_id = version_select.apiHandle.getVal();
-
-                            if (storys_display_type_select.apiHandle.getVal() !== 'tree') {
-                                if (story_step_select.apiHandle.getVal() && story_step_select.apiHandle.getVal() !== '#') {
-                                    search_data.attr.step = story_step_select.apiHandle.getVal();
-                                }
-                                if (create_by_select.apiHandle.getVal() && create_by_select.apiHandle.getVal() !== '#') {
-                                    search_data.attr.create_by = create_by_select.apiHandle.getVal();
-                                }
-                                if (tracker_select.apiHandle.getVal() && tracker_select.apiHandle.getVal() !== '#') {
-                                    search_data.attr.tracker = tracker_select.apiHandle.getVal();
-                                }
-                            }
-                            search_data.track_version_his = version_his_checkbox.checked === true ? 'yes' : 'no';
-                            kl.ajax({
-                                url: '/dp/v1/project/story/list?user_token=' + utk,
-                                data: search_data,
-                                type: 'json',
-                                success: function (res_request_data) {
-                                    if (res_request_data.status) {
-                                        if (res_request_data.status === 200) {
-                                            rander_storys_list(res_request_data.data.dataRows, storys_display_type_select.apiHandle.getVal());
-                                        } else {
-                                            alert('错误:' + (res_request_data.msg || '未知'))
-                                        }
-                                    } else {
-                                        console.log(res_request_data.status);
-                                        alert('请求结果异常')
-                                    }
-                                },
-                                error: function (res_request_data) {
-                                    console.log(res_request_data);
-                                    alert('网络异常');
-                                }
-                            });
-                        };
-
-                        flush_story_list('sql');
-                        [project_select, version_select, storys_display_type_select, version_his_checkbox].forEach((select_ele) => {
-                            select_ele.addEventListener('change', function () {
-                                flush_story_list('sql');
-                            });
-                        });
-                        [tracker_select, create_by_select, story_step_select].forEach((select_ele) => {
-                            select_ele.addEventListener('change', function () {
-                                flush_story_list('match');
-                            });
-                        });
-
-                        select_all_btn.addEventListener('click', function () {
-                            story_table.apiHandle.tr.list.forEach((tr) => {
-                                tr.apiHandle.selectCheckbox.checked = true;
-                            });
-                        });
-                        unselect_all_btn.addEventListener('click', function () {
-                            story_table.apiHandle.tr.list.forEach((tr) => {
-                                tr.apiHandle.selectCheckbox.checked = false;
-                            });
-
-                        });
-
-
-                        move_project_btn.addEventListener('click', function () {
-                            let project_id = move_project_select.apiHandle.getVal();
-                            if (project_id === '#') {
-                                alert('不能进行此操作');
-                                return false;
-                            }
-                            let story_ids = [];
-                            story_table.apiHandle.tr.list.forEach((tr) => {
-                                if (tr.apiHandle.selectCheckbox.checked) {
-                                    story_ids.push(tr.apiHandle.data.id);
-                                }
-                            });
-
-
-                            kl.ajax({
-                                url: '/dp/v1/project/story/moveToProject?user_token=' + utk,
-                                data: {
-                                    project_id: project_id,
-                                    story_ids: story_ids
-                                },
-                                type: 'json',
-                                success: function (tmp_res) {
-                                    if (kl.isUndefined(tmp_res, 'data.changed')) {
-                                        alert('转移至指定项目错误:' + (tmp_res.msg || '未知'));
-                                    } else {
-                                        alert('已经转移到指定项目');
-                                        flush_story_list('sql');
-                                    }
-                                },
-                                error: function (res_save_column) {
-                                    alert('报错了');
-                                }
-                            });
-
-                        });
-                        selectInto_version_btn.addEventListener('click', function () {
-                            let version_id = selectInto_version_select.apiHandle.getVal();
-                            if (version_id === '#') {
-                                alert('不能进行此操作');
-                                return false;
-                            }
-                            let story_ids = [];
-                            story_table.apiHandle.tr.list.forEach((tr) => {
-                                if (tr.apiHandle.selectCheckbox.checked) {
-                                    story_ids.push(tr.apiHandle.data.id);
-                                }
-                            });
-
-                            kl.ajax({
-                                url: '/dp/v1/project/story/addToVersion?user_token=' + utk,
-                                data: {
-                                    version_id: version_id,
-                                    story_ids: story_ids
-                                },
-                                type: 'json',
-                                success: function (tmp_res) {
-                                    if (kl.isUndefined(tmp_res, 'data.changed')) {
-                                        alert('添加至目标版本错误:' + (tmp_res.msg || '未知'));
-                                    } else {
-                                        alert('已经添加至目标版本');
-                                        flush_story_list('mysql');
-                                    }
-                                },
-                                error: function (res_save_column) {
-                                    alert('报错了');
-                                }
-                            });
-
-                        });
-
-
-                        moveOut_from_version_btn.addEventListener('click', function () {
-                            let version_id = version_select.apiHandle.getVal();
-                            if (version_id === '#' || version_id === '0') {
-                                alert('不能进行此操作');
-                                return false;
-                            }
-                            let story_ids = [];
-                            story_table.apiHandle.tr.list.forEach((tr) => {
-                                if (tr.apiHandle.selectCheckbox.checked) {
-                                    story_ids.push(tr.apiHandle.data.id);
-                                }
-                            });
-
-                            kl.ajax({
-                                url: '/dp/v1/project/story/moveOutVersion?user_token=' + utk,
-                                data: {
-                                    version_id: version_id,
-                                    story_ids: story_ids
-                                },
-                                type: 'json',
-                                success: function (tmp_res) {
-                                    if (kl.isUndefined(tmp_res, 'data.changed')) {
-                                        alert('从目标版本内移出错误:' + (tmp_res.msg || '未知'));
-                                    } else {
-                                        alert('已经从目标版本内移出');
-                                        flush_story_list('mysql');
-                                    }
-                                },
-                                error: function (res_save_column) {
-                                    alert('报错了');
-                                }
-                            });
-
-                        });
-
-                        window.dragedEle = false;
-
-                    }
-                }
-            );
-        </script>
-        <style>
-            .drag_sort_div {
-                float: left;
-                width: 100px;
-            }
-
-            .drag_sort_div > * {
-                display: block;
-                float: left;
-            }
-
-            .story_row {
-                margin: 1px;
-                padding: 3px;
-                display: block;
-                float: left;
-                width: 100%;
-            }
-
-            .story_row > div {
-                display: block;
-                -padding: 5px;
-            }
-
-            .story_row_left_div {
-                float: left;
-            }
-
-            .story_row_left_div > div {
-                float: left;
-            }
-
-            .story_id_td {
-                width: 5em;
-            }
-
-            .story_row_right_div {
-                float: right;
-                position: absolute;
-                right: 0px;
-            }
-
-            .story_row_right_div > div {
-                float: left;
-                -width: 100px;
-            }
-
-            .story_creator_td {
-                width: 4em;
-            }
-
-            .story_tracker_td {
-                width: 4em;
-            }
-
-            .story_type_td {
-                width: 4em;
-            }
-
-            .story_status_td {
-                width: 10em;
-            }
-
-            .story_desc_order_td {
-                width: 4em;
-            }
-
-            .story_version_td {
-                width: 8em;
-            }
-
-            .story_create_date_td {
-                width: 10em;
-            }
-
-            .story_update_date_td {
-                width: 10em;
-            }
-
-            .story_op_td {
-                width: 13em;
-            }
-
-            .on_drag_row > td > div {
-                background: #000;
-                color: #FFF;
-            }
-
-            .on_drop_row > td > div {
-                background: #ffff00;
-                color: #00F;
-            }
-
-            .top_lev_story_tr {
-                -border-top: 1px dashed #000;
-                background: #EEE;
-            }
-
-
-            .img_small_size {
-                max-height: 300px;
-                max-width: 800px;
-                width: auto;
-                height: auto;
-            }
-
-            .story_op_td > div > a {
-                display: block;
-                float: left;
-                margin-right: 5px;
-                padding: 5px;
-            }
-
-            .story_status_header {
-                font-weight: 900;
-                font-size: 1.3em;
-                background: #AAA !important;
-            }
-
-            .story_status_feedback, .story_status_pre, .story_status_prod {
-                color: #F00;
-            }
-
-            .story_status_create_story > .story_title_td, .story_status_create_story > .story_creator_td, .story_status_create_story > .story_tracker_td, .story_status_create_story > .story_status_td {
-                -color: #F00;
-                font-weight: 900;
-            }
-
-            .story_status_end {
-                color: #0000FF;
-            }
-
-            .story_status_close {
-                color: #AAA;
-            }
-
-            .story_status_del {
-                color: #AAA;
-                text-decoration: line-through;
-            }
-
-            .story_id_td > div > label > input[type="checkbox"] {
-
-            }
-
-            .story_id_td > div > label > input[type="checkbox"]:checked + span {
-                background: #000;
-                color: #FFF;
-
-            }
-
-            .story_id_td > div > label > input[type="checkbox"]:checked {
-
-            }
-
-            .story_title_div > div {
-                display: block;
-                float: left;
-            }
-
-            .tree_pre_div {
-
-            }
-
-            .tree_node_prefix_start_div {
-
-            }
-
-            .tree_node_prefix_mid_div {
-
-            }
-
-            .tree_node_prefix_end_div {
-
-            }
-
-            .child_story_div {
-                float: left;
-                border-left: 1px solid;
-                width: 100%;
-                margin-left: 5em;
-            }
-
-            /* div[tr_index_odd="0"] {
-                 background: #EEE;
-             }
-
-             div[tr_index_odd="1"] {
-                 background: #FFF;
-             }
-
-
-             div[tr_index_odd="0"] > .child_story_div {
-                 background: #FFF;
-             }
-
-             div[tr_index_odd="1"] > .child_story_div {
-                 background: #EEE;
-             }
-
-
-             div[tr_index_odd="1"] > .child_story_div > .story_body {
-                 background: #EEE;
-             }
-
-             div[tr_index_odd="1"] > .child_story_div > .story_body {
-                 -background: #f6f6f6;
-                 -background: #e1e1e1;
-             }
-             */
-            .story_body {
-                float: left;
-                width: 100%;
-            }
-
-            .story_body:hover {
-                opacity: 1;
-                background: #DDD;
-            }
-
-            div[is_top_story="yes"] {
-                border: 1px solid #AAA;
-                -margin-top: 10px;
-            }
-
-            div[is_top_story="yes"] > .story_body {
-                -background: #CCC;
-                -border-bottom: 1px solid #AAA;
-                padding: 10px;
-
-            }
-
-            div[is_top_story="yes"] > .story_body > .story_row_left_div {
-                font-weight: 900;
-                -border-bottom: 1px solid #AAA;
-            }
-
-            .not_important {
-                opacity: 0.1;
-                display: none !important;
-            }
-
-        </style>
     </div>
 </div>
 
+<script>
 
-<footer class="footer">
-    <div class="container">
-        <p class="pull-left">&copy; My Company 2022</p>
 
-        <p class="pull-right">Powered by <a href="http://www.yiiframework.com/" rel="external">Yii Framework</a></p>
-    </div>
-</footer>
+    let makeTree = function (data_rows, parent_story_id, lev) {
+        console.log('树第N:', data_rows, parent_story_id);
+        let story_infos = [];
+        data_rows.forEach(function (story_info, tmp_i) {
+            if (story_info.story_id == parent_story_id) {
+                story_info.lev = lev;
+                story_info.asIndex = story_infos.length;
+                story_info.nodes = makeTree(data_rows, story_info.id, lev + 1);
+                story_info.nodesCount = story_info.nodes.length;
+                story_infos.push(story_info);
+                data_rows[tmp_i].isTreeNode = true;
+            }
+        });
+        return story_infos;
+    };
 
-<script src="/static/file/admin/js/jquery.js"></script>
-<script src="/static/file/admin/js/bootstrap.js"></script>
+    let makeTreePre = function (deep, index, total) {
+        let tmp_div = new Emt(
+            'div', 'class="tree_pre_div"'
+        );
+        tmp_div.setAttrs({deep: deep});
+        tmp_div.classList.add('tree_pre_div');
+        if (index === 0) {
+            tmp_div.classList.add('tree_node_prefix_start_div');
+        }
+        if (index === (total - 1)) {
+            tmp_div.classList.add('tree_node_prefix_end_div');
+        }
+        if (index > 0 && index > (total - 1)) {
+            tmp_div.classList.add('tree_node_prefix_mid_div');
+        }
+
+        return tmp_div;
+    };
+
+    let ondrop = function () {
+        alert('尚未初始化 ondrop');
+    };
+    let flush_story_list = function () {
+        alert('尚未初始化 flush_story_list');
+    };
+
+    domLoaded(function () {
+            let utk = '';
+            let role_infos = [];
+
+
+            let story_table = new Emt('div', 'class="storys_div"');
+            story_table.apiHandle = {
+                tr: {map: {}, list: []},
+                filterEleMap: {
+                    tracker_select: false,
+                    create_by_select: false,
+                    story_step_select: false
+                }
+            };
+
+            story_table.createRow = function () {
+                let tr = new Emt('div', 'class="story_row"');
+                tr.apiHandle = {};
+                tr.className = "story_row";
+                tr.apiHandle.tr = tr;
+                tr.apiHandle.children_div = new Emt('div', 'class="child_story_div"');
+                tr.apiHandle.id_td = new Emt('div', 'class="story_id_td"');
+                tr.apiHandle.title_td = new Emt('div', 'class="story_title_td"');
+                tr.apiHandle.creator_td = new Emt('div', 'class="story_creator_td"');
+                tr.apiHandle.tracker_td = new Emt('div', 'class="story_tracker_td"');
+                tr.apiHandle.type_td = new Emt('div', 'class="story_type_td"');
+                tr.apiHandle.status_td = new Emt('div', 'class="story_status_td"');
+                tr.apiHandle.desc_order_td = new Emt('div', 'class="story_desc_order_td"');
+                tr.apiHandle.version_td = new Emt('div', 'class="story_version_td"');
+                tr.apiHandle.create_date_td = new Emt('div', 'class="story_create_date_td"');
+                tr.apiHandle.update_date_td = new Emt('div', 'class="story_update_date_td"');
+                tr.apiHandle.op_td = new Emt('div', 'class="story_op_td"');
+                tr.apiHandle.storyBody = new Emt('div', 'class="story_body"');
+                tr.apiHandle.storyBody.tr = tr;
+                tr.apiHandle.storyBody.draggable = true;
+
+                tr.apiHandle.selectCheckbox = new Emt('input', 'type="checkbox"');
+                tr.apiHandle.nodesArray = [
+                    tr.addNodes([
+                        tr.apiHandle.storyBody.addNodes([
+                            new Emt('div', 'class="story_row_left_div"').addNodes([
+                                tr.apiHandle.id_td,
+                                tr.apiHandle.title_td,
+                            ]),
+                            new Emt('div', 'class="story_row_right_div"').addNodes([
+                                tr.apiHandle.creator_td,
+                                tr.apiHandle.tracker_td,
+                                tr.apiHandle.type_td,
+                                tr.apiHandle.status_td,
+                                tr.apiHandle.desc_order_td,
+                                tr.apiHandle.version_td,
+                                tr.apiHandle.create_date_td,
+                                tr.apiHandle.update_date_td,
+                                tr.apiHandle.op_td
+                            ]),
+                        ]),
+                        tr.apiHandle.children_div
+                    ]),
+                ];
+
+                tr.apiHandle.setStoryInfo = function (story_info) {
+                    tr.apiHandle.data = story_info;
+                    if (story_info.isJustData === true) {
+                        return false;
+                    }
+                    story_table.apiHandle.tr.map[story_info.id] = tr;
+                    if (story_info.id !== 'ID') {
+                        tr.apiHandle.id_td.append(
+                            new Emt('div').addNodes([
+                                new Emt('label').addNodes([
+                                    tr.apiHandle.selectCheckbox,
+                                    new Emt('span', '', story_info.id)
+                                ])
+                            ])
+                        );
+                    } else {
+                        tr.apiHandle.id_td.append(new Emt('div', '', story_info.id));
+                    }
+                    let title_div = new Emt('div', 'class="story_title_div"');
+
+                    title_div.addNode(new Emt('div', '', story_info.title));
+                    tr.apiHandle.title_td.append(title_div);
+                    tr.apiHandle.creator_td.append(new Emt('div', '', story_info.__relat.create_by.info.real_name));
+                    tr.apiHandle.tracker_td.append(new Emt('div', '', story_info.__relat.tracker.label ? story_info.__relat.tracker.info.real_name : '#'));
+                    tr.apiHandle.type_td.append(new Emt('div', '', window.serverData.dataLib.storyType.map[story_info.story_type]));
+
+                    tr.apiHandle.status_td.append(new Emt('div', '', window.serverData.dataLib.commitType.map[story_info.step] || story_info.step));
+                    tr.apiHandle.desc_order_td.append(new Emt('div', '', story_info.story_desc_order));
+                    tr.apiHandle.version_td.append(new Emt('div', '', window.serverData.dataLib.version.map[story_info.version_id] || story_info.version_id));
+                    tr.apiHandle.create_date_td.append(new Emt('div', '', story_info.create_time));
+                    tr.apiHandle.update_date_td.append(new Emt('div', '', story_info.update_time ? story_info.update_time : '#'));
+                    tr.apiHandle.op_td.append(new Emt('div').addNodes([
+                        new Emt('a', '', '查看', {target: '_blank', href: '/admin/project/story/detail.html?{"story_id":' + story_info.id + '}'}),
+                        new Emt('a', '', '添加子问题', {target: '_blank', href: '/admin/project/story/add.html?{"parent_story_id":' + story_info.id + '}'}),
+                    ]));
+                    if (story_info.lev === 1) {
+                        tr.classList.add('top_lev_story_tr');
+                        if (tr.previousElementSibling) {
+                            tr.previousElementSibling.classList.add('top_lev_story_last_tr');
+                        }
+                    }
+                    tr.classList.add('story_status_' + story_info.step);
+
+                };
+
+
+                tr.apiHandle.storyBody.addEventListener('dragstart', function (e) {
+                    console.log('dragstart', e.target);
+                    window.dragedEle = tr.apiHandle.storyBody;
+                    tr.apiHandle.storyBody.classList.add('on_drag_row');
+                });
+                tr.apiHandle.storyBody.addEventListener('drag', function (e) {
+                    //console.log('drag');
+
+                });
+                tr.apiHandle.storyBody.addEventListener('dragend', function (e) {
+                    console.log('dragend');
+                    window.dragedEle = false;
+                    tr.apiHandle.storyBody.classList.remove('on_drag_row');
+
+
+                });
+
+                tr.apiHandle.storyBody.addEventListener('dragenter', function (e) {
+                    if (tr.apiHandle.data === window.dragedEle.tr.apiHandle.data) {
+                        return false;
+                    }
+                    //console.log('dragenter');
+                    tr.apiHandle.storyBody.classList.add('on_drop_row');
+
+                });
+                tr.apiHandle.storyBody.addEventListener('drop', function (e) {
+                    if (tr.apiHandle.data === window.dragedEle.tr.apiHandle.data) {
+                        return false;
+                    }
+                    console.log('PRE drop', tr, tr.apiHandle.data, window.dragedEle, window.dragedEle.tr, window.dragedEle.tr.apiHandle.data);
+                    ondrop(tr, window.dragedEle.tr);
+
+                    tr.apiHandle.storyBody.classList.remove('on_drop_row');
+
+
+                });
+                tr.apiHandle.storyBody.addEventListener('dragover', function (e) {
+                    // console.log('dragover');
+                    e.preventDefault(); //【重要】一定要加这一行代码，否则，后面的方法 ondrop() 无法触发。
+
+                });
+                tr.apiHandle.storyBody.addEventListener('dragleave', function (e) {
+                    //console.log('dragleave');
+                    tr.apiHandle.storyBody.classList.remove('on_drop_row');
+
+                });
+
+
+                return tr;
+            };
+            story_table.initHeaders = function () {
+                let story_header = story_table.createRow();
+                story_table.addNodes([story_header]);
+                story_header.apiHandle.setStoryInfo({
+                    id: 0,
+                    isJustData: true,
+                });
+                story_header.apiHandle.id_td.textContent = 'ID';
+                story_header.apiHandle.title_td.textContent = '标题';
+                story_header.apiHandle.type_td.textContent = '归类';
+                story_header.apiHandle.status_td.append(new Emt('div', '', '状态'));
+                story_header.apiHandle.tracker_td.append(new Emt('div', '', '跟踪人'));
+                story_header.apiHandle.creator_td.append(new Emt('div', '', '创建人'));
+                story_header.apiHandle.version_td.append(new Emt('div', '', '当前目标版本'));
+
+                story_header.apiHandle.create_date_td.append(new Emt('div', '', '创建时间'));
+                story_header.apiHandle.update_date_td.append(new Emt('div', '', '更新时间'));
+
+                story_header.apiHandle.desc_order_td.append(new Emt('div', '', '优先级'));
+
+                story_header.apiHandle.op_td.append(new Emt('div').addNodes([
+                    new Emt('a', '', '添加子问题', {href: '/admin/project/story/add.html?{"version_id":' + 0 + '}'})
+                ]));
+            };
+            story_table.initHeaders();
+            story_table.clearRows = function () {
+                console.log(story_table.apiHandle.tr.list);
+                story_table.apiHandle.tr.list.forEach((tr) => {
+                    tr.remove();
+                });
+                story_table.apiHandle.tr.list = [];
+                story_table.apiHandle.tr.map = {};
+            };
+            story_table.appendStoryRowAsTree = function (story_info) {
+                let tr = story_table.createRow();
+                story_table.apiHandle.tr.list.push(tr);
+                story_table.addNode(tr);
+                tr.apiHandle.setStoryInfo(story_info);
+                if (story_info.parentListIndex === undefined) {
+                    tr.setAttrs({tr_index_odd: story_info.listIndex % 2});
+                    tr.setAttrs({is_top_story: 'yes'});
+
+                } else {
+                    tr.setAttrs({tr_index_odd: (story_info.parentListIndex % 2 + 1 + story_info.listIndex) % 2});
+                }
+
+                if (story_info.isTop === true) {
+                    story_table.addNodes([tr]);
+                } else {
+                    // tr.setAttrs({child_tr_index_odd: story_info_index % 2});
+
+                    if (story_table.apiHandle.tr.map[story_info.story_id] === undefined) {
+                        story_table.addNodes([tr]);
+                    } else {
+                        console.log('children', tr, story_info);
+                        story_table.apiHandle.tr.map[story_info.story_id].apiHandle.children_div.addNodes([tr]);
+                        //story_table.apiHandle.tr.map[story_info.story_id].apiHandle.children_div.setAttrs({style:"min-height:"+ story_table.apiHandle.tr.map[story_info.story_id].apiHandle.children_div.childElementCount*3+'em;'                                        })
+                    }
+                }
+                if (story_info.nodes.length > 0) {
+                    story_info.nodes.forEach(function (story_info2, tmp_index) {
+                        story_info2.isNode = true;
+                        story_info2.siblingCount = story_info.nodes.length;
+                        story_info2.siblingIndex = tmp_index;
+                        story_info2.listIndex = tmp_index;
+                        story_info2.parentListIndex = story_info.listIndex;
+
+                        story_table.appendStoryRowAsTree(story_info2);
+                    });
+                } else {
+                    tr.apiHandle.children_div.remove();
+                }
+            };
+            let rander_storys_list = function (dataRows, display_type) {
+                story_table.clearRows();
+                let tmp_arr = makeTree(dataRows, 0, 1);
+                console.log('makeTree', tmp_arr, dataRows);
+
+                if (display_type === 'tree') {
+                    tmp_arr.forEach(function (story_info, tmp_i) {
+                        story_info.isTop = true;
+                        story_info.listIndex = tmp_i;
+                        story_table.appendStoryRowAsTree(story_info);
+                    });
+                    dataRows.forEach((story_info) => {
+                        if (story_info.isTreeNode === undefined) {
+                            story_info.lev = 1;
+                            story_info.asIndex = 0;
+                            story_info.nodes = [];
+                            story_info.nodesCount = 0;
+                            story_info.isTop = true;
+                            story_info.listIndex = 0;
+                            story_info.title = '[ ' + story_info.story_id + ' ] ' + story_info.title;
+                            story_table.appendStoryRowAsTree(story_info);
+                        }
+
+
+                    });
+                    let status_val = story_table.apiHandle.filterEleMap.story_step_select.apiHandle.getVal();
+                    status_val = status_val && status_val !== '#' ? status_val : false;
+                    let createBy_val = story_table.apiHandle.filterEleMap.create_by_select.apiHandle.getVal();
+                    createBy_val = createBy_val && createBy_val !== '#' ? createBy_val : false;
+                    let tracker_val = story_table.apiHandle.filterEleMap.tracker_select.apiHandle.getVal();
+                    tracker_val = tracker_val && tracker_val !== '#' ? tracker_val : false;
+
+
+                    story_table.apiHandle.tr.list.forEach((tr) => {
+                        tr.apiHandle.storyBody.classList.add('not_important');
+                        let tmp_ar = {
+                            status: (status_val.length === 0 || (status_val.length === 1 && status_val[0] === '#')) ? 1 : 0,
+                            createBy: (createBy_val.length === 0 || (createBy_val.length === 1 && createBy_val[0] === '#')) ? 1 : 0,
+                            tracker: (tracker_val.length === 0 || (tracker_val.length === 1 && tracker_val[0] === '#')) ? 1 : 0,
+                        };
+                        if (status_val.indexOf(tr.apiHandle.data.step) !== -1) {
+                            tmp_ar.status = 1;
+                        }
+                        if (createBy_val.indexOf(tr.apiHandle.data.create_by) !== -1) {
+                            tmp_ar.createBy = 1;
+                        }
+                        if (tracker_val.indexOf(tr.apiHandle.data.tracker) !== -1) {
+                            tmp_ar.tracker = 1;
+                        }
+                        console.log(tmp_ar);
+                        if (Object.values(tmp_ar).indexOf(0) === -1) {
+                            tr.apiHandle.storyBody.classList.remove('not_important');
+                        }
+                    });
+
+                } else {
+                    dataRows.forEach(function (story_info, tmp_i) {
+                        let tr = story_table.createRow();
+                        story_info.listIndex = tmp_i;
+                        tr.apiHandle.setStoryInfo(story_info);
+                    })
+                }
+            };
+
+
+            bg_init(function () {
+                utk = window.utk;
+
+                window.serverData.dataLib = {
+                    config: {
+                        project_dbCode: 'dev_bg',
+                        project_project_tableName: 'd_project',
+                        project_version_tableName: 'd_version',
+                        project_story_tableName: 'd_story',
+                        project_commitType_tableName: 'd_story_commit_step',
+
+                    },
+                    admin: {items: [], list: [], map: {}},
+                    commitType: {items: [], list: [], map: {}},
+                    role: {items: [], list: [], map: {}},
+                    storyType: {items: [], list: [], map: {}},
+                    storyTableConfig: {}
+                };
+
+
+                window.serverData.dataLib.bgDataApi = hammerBgDataApi();
+                window.serverData.dataLib.bgDataApi.setUserToken(utk);
+
+
+                (async function () {
+
+                    await window.serverData.dataLib.bgDataApi.getTableAllDataRows(window.serverData.dataLib.config.project_dbCode, window.serverData.dataLib.config.project_project_tableName, 'project', () => {
+                        window.serverData.dataLib.project.items = [{val: '#', text: '不选择'}];
+                        window.serverData.dataLib.project.list.forEach((dataInfo) => {
+                            window.serverData.dataLib.project.items.push({val: dataInfo.id, text: dataInfo.title});
+                            window.serverData.dataLib.project.map[dataInfo.id] = dataInfo.title;
+                        });
+
+                        console.log('project datarows ok');
+                    });
+                    console.log('project 初始化');
+
+
+                    await window.serverData.dataLib.bgDataApi.getTableAllDataRows(window.serverData.dataLib.config.project_dbCode, window.serverData.dataLib.config.project_version_tableName, 'version', () => {
+                        window.serverData.dataLib.version.items = [{val: '#', text: '不选择'}];
+                        window.serverData.dataLib.version.list.forEach((dataInfo) => {
+                            window.serverData.dataLib.version.items.push({val: dataInfo.id, text: dataInfo.title});
+                            window.serverData.dataLib.version.map[dataInfo.id] = dataInfo.title;
+                        });
+
+                        console.log('version datarows ok');
+                    });
+                    console.log('version 初始化');
+
+                    await window.serverData.dataLib.bgDataApi.getTableAllDataRows(window.serverData.dataLib.config.project_dbCode, window.serverData.dataLib.config.project_commitType_tableName, 'commitType', () => {
+                        window.serverData.dataLib.commitType.items = [{val: '#', text: '不选择'}];
+                        window.serverData.dataLib.commitType.list.forEach((dataInfo) => {
+                            window.serverData.dataLib.commitType.items.push({val: dataInfo.item_code, text: dataInfo.title});
+                            window.serverData.dataLib.commitType.map[dataInfo.item_code] = dataInfo.title;
+                        });
+
+                        console.log('commitType datarows ok');
+                    });
+                    console.log('commitType 初始化');
+
+
+                    await kl.ajax({
+                        url: '/dp/v1/project/items?user_token=' + utk,
+                        data: {item_code: 'admin'},
+                        type: 'json',
+                        async: true,
+                    }).then(res => {
+                        if (kl.isUndefined(res, 'result') || typeof res.result.forEach !== "function") {
+                            alert('init role 失败:' + (kl.isUndefined(res, 'result.msg') ? '未知' : res.result.msg));
+                        } else {
+                            window.serverData.dataLib.admin = {items: [], list: [], map: {}};
+                            window.serverData.dataLib.admin.items = res.result;
+                            window.serverData.dataLib.admin.items.forEach(function (adminItem) {
+                                window.serverData.dataLib.admin.map[adminItem.val] = adminItem.text;
+                            });
+                            console.log('admin ajax ok');
+                        }
+                        return res;
+                    });
+                    console.log(' admin 初始化');
+
+
+                    await window.serverData.dataLib.bgDataApi.initTableInfo(window.serverData.dataLib.config.project_dbCode, window.serverData.dataLib.config.project_story_tableName, 'storyTableConfig', () => {
+
+                        window.serverData.dataLib.storyType.items = window.serverData.dataLib.storyTableConfig.__column.map.story_type.val_items;
+                        window.serverData.dataLib.storyType.items.forEach(function (storyTypItem) {
+                            window.serverData.dataLib.storyType.map[storyTypItem.val] = storyTypItem.text;
+                        });
+
+                        console.log('storyTableConfig 初始化 1');
+                    });
+                    console.log(' storyTableConfig 初始化');
+                    content();
+                })();
+
+
+            });
+
+
+            content = function () {
+                //  kl.id('h1').textContent = kl.id('h1').textContent + '/' + serverData.table.title + '/ ' + window.serverData.table_name;
+                //  document.title = '目标版本:' + serverData.table.title + '/' + serverData.table.table_name;
+
+                let selected_story_ids = [];
+                let story_tr_handles = [];
+
+
+                let raw_root = kl.id('content_div');
+                let root = new Emt('div').setPros({className: 'row'});
+                raw_root.append(root);
+
+                let detail_root_div = new Emt('div');
+                let storys_root_div = new Emt('div');
+                let storys_list_div = new Emt('div');
+
+                let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
+
+                let select_all_btn = hammerYii2Bootstarp1.createButton({text: '全选'}).apiHandle.size.set('lg');
+                let unselect_all_btn = hammerYii2Bootstarp1.createButton({text: '取消全选'}).apiHandle.size.set('lg');
+
+                let storys_input_div = Emt('div');
+
+                let move_project_btn = hammerYii2Bootstarp1.createButton({text: '将勾选中的story 【转移】到指定项目'}).apiHandle.size.set('lg');
+                let move_project_select = hammerYii2Bootstarp1.createSelect({items: window.serverData.dataLib.project.items});
+                let selectInto_version_btn = hammerYii2Bootstarp1.createButton({text: '将勾选中的story 添加至指定目标版本'}).apiHandle.size.set('lg');
+                let selectInto_version_select = hammerYii2Bootstarp1.createSelect({items: window.serverData.dataLib.version.items});
+
+                let moveOut_from_version_btn = hammerYii2Bootstarp1.createButton({text: '将勾选中的story 从目标版本中移出'}).apiHandle.size.set('lg');
+
+
+                let project_select = hammerYii2Bootstarp1.createSelect({items: window.serverData.dataLib.project.items});
+                let version_select = hammerYii2Bootstarp1.createSelect({items: window.serverData.dataLib.version.items});
+
+                let storys_display_type_select = hammerYii2Bootstarp1.createSelect({items: [{text: '树形', val: 'tree'}, {text: '优先级', val: 'sort'}]});
+                let version_his_checkbox = new Emt('input', 'type="checkbox"', {});
+                version_his_checkbox.checked = true;
+                let story_step_select = hammerYii2Bootstarp1.createMultipleSelect({}).apiHandle.setItems(window.serverData.dataLib.commitType.items).setAttrs({}).apiHandle.setInitVal([]);
+
+
+                let create_by_select = hammerYii2Bootstarp1.createMultipleSelect({}).apiHandle.setItems(window.serverData.dataLib.admin.items).setAttrs({}).apiHandle.setInitVal([]);
+
+                let tracker_select = hammerYii2Bootstarp1.createMultipleSelect({}).apiHandle.setItems(window.serverData.dataLib.admin.items).setAttrs({}).apiHandle.setInitVal([]);
+
+                // story_table.apiHandle.filterEleMap.story_step_select = story_step_select;
+                story_table.apiHandle.filterEleMap.story_step_select = story_step_select;
+
+                story_table.apiHandle.filterEleMap.create_by_select = create_by_select;
+                story_table.apiHandle.filterEleMap.tracker_select = tracker_select;
+
+                root.addNodes([
+                    detail_root_div.addNodes([
+                        new Emt('h4', '', '添加至'),
+                        new Emt('div').addNodes([
+                            move_project_btn,
+                            new Emt('label', '', '项目:').addNode(move_project_select),
+                        ]),
+                        new Emt('div').addNodes([
+                            selectInto_version_btn,
+                            new Emt('label', '', '目标版本:').addNode(selectInto_version_select),]),
+
+                        new Emt('h4', '', '移出'),
+                        new Emt('div').addNodes([
+                            moveOut_from_version_btn,
+                        ])
+
+                    ]),
+                    storys_root_div.addNodes([
+                        new Emt('h1', '', 'story列表'),
+                        storys_input_div.addNodes([
+                            new Emt('p').addNodes([
+                                select_all_btn,
+                                unselect_all_btn
+                            ]),
+                            new Emt('label', '', '展示方式:').addNode(storys_display_type_select),
+                            new Emt('label', '', '跟踪版本历史:').addNode(version_his_checkbox),
+                            new Emt('label', '', '项目:').addNode(project_select),
+                            new Emt('label', '', '目标版本:').addNode(version_select),
+                            new Emt('label', '', 'story状态:').addNode(story_step_select),
+                            new Emt('label', '', '创建人:').addNode(create_by_select),
+                            new Emt('label', '', '跟踪人:').addNode(tracker_select),
+
+                        ]),
+                        new Emt('p'),
+                        storys_list_div.addNodes([
+                            story_table
+                        ])
+                    ])
+                ]);
+
+
+                let modal_edit = hammerYii2Bootstarp1.createModal({title: '修改字段设置'});
+                let form_edit = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
+
+
+                window.dragedEle = false;
+
+                ondrop = function (onDropedTr, dragedTr) {
+                    if (storys_display_type_select.apiHandle.getVal() === 'tree') {
+                        kl.ajax({
+                            url: '/dp/v1/project/story/tree?user_token=' + utk,
+                            data: {
+                                child_story_id: dragedTr.apiHandle.data.id,
+                                parent_story_id: onDropedTr.apiHandle.data.id
+                            },
+                            type: 'json',
+                            success: function (tmp_res) {
+                                //hanndle_datagrid.requestData('init');
+                                story_table.clearRows();
+
+                                flush_story_list('sql');
+                            },
+                            error: function (res_save_column) {
+                                alert('报错了');
+                            }
+                        });
+                    } else {
+                        let row_sorts = [];
+                        let len = story_table.rows.length;
+                        let draged_id = dragedTr.apiHandle.data.id;
+                        let be_after_id = onDropedTr.apiHandle.data.id;
+                        let sn = len;
+                        Object.values(story_table.rows).forEach(function (fetch_tr) {
+                            console.log(fetch_tr);
+                            if (fetch_tr.apiHandle === undefined) {
+                                return false;
+                            }
+                            if (fetch_tr.apiHandle.data.id === draged_id) {
+                                return false;
+                            }
+                            row_sorts.push({id: fetch_tr.apiHandle.data.id, sn: sn});
+                            sn = sn - 1;
+                            if (fetch_tr.apiHandle.data.id === be_after_id) {
+                                row_sorts.push({id: draged_id, sn: sn});
+                                sn = sn - 1;
+                            }
+                        });
+                        console.log('row_sorts', row_sorts);
+                        kl.ajax({
+                            url: '/dp/v1/project/story/sort?user_token=' + utk,
+                            data: {
+                                sorts: row_sorts,
+                                version_id: serverData.versionInfo.id,
+                            },
+                            type: 'json',
+                            success: function (tmp_res) {
+                                story_table.clearRows();
+                                flush_story_list('sql');
+                            },
+                            error: function (res_save_column) {
+                                alert('报错了');
+                            }
+                        });
+
+                    }
+                };
+
+                flush_story_list = function (flush_type) {
+
+                    let search_data = {
+                        page_index: 1, page_size: 1000,
+                        attr: {},
+                        sort: {story_desc_order: 'desc'},
+                        project_id: '#',
+                        version_id: '#',
+                    };
+
+                    search_data.project_id = project_select.apiHandle.getVal();
+
+                    search_data.version_id = version_select.apiHandle.getVal();
+
+                    if (storys_display_type_select.apiHandle.getVal() !== 'tree') {
+                        if (story_step_select.apiHandle.getVal() && story_step_select.apiHandle.getVal() !== '#') {
+                            search_data.attr.step = story_step_select.apiHandle.getVal();
+                        }
+                        if (create_by_select.apiHandle.getVal() && create_by_select.apiHandle.getVal() !== '#') {
+                            search_data.attr.create_by = create_by_select.apiHandle.getVal();
+                        }
+                        if (tracker_select.apiHandle.getVal() && tracker_select.apiHandle.getVal() !== '#') {
+                            search_data.attr.tracker = tracker_select.apiHandle.getVal();
+                        }
+                    }
+                    search_data.track_version_his = version_his_checkbox.checked === true ? 'yes' : 'no';
+                    kl.ajax({
+                        url: '/dp/v1/project/story/list?user_token=' + utk,
+                        data: search_data,
+                        type: 'json',
+                        success: function (res_request_data) {
+                            if (res_request_data.status) {
+                                if (res_request_data.status === 200) {
+                                    rander_storys_list(res_request_data.data.dataRows, storys_display_type_select.apiHandle.getVal());
+                                } else {
+                                    alert('错误:' + (res_request_data.msg || '未知'))
+                                }
+                            } else {
+                                console.log(res_request_data.status);
+                                alert('请求结果异常')
+                            }
+                        },
+                        error: function (res_request_data) {
+                            console.log(res_request_data);
+                            alert('网络异常');
+                        }
+                    });
+                };
+
+                flush_story_list('sql');
+                [project_select, version_select, storys_display_type_select, version_his_checkbox].forEach((select_ele) => {
+                    select_ele.addEventListener('change', function () {
+                        flush_story_list('sql');
+                    });
+                });
+                [tracker_select, create_by_select, story_step_select].forEach((select_ele) => {
+                    select_ele.addEventListener('change', function () {
+                        flush_story_list('match');
+                    });
+                });
+
+                select_all_btn.addEventListener('click', function () {
+                    story_table.apiHandle.tr.list.forEach((tr) => {
+                        tr.apiHandle.selectCheckbox.checked = true;
+                    });
+                });
+                unselect_all_btn.addEventListener('click', function () {
+                    story_table.apiHandle.tr.list.forEach((tr) => {
+                        tr.apiHandle.selectCheckbox.checked = false;
+                    });
+
+                });
+
+
+                move_project_btn.addEventListener('click', function () {
+                    let project_id = move_project_select.apiHandle.getVal();
+                    if (project_id === '#') {
+                        alert('不能进行此操作');
+                        return false;
+                    }
+                    let story_ids = [];
+                    story_table.apiHandle.tr.list.forEach((tr) => {
+                        if (tr.apiHandle.selectCheckbox.checked) {
+                            story_ids.push(tr.apiHandle.data.id);
+                        }
+                    });
+
+
+                    kl.ajax({
+                        url: '/dp/v1/project/story/moveToProject?user_token=' + utk,
+                        data: {
+                            project_id: project_id,
+                            story_ids: story_ids
+                        },
+                        type: 'json',
+                        success: function (tmp_res) {
+                            if (kl.isUndefined(tmp_res, 'data.changed')) {
+                                alert('转移至指定项目错误:' + (tmp_res.msg || '未知'));
+                            } else {
+                                alert('已经转移到指定项目');
+                                flush_story_list('sql');
+                            }
+                        },
+                        error: function (res_save_column) {
+                            alert('报错了');
+                        }
+                    });
+
+                });
+                selectInto_version_btn.addEventListener('click', function () {
+                    let version_id = selectInto_version_select.apiHandle.getVal();
+                    if (version_id === '#') {
+                        alert('不能进行此操作');
+                        return false;
+                    }
+                    let story_ids = [];
+                    story_table.apiHandle.tr.list.forEach((tr) => {
+                        if (tr.apiHandle.selectCheckbox.checked) {
+                            story_ids.push(tr.apiHandle.data.id);
+                        }
+                    });
+
+                    kl.ajax({
+                        url: '/dp/v1/project/story/addToVersion?user_token=' + utk,
+                        data: {
+                            version_id: version_id,
+                            story_ids: story_ids
+                        },
+                        type: 'json',
+                        success: function (tmp_res) {
+                            if (kl.isUndefined(tmp_res, 'data.changed')) {
+                                alert('添加至目标版本错误:' + (tmp_res.msg || '未知'));
+                            } else {
+                                alert('已经添加至目标版本');
+                                flush_story_list('mysql');
+                            }
+                        },
+                        error: function (res_save_column) {
+                            alert('报错了');
+                        }
+                    });
+
+                });
+
+
+                moveOut_from_version_btn.addEventListener('click', function () {
+                    let version_id = version_select.apiHandle.getVal();
+                    if (version_id === '#' || version_id === '0') {
+                        alert('不能进行此操作');
+                        return false;
+                    }
+                    let story_ids = [];
+                    story_table.apiHandle.tr.list.forEach((tr) => {
+                        if (tr.apiHandle.selectCheckbox.checked) {
+                            story_ids.push(tr.apiHandle.data.id);
+                        }
+                    });
+
+                    kl.ajax({
+                        url: '/dp/v1/project/story/moveOutVersion?user_token=' + utk,
+                        data: {
+                            version_id: version_id,
+                            story_ids: story_ids
+                        },
+                        type: 'json',
+                        success: function (tmp_res) {
+                            if (kl.isUndefined(tmp_res, 'data.changed')) {
+                                alert('从目标版本内移出错误:' + (tmp_res.msg || '未知'));
+                            } else {
+                                alert('已经从目标版本内移出');
+                                flush_story_list('mysql');
+                            }
+                        },
+                        error: function (res_save_column) {
+                            alert('报错了');
+                        }
+                    });
+
+                });
+
+                window.dragedEle = false;
+
+            }
+        }
+    );
+</script>
+<style>
+    .drag_sort_div {
+        float: left;
+        width: 100px;
+    }
+
+    .drag_sort_div > * {
+        display: block;
+        float: left;
+    }
+
+    .story_row {
+        margin: 1px;
+        padding: 3px;
+        display: block;
+        float: left;
+        width: 100%;
+    }
+
+    .story_row > div {
+        display: block;
+        -padding: 5px;
+    }
+
+    .story_row_left_div {
+        float: left;
+    }
+
+    .story_row_left_div > div {
+        float: left;
+    }
+
+    .story_id_td {
+        width: 5em;
+    }
+
+    .story_row_right_div {
+        float: right;
+        position: absolute;
+        right: 0px;
+    }
+
+    .story_row_right_div > div {
+        float: left;
+        -width: 100px;
+    }
+
+    .story_creator_td {
+        width: 4em;
+    }
+
+    .story_tracker_td {
+        width: 4em;
+    }
+
+    .story_type_td {
+        width: 4em;
+    }
+
+    .story_status_td {
+        width: 10em;
+    }
+
+    .story_desc_order_td {
+        width: 4em;
+    }
+
+    .story_version_td {
+        width: 8em;
+    }
+
+    .story_create_date_td {
+        width: 10em;
+    }
+
+    .story_update_date_td {
+        width: 10em;
+    }
+
+    .story_op_td {
+        width: 13em;
+    }
+
+    .on_drag_row > td > div {
+        background: #000;
+        color: #FFF;
+    }
+
+    .on_drop_row > td > div {
+        background: #ffff00;
+        color: #00F;
+    }
+
+    .top_lev_story_tr {
+        -border-top: 1px dashed #000;
+        background: #EEE;
+    }
+
+
+    .img_small_size {
+        max-height: 300px;
+        max-width: 800px;
+        width: auto;
+        height: auto;
+    }
+
+    .story_op_td > div > a {
+        display: block;
+        float: left;
+        margin-right: 5px;
+        padding: 5px;
+    }
+
+    .story_status_header {
+        font-weight: 900;
+        font-size: 1.3em;
+        background: #AAA !important;
+    }
+
+    .story_status_feedback, .story_status_pre, .story_status_prod {
+        color: #F00;
+    }
+
+    .story_status_create_story > .story_title_td, .story_status_create_story > .story_creator_td, .story_status_create_story > .story_tracker_td, .story_status_create_story > .story_status_td {
+        -color: #F00;
+        font-weight: 900;
+    }
+
+    .story_status_end {
+        color: #0000FF;
+    }
+
+    .story_status_close {
+        color: #AAA;
+    }
+
+    .story_status_del {
+        color: #AAA;
+        text-decoration: line-through;
+    }
+
+    .story_id_td > div > label > input[type="checkbox"] {
+
+    }
+
+    .story_id_td > div > label > input[type="checkbox"]:checked + span {
+        background: #000;
+        color: #FFF;
+
+    }
+
+    .story_id_td > div > label > input[type="checkbox"]:checked {
+
+    }
+
+    .story_title_div > div {
+        display: block;
+        float: left;
+    }
+
+    .tree_pre_div {
+
+    }
+
+    .tree_node_prefix_start_div {
+
+    }
+
+    .tree_node_prefix_mid_div {
+
+    }
+
+    .tree_node_prefix_end_div {
+
+    }
+
+    .child_story_div {
+        float: left;
+        border-left: 1px solid;
+        width: 100%;
+        margin-left: 5em;
+    }
+
+    /* div[tr_index_odd="0"] {
+         background: #EEE;
+     }
+
+     div[tr_index_odd="1"] {
+         background: #FFF;
+     }
+
+
+     div[tr_index_odd="0"] > .child_story_div {
+         background: #FFF;
+     }
+
+     div[tr_index_odd="1"] > .child_story_div {
+         background: #EEE;
+     }
+
+
+     div[tr_index_odd="1"] > .child_story_div > .story_body {
+         background: #EEE;
+     }
+
+     div[tr_index_odd="1"] > .child_story_div > .story_body {
+         -background: #f6f6f6;
+         -background: #e1e1e1;
+     }
+     */
+    .story_body {
+        float: left;
+        width: 100%;
+    }
+
+    .story_body:hover {
+        opacity: 1;
+        background: #DDD;
+    }
+
+    div[is_top_story="yes"] {
+        border: 1px solid #AAA;
+        -margin-top: 10px;
+    }
+
+    div[is_top_story="yes"] > .story_body {
+        -background: #CCC;
+        -border-bottom: 1px solid #AAA;
+        padding: 10px;
+
+    }
+
+    div[is_top_story="yes"] > .story_body > .story_row_left_div {
+        font-weight: 900;
+        -border-bottom: 1px solid #AAA;
+    }
+
+    .not_important {
+        opacity: 0.1;
+        display: none !important;
+    }
+
+</style>
+
+
 </body>
 </html>
