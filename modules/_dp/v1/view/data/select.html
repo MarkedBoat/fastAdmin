@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>查询-表</title>
+    <link href="/static/_dp/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/_dp/css/site.css" rel="stylesheet">
+    <link href="/static/_dp/css/bg.css" rel="stylesheet">
+    <script src="/static/_dp/js/jquery.js"></script>
+    <script src="/static/_dp/js/bootstrap.js"></script>
+
+    <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
+    <script src="/static/_dp/js/string/string.js"></script>
+    <script src="/static/_dp/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
+    <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2022.11.16.js"></script>
+    <script src="/static/_dp/js/bg.js"></script>
+    <script src="/static/_dp/js/hammer/hammer-struct.js"></script>
+    <script src="/static/_dp/js/hammer-bg-dbdata.js"></script>
+
+<body>
+
+<div class="wrap">
+    <nav id="w0" class="navbar-inverse navbar-fixed-top navbar">
+        <div class="container">
+            <div id="menu_toggle_btn" class="navbar-brand menu_toggle_btn">导航</div>
+            <div id="page_title" class="navbar-brand page_title">【查询-数据】</div>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="site-index">
+            <div class="panel panel-primary">
+                <div class="panel-body">
+                    <p id="subject_detail"></p>
+                </div>
+            </div>
+            <div class="body-content" id="content_div">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    domLoaded(function () {
+        let utk = '';
+
+        bg_init(function () {
+            utk = window.utk;
+
+            window.serverData.dataLib = {
+                admin: {items: [], list: [], map: {}},
+                role: {items: [], list: [], map: {}},
+                struct: {items: [], list: [], map: {}},
+                mainTable: {},
+                dbdataTablesTable: {},
+
+            };
+
+
+            window.serverData.dataLib.bgDataApi = hammerBgDataApi();
+            window.serverData.dataLib.bgDataApi.setUserToken(utk);
+            window.serverData.dataLib.bgDataApi.setMainTableName(window.serverData.dbconf_name, window.serverData.table_name);
+
+
+            (async function () {
+
+
+                // await window.serverData.dataLib.bgDataApi.initRoles(() => {
+                //     console.log('角色初始化 1');
+                // });
+                // console.log('角色初始化');
+                console.log('主表初始化0', window.serverData.dataLib.bgDataApi.config.mainTable_dbConfCode, window.serverData.dataLib.bgDataApi.config.mainTable_tableName);
+                await window.serverData.dataLib.bgDataApi.init_MainTable_ConfigInfo(() => {
+                    console.log('主表初始化 1');
+                });
+                console.log('主表初始化2', window.serverData.dataLib.bgDataApi.config.mainTable_dbConfCode, window.serverData.dataLib.bgDataApi.config.mainTable_tableName);
+
+
+                content();
+            })();
+
+            // getRoles(() => {
+            //     getMainTableInfo(() => {
+            //         content();
+            //     })
+            // })
+        });
+        let content = function () {
+            let rowIndexCount = 0;
+
+
+            kl.id('page_title').textContent = kl.id('page_title').textContent + '/' + window.serverData.dataLib.mainTable.tableInfo.title + '/ ' + window.serverData.dataLib.mainTable.tableInfo.table_name;
+            document.title = '查:' + window.serverData.dataLib.mainTable.tableInfo.title + '/' + window.serverData.dataLib.mainTable.tableInfo.table_name;
+            kl.id('subject_detail').textContent = window.serverData.dataLib.mainTable.tableInfo.remark;
+
+
+            let raw_root = kl.id('content_div');
+            let root = new Emt('div').setPros({className: 'row'});
+            raw_root.append(root);
+
+
+            let add_row_btn = new Emt('button', '', '新增');
+            let operation_div = new Emt('div');
+            let select_page_info_span = new Emt('span');
+            let select_count_info_span = new Emt('span');
+            let show_search_modal_btn = new Emt('button', '', '展示搜索条件');
+            let search_btn = new Emt('button', '', '=>搜索');
+
+            let info_div = new Emt('div');
+            let datagrid_div = new Emt('div');
+            let fixed_tools_div = new Emt('div', 'class="fixed_tools_div"');
+
+
+            root.addNodes([
+                operation_div.addNodes([
+                    add_row_btn
+                ]),
+                info_div.addNodes([
+                    select_page_info_span,
+                    select_count_info_span
+                ]),
+                datagrid_div,
+                fixed_tools_div.addNodes([
+                    search_btn,
+                    show_search_modal_btn
+                ])
+            ]);
+
+
+            let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
+
+
+            let searchModal = hammerYii2Bootstarp1.createModal({title: '修改'});
+            let searchForm = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
+            searchModal.apiHandle.ele.body.addNodes([searchForm]);
+
+
+            let updateRowModal = hammerYii2Bootstarp1.createModal({title: '修改'});
+            let updateRowForm = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
+            updateRowModal.apiHandle.ele.body.addNodes([updateRowForm]);
+
+            let insertRowModal = hammerYii2Bootstarp1.createModal({title: '添加'});
+            let insertRowForm = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
+            insertRowModal.apiHandle.ele.body.addNodes([insertRowForm]);
+
+
+            let datagrid = hammerBootstarpDatagrid({});
+            console.log('datagrid', datagrid);
+            datagrid.api.setDstDivElement(datagrid_div);
+            datagrid.api.setRequestDataRowsFunction(function (event_type, dataGrid) {
+
+                let page_data = dataGrid.api.getRequestParam();
+                console.log(event_type, page_data);
+                if (event_type === 'filter') {
+                    console.log('这个不做理会，不然请求太频繁了');
+                    return false;
+                }
+                let post_data = {
+                    //page: page_data.page,
+                    page_index: page_data.page.index,
+                    page_size: page_data.page.size,
+                    attr: page_data.filter,
+                    dbconf_name: window.serverData.dataLib.mainTable.tableInfo.dbconf_name,
+                    table_name: window.serverData.dataLib.mainTable.tableInfo.table_name,
+                };
+                // post_data.attr.table_name = window.serverData.table_name;
+
+                if (!page_data.sort.key || !page_data.sort.type) {
+                    console.log('没有排序');
+                } else {
+                    // post_data.sort = page_data.sort;
+                    post_data.sort = {};
+                    post_data.sort[page_data.sort.key] = page_data.sort.type;
+                }
+
+                for (let attr_key in post_data.attr) {
+                    console.log(attr_key);
+                    if (post_data.attr[attr_key][0] === ':') {
+                        post_data.attr[attr_key] = 'like:%' + post_data.attr[attr_key].substring(1) + '%';
+                    }
+                }
+
+
+                kl.ajax({
+                    url: '/_dp/v1/dbdata/select?user_token=' + utk,
+                    data: post_data,
+                    type: 'json',
+                    success: function (res_request_data) {
+                        console.log('请求成功');
+                        if (res_request_data.status) {
+                            if (res_request_data.status === 200) {
+                                //handle_callback(res_request_data.data.dataRows);
+                                rowIndexCount = 0;
+                                select_page_info_span.textContent = '当前页码' + res_request_data.data.pageIndex + '/' + res_request_data.data.pageTotal + '.        .';
+                                select_count_info_span.textContent = ' 共' + res_request_data.data.rowsTotal + '条';
+                                dataGrid.api.reloadDataRows(res_request_data.data);
+                            } else {
+                                alert('错误:' + (res_request_data.msg || '未知'))
+                            }
+                        } else {
+                            console.log(res_request_data.status);
+                            alert('请求结果异常')
+                        }
+                    },
+                    error: function (res_request_data) {
+                        console.log('datagrid.api.setRequestDataRowsFunction 网络异常:' + res_request_data);
+                        alert('网络异常');
+                    }
+                });
+
+
+            });
+
+            datagrid.api.preCreateColumn('_rowIndexCount').setColumnInfo({}).setHeaderText('i').setSortable(false).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                rowIndexCount++;
+                cell.textContent = rowIndexCount.toString();
+            });
+
+            window.serverData.dataLib.mainTable.__column.items.forEach((columnConfigInfo) => {
+                let inputKey = columnConfigInfo.column_name + 'Input';
+                let columnTitle = columnConfigInfo.title || columnConfigInfo.column_name;
+                let inputType = 'text';
+                if (columnConfigInfo.db_datatype === 'json') {
+                    inputType = 'textarea';
+                    if (columnConfigInfo.struct_code) {
+                        updateRowForm[columnConfigInfo.column_name + 'Struct'] = {
+                            groupDiv: hammerYii2Bootstarp1.createFormInputGroupDiv({text: '结构'})
+                        };
+                        insertRowForm[columnConfigInfo.column_name + 'Struct'] = {
+                            groupDiv: hammerYii2Bootstarp1.createFormInputGroupDiv({text: '结构'})
+                        };
+                        updateRowForm.addNodes(updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv);
+                        updateRowForm.addNodes(insertRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv);
+                    }
+
+                }
+                if (columnConfigInfo.db_datatype === 'text' || (columnConfigInfo.db_datatype === 'varchar' && columnConfigInfo.db_datatype_len > 64)) {
+                    inputType = 'textarea';
+                }
+
+                if (columnConfigInfo.valItems.length > 0) {
+                    inputType = 'select';
+                }
+                searchForm.apiHandle.addGroupPreCreate().setLabelText(columnTitle).setIndexKey(inputKey).create(inputType === 'select' ? inputType : 'text');
+
+                if ((['update_time', 'create_time']).indexOf(columnConfigInfo.column_name) === -1) {
+                    insertRowForm.apiHandle.addGroupPreCreate().setLabelText(columnTitle).setIndexKey(inputKey).create(inputType);
+                    updateRowForm.apiHandle.addGroupPreCreate().setLabelText(columnTitle).setIndexKey(inputKey).create(inputType);
+                    if (columnConfigInfo.valItems.length > 0) {
+                        updateRowForm.apiHandle.ele.input[inputKey].apiHandle.setItems(columnConfigInfo.valItems);
+                        insertRowForm.apiHandle.ele.input[inputKey].apiHandle.setItems(columnConfigInfo.valItems);
+                        searchForm.apiHandle.ele.input[inputKey].apiHandle.setItems(columnConfigInfo.valItems);
+                    }
+                    if (columnConfigInfo.index_key === 'PRI') {
+                        updateRowForm.apiHandle.ele.input[inputKey].readOnly = true;
+                        insertRowForm.apiHandle.ele.input[inputKey].remove();
+                    }
+                }
+
+                let tmp_column_handle = datagrid.api.preCreateColumn(columnConfigInfo.column_name).setColumnInfo(columnConfigInfo).setHeaderText(columnTitle).setSortable(true).setFixedFilterInputConfig({valueItems: columnConfigInfo.valItems}).setFreeFilterInput(searchForm.apiHandle.ele.input[inputKey]);
+                //  console.log('columnConfigInfo.valueMap',columnConfigInfo.valueMap,columnConfigInfo.valueMap.length > 0);
+
+                if (columnConfigInfo.valItems.length > 0) {
+                    tmp_column_handle.setRenderFunction((data_cell, rowData) => {
+                        data_cell.textContent = columnConfigInfo.valItemMap[rowData[columnConfigInfo.column_name]] || rowData[columnConfigInfo.column_name];
+                    })
+                } else {
+
+                    tmp_column_handle.setRenderFunction((data_cell, rowData) => {
+                        if (columnConfigInfo.out_datatype === "img_uri") {
+                            data_cell.append(new Emt('img', 'class="cell_img"').setPros({src: rowData[columnConfigInfo.column_name]}));
+                        } else {
+                            let tmp_path = '__relat.' + columnConfigInfo.column_name + '.info';
+                            data_cell.textContent = rowData[columnConfigInfo.column_name] + (kl.isUndefined(rowData, tmp_path) ? '' : ('(' + rowData.__relat[columnConfigInfo.column_name].label) + ')');
+                        }
+
+                    })
+                }
+
+
+            });
+
+            searchForm.apiHandle.addGroupPreCreate().setLabelText('#').setIndexKey('submitBtn').setContentText('搜索').setType('button').create('button');
+            updateRowForm.apiHandle.addGroupPreCreate().setLabelText('#').setIndexKey('submitBtn').setContentText('修改').setType('button').create('button');
+            insertRowForm.apiHandle.addGroupPreCreate().setLabelText('#').setIndexKey('submitBtn').setContentText('保存').setType('button').create('button');
+
+
+            datagrid.api.preCreateColumn('op').setColumnInfo({}).setHeaderText('操作').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                let edit_btn = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '修改'});
+                edit_btn.addEventListener('click', function () {
+                    console.log('修改', cell, row_data);
+                    updateRowModal.data_info = {cell: cell, row_data: row_data};
+                    window.serverData.dataLib.mainTable.__column.items.forEach((columnConfigInfo) => {
+                        let inputKey = columnConfigInfo.column_name + 'Input';
+                        if (updateRowForm.apiHandle.ele.input[inputKey] === undefined) {
+                            return false;
+                        }
+                        updateRowForm.apiHandle.ele.input[inputKey].apiHandle.setInitVal(row_data[columnConfigInfo.column_name]);
+                        console.log(columnConfigInfo, updateRowForm.apiHandle.ele.input[inputKey], row_data[columnConfigInfo.column_name]);
+                        if (columnConfigInfo.db_datatype === 'json' && columnConfigInfo.struct_code) {
+                            let tmp_data = kl.jsonDecode(row_data[columnConfigInfo.column_name], {});
+                            if (tmp_data.struct_code !== undefined && window.serverData.dataLib.struct.map[tmp_data.struct_code] !== undefined) {
+                                updateRowForm[columnConfigInfo.column_name + 'Struct'].addNodes([
+                                    new hammerStruct(window.serverData.dataLib.struct.map[tmp_data.struct_code].struct_json, tmp_data, function (val) {
+                                        updateRowForm.apiHandle.ele.input[inputKey].apiHandle.setChangedVal(JSON.stringify(val));
+                                    })
+                                ]);
+                            }
+                        }
+
+                    });
+
+                    updateRowModal.apiHandle.show();
+                });
+
+
+                cell.addNodes([edit_btn]);
+            });
+
+
+            search_btn.addEventListener('click', function () {
+                datagrid.api.requestData('search_btn');
+            });
+            show_search_modal_btn.addEventListener('click', function () {
+                searchModal.apiHandle.show();
+            });
+            add_row_btn.addEventListener('click', function () {
+                window.serverData.dataLib.mainTable.__column.items.forEach((columnConfigInfo) => {
+                    let inputKey = columnConfigInfo.column_name + 'Input';
+                    if (insertRowForm.apiHandle.ele.input[inputKey] === undefined) {
+                        return false;
+                    }
+                    insertRowForm.apiHandle.ele.input[inputKey].apiHandle.setInitVal('');
+                });
+
+                insertRowModal.apiHandle.show();
+            });
+
+            searchForm.apiHandle.ele.input.submitBtn.addEventListener('click', function () {
+                datagrid.api.requestData('search_btn');
+                searchModal.apiHandle.hide();
+            });
+            updateRowForm.apiHandle.ele.input.submitBtn.addEventListener('click', function () {
+                let changed_attrs = {};
+                changed_attrs[window.serverData.dataLib.mainTable.tableInfo.pkKey] = updateRowForm.apiHandle.ele.input[window.serverData.dataLib.mainTable.tableInfo.pkKey + 'Input'].value;
+                window.serverData.dataLib.mainTable.__column.items.forEach(function (columnConfigInfo) {
+                    let inputKey = columnConfigInfo.column_name + 'Input';
+                    if (columnConfigInfo.column_name === window.serverData.dataLib.mainTable.pkKey || updateRowForm.apiHandle.ele.input[inputKey] === undefined) return false;
+                    if (updateRowForm.apiHandle.ele.input[inputKey].apiHandle.isChange()) {
+                        changed_attrs[columnConfigInfo.column_name] = updateRowForm.apiHandle.ele.input[inputKey].apiHandle.getVal();
+                    }
+                });
+                console.log(changed_attrs);
+                //return false;
+                kl.ajax({
+                    url: '/_dp/v1/dbdata/update?user_token=' + utk,
+                    data: {
+                        attr: changed_attrs,
+                        dbconf_name: window.serverData.dataLib.mainTable.tableInfo.dbconf_name,
+                        table_name: window.serverData.dataLib.mainTable.tableInfo.table_name,
+                    },
+                    type: 'json',
+                    success: function (update_res) {
+                        if (kl.isUndefined(update_res, 'data.update.res') || update_res.data.update.res === 0) {
+                            alert('修改 失败:' + (kl.isUndefined(update_res, 'msg') ? '未知' : update_res.msg));
+                        } else {
+                            datagrid.api.requestData('row_update');
+                            updateRowModal.apiHandle.hide();
+                        }
+                    },
+                    error: function (res_request_data) {
+                        console.log(res_request_data);
+                        alert('修改 网络异常');
+                    }
+                })
+
+            });
+            insertRowForm.apiHandle.ele.input.submitBtn.addEventListener('click', function () {
+                let changed_attrs = {};
+                window.serverData.dataLib.mainTable.__column.items.forEach(function (columnConfigInfo) {
+                    let inputKey = columnConfigInfo.column_name + 'Input';
+                    if (updateRowForm.apiHandle.ele.input[inputKey] === undefined) return false;
+                    if (insertRowForm.apiHandle.ele.input[inputKey].apiHandle.isChange()) {
+                        changed_attrs[columnConfigInfo.column_name] = insertRowForm.apiHandle.ele.input[inputKey].apiHandle.getVal();
+                    }
+                });
+                console.log(changed_attrs);
+                kl.ajax({
+                    url: '/_dp/v1/dbdata/add?user_token=' + utk,
+                    data: {
+                        attr: changed_attrs,
+                        dbconf_name: window.serverData.dataLib.mainTable.tableInfo.dbconf_name,
+                        table_name: window.serverData.dataLib.mainTable.tableInfo.table_name,
+                    },
+                    type: 'json',
+                    success: function (add_res) {
+                        if (kl.isUndefined(add_res, 'data.insert.pk')) {
+                            alert('新增 失败:' + (kl.isUndefined(add_res, 'msg') ? '未知' : add_res.msg));
+                        } else {
+                            datagrid.api.requestData('row_insert');
+                            insertRowModal.apiHandle.hide();
+                        }
+                    },
+                    error: function (res_request_data) {
+                        alert('新增 网络异常');
+                    }
+                })
+
+            });
+
+
+            datagrid.api.run().api.requestData('init');
+
+
+        }
+    });
+</script>
+<style>
+    .container {
+        width: 100% !important;
+    }
+
+    .hammer_input_option {
+        display: none;
+    }
+
+    .table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
+        padding: 3px !important;
+    }
+
+    td > input[type="text"], td > input[type="number"], td > select {
+        min-width: 45px !important;
+        padding: 0 !important;
+    }
+
+    .fixed_tools_div {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+    }
+
+    .container {
+
+    }
+    .cell_img{
+        max-width: 200px;
+        max-height: 100px;
+    }
+</style>
+<script></script>
+<script>
+
+</script>
+
+
+<footer class="footer">
+    <div class="container">
+        <p class="pull-left">&copy; My Company 2022</p>
+
+        <p class="pull-right">Powered by <a href="http://www.yiiframework.com/" rel="external">Yii Framework</a></p>
+    </div>
+</footer>
+
+</body>
+</html>
+

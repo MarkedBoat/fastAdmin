@@ -77,7 +77,7 @@ class DbTable extends DbTableDao
 
         if (empty($column_models))
         {
-            throw new \Exception('字段并未纳入管理');
+            throw new \Exception("查不到{$this->dbconf_name}.{$this->table_name}对应字段配置");
         }
         $this->column_names = [];
         foreach ($column_models as $column_model)

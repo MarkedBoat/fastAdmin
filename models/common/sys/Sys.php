@@ -50,6 +50,11 @@ class Sys
         return self::$__case;
     }
 
+    public static function isInit()
+    {
+        return is_null(self::$__case) ? false : true;
+    }
+
     public static function init($configs)
     {
         if (isset($configs['password']))

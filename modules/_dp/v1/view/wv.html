@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>通知列表</title>
+
+    <script src="/static/_dp/js/hammer/kl-hammer.js?t=1"></script>
+    <script src="/static/_dp/js/string/string.js"></script>
+
+
+</head>
+
+
+<script>
+    function test() {
+
+        //document.getElementById('content_div').textContent = 'xxxx';
+        alert('hello1');
+
+    }
+
+</script>
+
+<body>
+
+
+<div class="body-content" id="content_div">
+    <div>
+        通知列表
+    </div>
+</div>
+
+
+</body>
+<script>
+    domLoaded(() => {
+        //confirm('are you ok?');
+        //alert('load');
+
+        let root_div = new Emt('div');
+        kl.id('content_div').append(root_div);
+        let pre = new Emt('pre');
+        let call_btn = new Emt('button', 'type="button"', '呼叫android2');
+        let notify_list_div = new Emt('div', 'class="notify_list_div"');
+        root_div.addNodes([
+            pre,
+            call_btn,
+            notify_list_div
+        ]);
+
+        let call_alert = () => {
+            alert('dd111');
+        };
+        let i = 0;
+        call_btn.addEventListener('click', function () {
+            //call_alert();
+            console.log('userToken', Android.getUserToken());
+            Android.hello("test:" + Android.getUserToken(), 3000);
+            kl.ajax({
+                url: 'https://markedboat.com/aid/user_info',
+                data: {token: Android.getUserToken()},
+                method: 'POST',
+                isAjax: false,
+                type: 'json',
+                httpOkCodes: [200, 302, 400, 500, 502],
+                success: function (data) {
+                    // alert(JSON.stringify(data));
+                    pre.textContent = JSON.stringify(data, null, 2);
+                },
+                error: function (err) {
+                    alert("err:" + err);
+                }
+            })
+            // Android.hello("js调用了android中的hello方法->"+i.toString(), 3000);
+            // window.setInterval(() => {
+            //     i++;
+            //     Android.hello("js调用了android中的hello方法->"+i.toString(), 500);
+            // }, 60000);
+        });
+
+
+        // Android.hello("test:" + Android.getUserToken(), 3000);
+        let userToken = '';
+        try {
+            userToken = Android.getUserToken();
+        } catch (e) {
+            userToken = '251_1671676433_bTMS1dVtPZTz46KsWyMcfrmm9LufDVi+EEpaIHsLkYv/EroLh33b/7I0hWwQUW/n6frL2C3d3cs+tqCkqmmG62MhPOSVuVsQ7MAmjkCCuMO1TW4u0h5fTMybEdKeZ/+9vJOj25sBnBUxyfIF9QoAzJKiSWc1H2kGwGlFUhNeRVM=';
+        }
+
+
+        let createDelayBtn = function (timeNumber, timeUnit, isDelayTo, delayFrom, notifyInfo) {
+            let delayFromMap = {now: '', today: '今天.', tomorrow: '明天.'};
+            let delayName = delayFromMap[delayFrom] ? delayFromMap[delayFrom] : '[错误起始]';
+
+            let unitMap = {min: '分钟', hour: '小时'};
+            let unitName = unitMap[timeUnit] ? unitMap[timeUnit] : '[错误单位]';
+            let title = isDelayTo === true ? ('等到' + delayName + timeNumber.toString() + unitName + '再提醒') : ('推迟' + timeNumber.toString() + unitName);
+            let delay_btn = new Emt('button', 'type="button"', title);
+            return delay_btn;
+        };
+
+        let createNotifyDiv = function (notifyInfo) {
+            let notifyDiv = new Emt('div', 'class="notify_div"');
+            let notifyTitle = new Emt('h2', 'class="notify_title"', notifyInfo.title);
+            let notifyDetail = new Emt('pre', 'class="notify_detail"', notifyInfo.detail);
+            let notifyTodolist = new Emt('pre', 'class="notify_todolist"', '', {innerHTML: notifyInfo.todolist});
+            let notifyLastMatchAt = new Emt('pre', 'class="notify_todolist"', notifyInfo.last_match_at);
+            let notifyOpDiv = new Emt('div', 'class="notify_op_div"');
+            let notifyOpHeadersDiv = new Emt('div', 'class="notify_op_headers_div"');
+            let notifyOpDelayMinsDiv = new Emt('div', 'class="notify_op_delay_mins_div"');
+            let notifyOpDelayHoursDiv = new Emt('div', 'class="notify_op_delay_hours_div"');
+            let notifyOpInputDiv = new Emt('div', 'class="notify_op_input_div"');
+
+            if (notifyInfo.is_del === 1) {
+                notifyDiv.classList.add('notify_close');
+            }
+            let tmp_ar = [{div: notifyOpDelayMinsDiv, title: '推迟N分钟'}, {div: notifyOpDelayHoursDiv, title: '推迟N小时'}, {div: notifyOpInputDiv, title: '自由定义'}];
+            tmp_ar.forEach((cfg) => {
+                cfg.div.classList.add('hide');
+                let btn = new Emt('button', 'type="button"', cfg.title, {dataInfo: cfg});
+                btn.addEventListener('click', function () {
+                    tmp_ar.forEach((cfg2) => {
+                        if (cfg2.title === btn.dataInfo.title) {
+                            btn.dataInfo.div.classList.toggle('hide');
+                        } else {
+                            cfg2.div.classList.add('hide');
+                        }
+                    });
+                });
+                notifyOpHeadersDiv.addNode(btn);
+            });
+
+            [15, 30, 45].forEach((min) => {
+                notifyOpDelayMinsDiv.addNode(new createDelayBtn(min, 'min', false, 'now'));
+            });
+            [1, 2, 3, 5, 8, 12, 24].forEach((hourNum) => {
+                notifyOpDelayHoursDiv.addNode(new createDelayBtn(hourNum, 'hour', false, 'now'));
+            });
+
+
+            let delayFromSpan = new Emt('span');
+            let delayHourUnitSpan = new Emt('span');
+            let delayMinUnitSpan = new Emt('span');
+
+
+            let delayFromSelect = new Emt('select');
+            let delayHourSelect = new Emt('select');
+            let delayMinSelect = new Emt('select');
+            notifyOpInputDiv.addNodes([
+                delayFromSelect, delayFromSpan,
+                delayHourSelect, delayHourUnitSpan,
+                delayMinSelect, delayMinUnitSpan
+
+            ]);
+
+
+            delayFromSelect.add(new Option('从现在开始', 'now'));
+            delayFromSelect.add(new Option('推迟到今天的', 'today'));
+            delayFromSelect.add(new Option('推到明天的', 'tomorrow'));
+
+            delayFromSpan.textContent = '推迟';
+            delayHourUnitSpan.textContent = '个小时';
+            delayMinUnitSpan.textContent = '分钟';
+            for (let i = 0; i < 24; i++) {
+                delayHourSelect.add(new Option(i.toString(), i.toString()));
+            }
+            for (let i = 0; i < 60; i++) {
+                delayMinSelect.add(new Option(i.toString(), i.toString()));
+            }
+
+            delayFromSelect.addEventListener('change', function () {
+                delayHourSelect.innerHTML = '';
+                delayMinSelect.innerHTML = '';
+                console.log(delayFromSelect.value);
+                if (delayFromSelect.value === 'now') {
+                    delayFromSpan.textContent = '推迟';
+                    delayHourUnitSpan.textContent = '个小时';
+                    delayMinUnitSpan.textContent = '分钟';
+                    for (let i = 0; i < 25; i++) {
+                        delayHourSelect.add(new Option(i.toString(), i.toString()));
+                    }
+                    for (let i = 0; i < 60; i++) {
+                        delayMinSelect.add(new Option(i.toString(), i.toString()));
+                    }
+                } else {
+                    delayFromSpan.textContent = '';
+                    delayHourUnitSpan.textContent = '时';
+                    delayMinUnitSpan.textContent = '分钟';
+                    if (delayFromSelect.value === 'today') {
+                        let nowHourNum = new Date().getHours();
+                        for (let i = nowHourNum; i < 25; i++) {
+                            delayHourSelect.add(new Option(i.toString(), i.toString()));
+                        }
+                        let nowMinNum = new Date().getMinutes();
+                        for (let i = nowMinNum; i < 60; i++) {
+                            delayMinSelect.add(new Option(i.toString(), i.toString()));
+                        }
+                    } else {
+                        for (let i = 0; i < 24; i++) {
+                            delayHourSelect.add(new Option(i.toString(), i.toString()));
+                        }
+                        for (let i = 0; i < 60; i++) {
+                            delayMinSelect.add(new Option(i.toString(), i.toString()));
+                        }
+                    }
+                }
+            });
+            delayHourSelect.addEventListener('change', function () {
+                delayMinSelect.innerHTML = '';
+
+                if (delayFromSelect.value === 'today') {
+                    let nowHourNum = new Date().getHours();
+                    let nowMinNum = new Date().getMinutes();
+                    if (parseInt(delayHourSelect.value) === nowHourNum) {
+                        for (let i = nowMinNum; i < 60; i++) {
+                            delayMinSelect.add(new Option(i.toString(), i.toString()));
+                        }
+                    }
+                }
+                for (let i = 0; i < 60; i++) {
+                    delayMinSelect.add(new Option(i.toString(), i.toString()));
+                }
+
+            });
+
+
+            return notifyDiv.addNodes([
+                notifyTitle,
+                notifyDetail,
+                notifyTodolist,
+                notifyLastMatchAt,
+                notifyOpDiv.addNodes([
+                    notifyOpHeadersDiv,
+                    notifyOpDelayMinsDiv,
+                    notifyOpDelayHoursDiv,
+                    notifyOpInputDiv
+                ])
+            ]);
+        };
+        kl.ajax({
+            url: 'https://markedboat.com/aid/notify_list',
+            data: {token: userToken, mail_to: 'yangjinlong@mail.markedboat.com'},
+            method: 'POST',
+            isAjax: false,
+            type: 'json',
+            httpOkCodes: [200, 302, 400, 500, 502],
+            success: function (res) {
+                // alert(JSON.stringify(data));
+                //  pre.textContent = JSON.stringify(res, null, 2);
+                if (kl.isUndefined(res, 'data.notifyList')) {
+                    notify_list_div.innerHTML = '';
+                    notify_list_div.addNode(new Emt('h1', '', '查询数据失败'));
+                } else {
+                    res.data.notifyList.forEach((notifyInfo) => {
+                        notify_list_div.append(createNotifyDiv(notifyInfo));
+                    })
+                }
+            },
+            error: function (err) {
+                alert("err:" + err);
+            }
+        })
+
+
+    })
+</script>
+
+<style>
+    #content_div {
+        word-break: break-word;
+        width: 90%;
+        margin: 0 auto;
+    }
+
+    .hide {
+        display: none;
+    }
+
+    .notify_list_div {
+        width: 100%;
+        float: left;
+    }
+
+    .notify_div {
+        width: 100%;
+        float: left;
+        border: 1px solid #000;
+        margin-top: 3em;
+        padding: 0.5em;
+        background: #f5f5f5;
+    }
+
+    .notify_close {
+        background: #A00;
+    }
+
+    .notify_close * {
+        text-decoration-line: line-through;
+    }
+
+</style>
+</html>

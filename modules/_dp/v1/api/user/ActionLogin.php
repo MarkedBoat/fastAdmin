@@ -38,7 +38,7 @@ class ActionLogin extends ActionBase
             $admin_token          = new AdminTokenDao();
             $admin_token->user_id = $user->id;
         }
-        $admin_token->expires    = time() + 3600 * 24 * 7;
+        $admin_token->expires    = time() + 3600 * 24 * 365;
         $true_token              = "{$user->id}_{$admin_token->expires}";
         $pub_key                 = file_get_contents(__ROOT_DIR__ . '/config/file/web/admin_bg.pub.key');
         $rsa_token               = RSA::en($pub_key, $true_token);
@@ -51,6 +51,10 @@ class ActionLogin extends ActionBase
         {
             $admin_token->update();
         }
+
+        session_start();
+        $_SESSION['utk']=$rsa_token;
+
         return ['token' => urlencode($rsa_token)];
 
     }

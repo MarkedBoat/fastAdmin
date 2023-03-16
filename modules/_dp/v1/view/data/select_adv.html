@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>查询-表</title>
+    <link href="/static/_dp/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/_dp/css/site.css" rel="stylesheet">
+    <link href="/static/_dp/css/bg.css" rel="stylesheet">
+
+<body>
+<div class="wrap">
+    <nav id="w0" class="navbar-inverse navbar-fixed-top navbar">
+        <div class="container">
+            <div class="navbar-header"></div>
+            <div id="bg_menus_div" class="navbar-brand menus_root">导航</div>
+            <div id="w0-collapse" class="collapse navbar-collapse">
+                <ul id="w1" class="navbar-nav navbar-right nav">
+                    <li><a href="/admin/dbdata/tables.html">所有表</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
+        <script src="/static/_dp/js/string/string.js"></script>
+        <script src="/static/_dp/js/hammer-yii2/bootstrap.min.2022.10.07.0.js?t=37778"></script>
+        <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2022.11.16.js?t=53332"></script>
+        <script src="/static/_dp/js/bg.js"></script>
+        <script src="/static/file/struct/bi_input.js"></script>
+       <!-- <script src="/_dp/v1/js/items"></script>
+        <script src="/_dp/v1/js/dbStructs"></script> -->
+
+
+        <div class="site-index">
+
+            <div>
+
+            </div>
+
+
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="page-header" id="h1">【查询-数据】</h3>
+                </div>
+                <div class="panel-body">
+                    <p id="subject_detail"></p>
+                </div>
+            </div>
+
+
+            <div class="body-content" id="content_div">
+
+
+            </div>
+
+        </div>
+        <script>
+
+            domLoaded(function () {
+                let utk = '';
+                bg_init(function () {
+                    utk = window.utk;
+                    window.serverData.table = {};
+                    window.serverData.columns = {};
+                    window.serverData.vals_map = {};
+
+                    kl.ajax({
+                        url: '/_dp/v1/dbdata/info?user_token=' + utk,
+                        data: {dbconf_name: dbconf_name,table_name: window.serverData.table_name},
+                        type: 'json',
+                        success: function (res_request_data) {
+                            if (res_request_data.status) {
+                                if (res_request_data.status === 200) {
+                                    window.serverData.table = res_request_data.data.table;
+                                    window.serverData.columns = res_request_data.data.columns;
+                                    content();
+                                } else {
+                                    alert(' 获取表信息 错误:' + (res_request_data.message || '未知'));
+                                    throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                                }
+                            } else {
+                                console.log(res_request_data.status);
+                                alert('获取表信息 请求结果异常');
+                                throw '别看了，连table info 信息都拿不到，还想干啥?';
+                            }
+                        },
+                        error: function (res_request_data) {
+                            console.log(res_request_data);
+                            alert('获取表信息 网络异常');
+                            throw '别看了，连table info 信息都拿不到，还想干啥?';
+
+                        }
+                    });
+                });
+
+
+                content = function () {
+                    kl.id('h1').textContent = kl.id('h1').textContent + '/' + serverData.table.title + '/ ' + window.serverData.table_name;
+                    document.title = '【查】' + serverData.table.title + '/' + serverData.table.table_name;
+                    kl.id('subject_detail').textContent = serverData.table.remark;
+
+
+                    let tmp_info = {dbconf_name: dbconf_name,table_name: serverData.table.table_name};
+                    let tmp_json = JSON.stringify(tmp_info).urlencode();
+                    console.log(tmp_info, tmp_json);
+                    let a_column = new Emt('a').setPros({className: 'btn btn-info btn-sm', href: '/admin/dbdata/columns_adv.html?' + tmp_json, target: '_blank', textContent: 'go管理字段'});
+                    kl.id('subject_detail').append(a_column);
+
+                    let data_struct_map = {};
+                    window.db_struct.forEach((db_struct_info) => {
+                        data_struct_map[db_struct_info.struct_code] = db_struct_info;
+                    });
+                    console.log('data_struct_map', data_struct_map);
+
+                    var raw_root = kl.id('content_div');
+                    var root = new Emt('div').setPros({className: 'row'});
+                    raw_root.append(root);
+
+                    /********************************************************************************************************************************************************
+                     *         ___  ____ _  _     ____ _    ____ _  _ ____ _  _ ___ ___
+                     *         |  \ |  | |\/|     |___ |    |___ |\/| |___ |\ |  | (__
+                     *         |__/ |__| |  |     |___ |___ |___ |  | |___ | \|  | ___)
+                     *
+                     *******************************************************************************************************************************************************/
+                    let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
+
+
+                    let new_row_modal_handle = hammerYii2Bootstarp1.modal({title: '新建数据'});
+                    let new_row_form_handle = hammerYii2Bootstarp1.form();
+                    let call_new_row_modal_btn = hammerYii2Bootstarp1.button({title: '新建'});
+                    let submit_new_row_btn = hammerYii2Bootstarp1.button({title: '新建信息'}).opts.color.set('danger');
+                    // root.addNode(call_new_row_modal_btn.root_ele);
+                    new_row_modal_handle.body_ele.addNodes([new_row_form_handle.root_ele]);
+                    new_row_modal_handle.foot_ele.addNodes([submit_new_row_btn.root_ele]);
+
+
+                    let edit_row_modal_handle = hammerYii2Bootstarp1.modal({title: '修改数据'});
+                    let edit_row_form_handle = hammerYii2Bootstarp1.form();
+                    let submit_edit_row_btn = hammerYii2Bootstarp1.button({title: '保存信息'}).opts.color.set('danger');
+                    edit_row_modal_handle.body_ele.addNodes([edit_row_form_handle.root_ele]);
+                    edit_row_modal_handle.foot_ele.addNodes([submit_edit_row_btn.root_ele]);
+
+                    /********************************************************************************************************************************************************
+                     *            _ _  _ _ ___
+                     *            | |\ | |  |
+                     *            | | \| |  |
+                     *
+                     *******************************************************************************************************************************************************/
+                    let hanndle_datagrid = hammerBootstarpDatagrid({
+                        ele: kl.id('content_div'),
+                        requestDataFun: function (event_type, page_data, handle_callback) {
+                            console.log(event_type, page_data);
+                            if (event_type === 'filter') {
+                                console.log('这个不做理会，不然请求太频繁了');
+                                return false;
+                            }
+                            let post_data = {
+                                page_index: page_data.page.index,
+                                page_size: page_data.page.size,
+                                attr: page_data.filter,
+                                db_name: 'test',
+                                dbconf_name: dbconf_name,table_name: window.serverData.table_name,
+                            };
+                            console.log('xxxxx', page_data.sort);
+
+                            for (let attr_key in post_data.attr) {
+                                console.log(attr_key);
+                                if (post_data.attr[attr_key][0] === ':') {
+                                    post_data.attr[attr_key] = 'like:%' + post_data.attr[attr_key].substring(1) + '%';
+                                }
+                            }
+
+                            if (!page_data.sort.key || !page_data.sort.type) {
+                                console.log('没有排序');
+                            } else {
+                                // post_data.sort = page_data.sort;
+                                post_data.sort = {};
+                                post_data.sort[page_data.sort.key] = page_data.sort.type;
+                            }
+                            kl.ajax({
+                                url: '/_dp/v1/dbdata/select?user_token=' + utk,
+                                data: post_data,
+                                type: 'json',
+                                success: function (res_request_data) {
+                                    if (res_request_data.status) {
+                                        if (res_request_data.status === 200) {
+                                            handle_callback(res_request_data.data.dataRows, res_request_data.data.count);
+                                        } else {
+                                            alert('错误:' + (res_request_data.message || '未知'))
+                                        }
+                                    } else {
+                                        console.log(res_request_data.status);
+                                        alert('请求结果异常')
+                                    }
+                                },
+                                error: function (res_request_data) {
+                                    console.log(res_request_data);
+                                    alert('网络异常');
+                                }
+                            })
+                        },
+                    });
+                    console.log('hanndle_datagrid', hanndle_datagrid)
+                    hanndle_datagrid.tr_top.firstElementChild.appendChild(call_new_row_modal_btn.root_ele);
+                    let i = 0;
+                    hanndle_datagrid.addHeader(hanndle_datagrid.createSpan(), 'i', 'test', false, function (cell, row_data) {
+                        i++;
+                        cell.textContent = i.toString();
+                    });
+
+                    //window.serverData.vals_map.is_ok = {'1': 'yes', '2': 'no', '3': 'xxx'};
+                    window.serverData.columns.forEach(function (column_info, column_info_index) {
+                        let tmp_title = column_info.title || column_info.column_name;
+                        if (column_info.index_key === 'PRI') {
+                            window.serverData.table.pk_key = column_info.column_name;
+                        }
+                        let tmp_key = column_info.column_name;
+                        if (column_info.val_items.length > 0) {
+                            window.serverData.vals_map[tmp_key] = {};
+                            column_info.val_items.forEach(function (val_config) {
+                                //window.serverData.vals_map[tmp_key].list.push({val: val_config.val, label: val_config.text});
+                                window.serverData.vals_map[tmp_key][val_config.val] = val_config.text;
+
+                            });
+                            let filter_selected_handle = hammerYii2Bootstarp1.select({list: window.serverData.vals_map[tmp_key]});
+                            let edit_row_selected_handle = hammerYii2Bootstarp1.select({list: window.serverData.vals_map[tmp_key]});
+                            let new_row_selected_handle = hammerYii2Bootstarp1.select({list: window.serverData.vals_map[tmp_key]});
+
+                            hanndle_datagrid.addHeader(filter_selected_handle.root_ele.setPros({className: 'col-md-12'}), tmp_title, tmp_key, true, function (cell, row_data) {
+                                cell.textContent = window.serverData.vals_map[tmp_key][row_data[tmp_key]];
+                            });
+
+                            edit_row_form_handle.root_ele.addNodes([
+                                edit_row_form_handle.createInputGroup(tmp_title, edit_row_selected_handle.root_ele, (tmp_key + '_input_ele')),
+                                edit_row_form_handle.createInputDetail({label_text: '说明', remark: column_info.remark})
+                            ]);
+
+                            new_row_form_handle.root_ele.addNodes([
+                                new_row_form_handle.createInputGroup(tmp_title, new_row_selected_handle.root_ele, (tmp_key + '_input_ele')),
+                                new_row_form_handle.createInputDetail({label_text: '说明', remark: column_info.remark})
+                            ]);
+
+                        } else {
+                            //hanndle_datagrid.addHeader(hanndle_datagrid.createInputText().setPros({className: 'col-md-12'}), column_info.title || column_info.column_name, column_info.column_name, true);
+                            hanndle_datagrid.addHeader(
+                                hanndle_datagrid.createInputText().setPros({className: 'col-md-12'}),
+                                column_info.title || column_info.column_name,
+                                column_info.column_name,
+                                true,
+                                function (cell, row_data) {
+                                    let tmp_val = row_data.__relat && row_data.__relat[tmp_key] && row_data.__relat[tmp_key].label ? row_data.__relat[tmp_key].label : '';
+                                    tmp_val = tmp_val ? (tmp_val + '(' + row_data[tmp_key] + ')') : row_data[tmp_key];
+                                    if (column_info.out_datatype === 'img_uri') {
+                                        cell.addNodes([new Emt('img').setPros({src: tmp_val})]);
+                                    } else if (column_info.in_datatype === 'int' && column_info.out_datatype === 'date') {
+                                        cell.textContent = (new Date(row_data[tmp_key] * 1000)).toLocaleString();
+                                    } else {
+                                        cell.textContent = tmp_val;
+                                    }
+                                },
+                                column_info
+                            );
+
+                            if (['json'].indexOf(column_info.db_datatype) !== -1) {
+                                edit_row_form_handle.createInputTextArea(column_info.title || column_info.column_name, 'tip:' + (column_info.title || column_info.column_name), column_info.column_name + '_input_ele');
+                                edit_row_form_handle.createBlankGroup({text: 'json结构数据', handel_key: column_info.column_name + '_struct_div'});
+                                edit_row_form_handle.appendInputDetail({label_text: '', remark: column_info.remark});
+
+                                new_row_form_handle.createInputTextArea(column_info.title || column_info.column_name, 'tip:' + (column_info.title || column_info.column_name), column_info.column_name + '_input_ele');
+                                new_row_form_handle.appendInputDetail({label_text: '', remark: column_info.remark});
+
+                            } else {
+                                edit_row_form_handle.createInputText(column_info.title || column_info.column_name, 'tip:' + (column_info.title || column_info.column_name), column_info.column_name + '_input_ele');
+                                edit_row_form_handle.appendInputDetail({label_text: '', remark: column_info.remark});
+                                new_row_form_handle.createInputText(column_info.title || column_info.column_name, 'tip:' + (column_info.title || column_info.column_name), column_info.column_name + '_input_ele');
+                                new_row_form_handle.appendInputDetail({label_text: '', remark: column_info.remark});
+                            }
+
+                        }
+
+                    });
+
+                    hanndle_datagrid.addHeader('', '操作', 'op', false, function (cell, row_data) {
+                        let call_edit_modal_btn = hammerYii2Bootstarp1.button({title: '修改'});
+                        call_edit_modal_btn.root_ele.addEventListener('click', function () {
+                            window.serverData.columns.forEach(function (column_info) {
+
+                                edit_row_form_handle[column_info.column_name + '_input_ele'].setNewVal(row_data[column_info.column_name]);
+                                if (['json'].indexOf(column_info.db_datatype) > -1) {
+                                    edit_row_form_handle[column_info.column_name + '_struct_div'].innerHTML = '';
+
+                                    let tmp_data = JSON.parse(row_data[column_info.column_name]);
+                                    if (tmp_data !== null) {
+                                        console.log({column_name: column_info.column_name, tmp_data: tmp_data, data_struct_map: data_struct_map}, row_data[column_info.column_name]);
+                                        if (tmp_data.struct_code !== undefined && data_struct_map[tmp_data.struct_code] !== undefined) {
+                                            edit_row_form_handle[column_info.column_name + '_struct_div'].addNodes([
+                                                new biStruct(data_struct_map[tmp_data.struct_code].struct_json, tmp_data, function (val) {
+                                                    edit_row_form_handle[column_info.column_name + '_input_ele'].setChangedVal(JSON.stringify(val));
+                                                })
+                                            ]);
+                                        }
+                                    }
+
+
+                                }
+
+
+                            });
+                            edit_row_modal_handle.show();
+                        });
+
+
+                        let call_clone_modal_btn = hammerYii2Bootstarp1.button({title: '克隆'});
+                        call_clone_modal_btn.root_ele.addEventListener('click', function () {
+                            window.serverData.columns.forEach(function (column_info) {
+                                new_row_form_handle[column_info.column_name + '_input_ele'].setNewVal(row_data[column_info.column_name]);
+                                new_row_form_handle[column_info.column_name + '_input_ele'].is_changed = true;
+                                new_row_form_handle[column_info.column_name + '_input_ele'].old_val = '';
+                            });
+                            new_row_modal_handle.show();
+                        });
+
+
+                        //cell.addNodes([call_edit_modal_btn.root_ele, call_clone_modal_btn.root_ele])
+                        cell.addNodes([call_edit_modal_btn.root_ele])
+
+                    });
+
+                    hanndle_datagrid.requestData('init');
+
+                    /********************************************************************************************************************************************************
+                     *     ____ _  _ ____ _  _ ___      _  _ ___  ___    _  ___  ____
+                     *     |___ |  | |___ |\ |  |       |  | |__] |  \  /_\  |   |___
+                     *     |___  \/  |___ | \|  |       |_/| |    |__/ /   \ |   |___
+                     *
+                     *******************************************************************************************************************************************************/
+
+                    submit_edit_row_btn.root_ele.addEventListener('click', function () {
+                        let pk_key = window.serverData.table.pk_key;
+                        let changed_attrs = {};
+                        changed_attrs[pk_key] = edit_row_form_handle[pk_key + '_input_ele'].old_val;
+                        window.serverData.columns.forEach(function (column_info) {
+                            if (column_info.column_name === pk_key) return false;
+                            console.log(edit_row_form_handle[column_info.column_name + '_input_ele'].isOldVal() === false && edit_row_form_handle[column_info.column_name + '_input_ele'].isValChanged(), column_info.column_name, edit_row_form_handle[column_info.column_name + '_input_ele'].getValue());
+                            if (edit_row_form_handle[column_info.column_name + '_input_ele'].isOldVal() === false && edit_row_form_handle[column_info.column_name + '_input_ele'].isValChanged()) {
+                                changed_attrs[column_info.column_name] = edit_row_form_handle[column_info.column_name + '_input_ele'].getValue();
+                            }
+                        });
+                        console.log(changed_attrs);
+                        kl.ajax({
+                            url: '/_dp/v1/dbdata/update?user_token=' + utk,
+                            data: {
+                                attr: changed_attrs,
+                                db_name: window.serverData.db_name,
+                                dbconf_name: dbconf_name,table_name: window.serverData.table_name,
+                            },
+                            type: 'json',
+                            success: function (add_attrs_res) {
+                                if (add_attrs_res.status) {
+                                    if (add_attrs_res.status === 200) {
+                                        hanndle_datagrid.requestData('refresh');
+                                        edit_row_modal_handle.hide();
+                                    } else {
+                                        alert('错误:' + (add_attrs_res.msg || '未知'))
+                                    }
+                                } else {
+                                    console.log(add_attrs_res.status);
+                                    alert('请求结果异常')
+                                }
+                            },
+                            error: function (res_request_data) {
+                                console.log(res_request_data);
+                                alert('网络异常');
+                            }
+                        })
+
+                    });
+
+                    /********************************************************************************************************************************************************
+                     *     ____ _  _ ____ _  _ ___      _  _ ____ _ _ _
+                     *     |___ |  | |___ |\ |  |       |\ | |___ | | |
+                     *     |___  \/  |___ | \|  |       | \| |___ \/ \/
+                     *
+                     *******************************************************************************************************************************************************/
+                    call_new_row_modal_btn.root_ele.addEventListener('click', function () {
+                        console.log(new_row_form_handle);
+                        window.serverData.columns.forEach(function (column_info) {
+                            console.log(column_info.column_name);
+                            new_row_form_handle[column_info.column_name + '_input_ele'].setNewVal(null);
+                        });
+
+                        new_row_modal_handle.show();
+                    });
+
+                    submit_new_row_btn.root_ele.addEventListener('click', function () {
+                        let pk_key = window.serverData.table.pk_key;
+                        let changed_attrs = {};
+                        //changed_attrs[pk_key] = edit_row_form_handle[pk_key + '_input_ele'].old_val;//不允许有pk
+                        window.serverData.columns.forEach(function (column_info) {
+                            if (column_info.column_name === pk_key) return false;
+                            console.log(new_row_form_handle[column_info.column_name + '_input_ele'].isOldVal() === false && new_row_form_handle[column_info.column_name + '_input_ele'].isValChanged(), column_info.column_name, new_row_form_handle[column_info.column_name + '_input_ele'].getValue());
+                            if (new_row_form_handle[column_info.column_name + '_input_ele'].isOldVal() === false && new_row_form_handle[column_info.column_name + '_input_ele'].isValChanged()) {
+                                changed_attrs[column_info.column_name] = new_row_form_handle[column_info.column_name + '_input_ele'].getValue();
+                            }
+                        });
+                        console.log(changed_attrs);
+                        kl.ajax({
+                            url: '/_dp/v1/dbdata/add?user_token=' + utk,
+                            data: {
+                                attr: changed_attrs,
+                                db_name: window.serverData.db_name,
+                                dbconf_name: dbconf_name,table_name: window.serverData.table_name,
+                            },
+                            type: 'json',
+                            success: function (add_attrs_res) {
+                                if (add_attrs_res.status) {
+                                    if (add_attrs_res.status === 200) {
+                                        hanndle_datagrid.requestData('refresh');
+                                        new_row_modal_handle.hide();
+                                    } else {
+                                        alert('错误:' + (add_attrs_res.msg || '未知'))
+                                    }
+                                } else {
+                                    console.log(add_attrs_res.status);
+                                    alert('请求结果异常')
+                                }
+                            },
+                            error: function (res_request_data) {
+                                console.log(res_request_data);
+                                alert('网络异常');
+                            }
+                        })
+
+                    });
+                }
+            });
+        </script>
+        <style>
+            .container {
+                width: 100% !important;
+            }
+
+            .hammer_input_option {
+                display: none;
+            }
+
+            .table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
+                padding: 3px !important;
+            }
+
+            td > input[type="text"], td > input[type="number"], td > select {
+                min-width: 45px !important;
+                padding: 0 !important;
+            }
+
+        </style>
+        <script></script>
+    </div>
+</div>
+
+<script>
+
+</script>
+
+
+<footer class="footer">
+    <div class="container">
+        <p class="pull-left">&copy; My Company 2022</p>
+
+        <p class="pull-right">Powered by <a href="http://www.yiiframework.com/" rel="external">Yii Framework</a></p>
+    </div>
+</footer>
+
+<script src="/static/_dp/js/jquery.js"></script>
+<script src="/static/_dp/js/bootstrap.js"></script>
+</body>
+</html>
+

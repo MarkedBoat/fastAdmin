@@ -4,9 +4,9 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>登录</title>
-    <link href="/static/file/admin/css/bootstrap.css" rel="stylesheet">
-    <link href="/static/file/admin/css/site.css" rel="stylesheet">
-    <link href="/static/file/admin/css/bg.css" rel="stylesheet">
+    <link href="/static/_dp/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/_dp/css/site.css" rel="stylesheet">
+    <link href="/static/_dp/css/bg.css" rel="stylesheet">
 
 <body>
 <div class="wrap">
@@ -20,11 +20,11 @@
         </div>
     </nav>
     <div class="container">
-        <script src="/static/file/admin/js/hammer/kl-hammer.js"></script>
-        <script src="/static/file/admin/js/string/string.js"></script>
-        <script src="/static/file/admin/js/string/jsencrypt.js"></script>
-        <script src="/static/file/admin/js/string/md5.js"></script>
-        <script src="/static/file/admin/js/bg.js"></script>
+        <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
+        <script src="/static/_dp/js/string/string.js"></script>
+        <script src="/static/_dp/js/string/jsencrypt.js"></script>
+        <script src="/static/_dp/js/string/md5.js"></script>
+        <script src="/static/_dp/js/bg.js"></script>
 
         <div class="site-index">
 
@@ -56,7 +56,6 @@
                 let root_div = new Emt('div');
                 kl.id('content_div').append(root_div);
 
-                let pub_key = '';
                 let un_input = new Emt('input', 'type="text"');
                 let psw_input = new Emt('input', 'type="password');
                 let submit_btn = new Emt('button', 'type="button"', '登录');
@@ -78,36 +77,16 @@
                 ]);
 
 
-                kl.ajax({
-                    url: '/static/file/admin/key/admin_bg.pub.key',
-                    data: {},
-                    type: 'text',
-                    method: 'GET',
-                    success: function (res_request_data) {
-                        if (res_request_data.indexOf('-----BEGIN PUBLIC KEY-----') === 0) {
-                            pub_key = res_request_data;
-                        } else {
-                            alert('获取公钥 请求结果异常');
-                            throw '别看了，公钥 信息都拿不到，还想干啥?';
-                        }
-                    },
-                    error: function (res_request_data) {
-                        console.log(res_request_data);
-                        alert('获取公钥 网络异常');
-                        throw '别看了，连获取公钥 信息都拿不到，还想干啥?';
-
-                    }
-                });
                 submit_btn.addEventListener('click', function () {
                     let encrypt = new JSEncrypt();
-                    encrypt.setPublicKey(pub_key);
+                    encrypt.setPublicKey(serverData.publicKey);
                     //https://github.com/openstack/xstatic-jsencrypt/blob/master/xstatic/pkg/jsencrypt/data/jsencrypt.js
                     let md5_str = hex_md5(psw_input.value);
                     let rsa_str = encrypt.encrypt(md5_str);
 
                     console.log(md5_str);
                     kl.ajax({
-                        url: '/dp/v1/admin/user/login',
+                        url: '/_dp/v1/user/login',
                         data: {
                             username: un_input.value,
                             password: rsa_str,
@@ -117,7 +96,7 @@
                             if (res_login.status) {
                                 if (res_login.status === 200 && res_login.data && res_login.data.token) {
                                     localStorage.setItem('utk', res_login.data.token);
-                                    document.location = '/admin/index.html?{}';
+                                    document.location = '/dp/index';
                                 } else {
                                     alert(' 登录失败:' + (res_login.msg || '未知'));
                                 }

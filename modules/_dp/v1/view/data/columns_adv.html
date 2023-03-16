@@ -4,9 +4,9 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>表字段</title>
-    <link href="/static/file/admin/css/bootstrap.css" rel="stylesheet">
-    <link href="/static/file/admin/css/site.css" rel="stylesheet">
-    <link href="/static/file/admin/css/bg.css" rel="stylesheet">
+    <link href="/static/_dp/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/_dp/css/site.css" rel="stylesheet">
+    <link href="/static/_dp/css/bg.css" rel="stylesheet">
 </head>
 <body>
 <div class="wrap">
@@ -22,11 +22,11 @@
         </div>
     </nav>
     <div class="container">
-        <script src="/static/file/admin/js/hammer/kl-hammer.js"></script>
-        <script src="/static/file/admin/js/string/string.js"></script>
-        <script src="/static/file/admin/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
-        <script src="/static/file/admin/js/hammer-yii2/datagrid/datagrid.min.2022.11.16.bakjs"></script>
-        <script src="/static/file/admin/js/bg.js"></script>
+        <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
+        <script src="/static/_dp/js/string/string.js"></script>
+        <script src="/static/_dp/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
+        <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2022.11.16.js"></script>
+        <script src="/static/_dp/js/bg.js"></script>
 
         <div class="site-index">
 
@@ -54,10 +54,10 @@
         <script>
             domLoaded(function () {
                     let utk = '';
-                    let rbac_role_tableName = 'bg_rbac_role';
-                    let dbdata_column_tableName = 'bg_db_column';
+                    let dbconf_name = 'fast_bg';
+                    let rbac_role_tableName = '$rbac_role_tableName';
+                    let dbdata_column_tableName = '$dbdata_column_tableName';
 
-                    let role_infos = [];
                     bg_init(function () {
                         utk = window.utk;
 
@@ -71,8 +71,8 @@
 
                         let getRoles = (fun) => {
                             kl.ajax({
-                                url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
-                                data: {table_name: rbac_role_tableName, page_index: 1, page_size: 1000},
+                                url: '/_dp/v1/dbdata/select?user_token=' + utk,
+                                data: {dbconf_name: dbconf_name,table_name: rbac_role_tableName, page_index: 1, page_size: 1000},
                                 type: 'json',
                                 success: function (res_request_data) {
                                     if (kl.isUndefined(res_request_data, 'data.dataRows') || typeof res_request_data.data.dataRows.forEach !== "function") {
@@ -94,8 +94,8 @@
                         };
                         let getDbdataColumnTableInfo = (fun) => {
                             kl.ajax({
-                                url: '/dp/v1/admin/dbdata/info?user_token=' + utk,
-                                data: {table_name: dbdata_column_tableName},
+                                url: '/_dp/v1/dbdata/info?user_token=' + utk,
+                                data: {dbconf_name: dbconf_name,table_name: dbdata_column_tableName},
                                 type: 'json',
                                 success: function (res_request_data) {
                                     if (res_request_data.status) {
@@ -111,7 +111,7 @@
                                             res_request_data.data.columns.forEach(function (colInfo) {
                                                 window.serverData.dataLib.dbdataColumnTable.__column.map[colInfo.column_name] = colInfo;
                                             });
-                                            window.serverData.dataLib.dbdataColumnTable.isOk.items = window.serverData.dataLib.dbdataColumnTable.__column.map.is_ok.val_range;
+                                            window.serverData.dataLib.dbdataColumnTable.isOk.items = window.serverData.dataLib.dbdataColumnTable.__column.map.is_ok.val_items;
                                             window.serverData.dataLib.dbdataColumnTable.isOk.items.forEach(function (itemInfo) {
                                                 window.serverData.dataLib.dbdataColumnTable.isOk.map[itemInfo.val] = itemInfo.text;
                                             });
@@ -134,8 +134,8 @@
                         };
                         let getMainTableInfo = (fun) => {
                             kl.ajax({
-                                url: '/dp/v1/admin/dbdata/info?user_token=' + utk,
-                                data: {table_name: window.serverData.table_name},
+                                url: '/_dp/v1/dbdata/info?user_token=' + utk,
+                                data: {dbconf_name: dbconf_name,table_name: window.serverData.table_name},
                                 type: 'json',
                                 success: function (res_request_data) {
                                     if (res_request_data.status) {
@@ -152,12 +152,12 @@
                                             res_request_data.data.columns.forEach(function (colInfo) {
                                                 window.serverData.dataLib.mainTable.__column.map[colInfo.column_name] = colInfo;
                                             });
-                                            // window.serverData.dataLib.mainTable.linkType.items = window.serverData.dataLib.mainTable.__column.map.is_backend.val_range;
+                                            // window.serverData.dataLib.mainTable.linkType.items = window.serverData.dataLib.mainTable.__column.map.is_backend.val_items;
                                             // window.serverData.dataLib.mainTable.linkType.items.forEach(function (itemInfo) {
                                             //     window.serverData.dataLib.mainTable.linkType.map[itemInfo.val] = itemInfo.text;
                                             // });
                                             //
-                                            // window.serverData.dataLib.mainTable.isOk.items = window.serverData.dataLib.mainTable.__column.map.is_ok.val_range;
+                                            // window.serverData.dataLib.mainTable.isOk.items = window.serverData.dataLib.mainTable.__column.map.is_ok.val_items;
                                             // window.serverData.dataLib.mainTable.isOk.items.forEach(function (itemInfo) {
                                             //     window.serverData.dataLib.mainTable.isOk.map[itemInfo.val] = itemInfo.text;
                                             // });
@@ -230,10 +230,10 @@
                                     checkbox.checked = dataRow.read_roles.indexOf(checkbox.value) > -1;
                                 });
                                 role_table.col_opt_role_checkboxs.forEach((checkbox) => {
-                                    checkbox.checked = dataRow.opt_roles.indexOf(checkbox.value) > -1;
+                                    checkbox.checked = dataRow.update_roles.indexOf(checkbox.value) > -1;
                                 });
                                 role_table.col_add_role_checkboxs.forEach((checkbox) => {
-                                    checkbox.checked = dataRow.add_roles.indexOf(checkbox.value) > -1;
+                                    checkbox.checked = dataRow.all_roles.indexOf(checkbox.value) > -1;
                                 });
                             };
                             role_table.getRoleCodes = () => {
@@ -373,8 +373,8 @@
                         let column_remark_input = form_edit.apiHandle.ele.input.remark;
 
 
-                        form_edit.apiHandle.addGroupPreCreate().setLabelText('取值范围').setPlaceHolder('代表值对应含义').setIndexKey('val_range').setNameVar('val_range').create('textarea');
-                        let column_valRange_input = form_edit.apiHandle.ele.input.val_range;
+                        form_edit.apiHandle.addGroupPreCreate().setLabelText('取值范围').setPlaceHolder('代表值对应含义').setIndexKey('val_items').setNameVar('val_items').create('textarea');
+                        let column_valRange_input = form_edit.apiHandle.ele.input.val_items;
 
 
                         let edit_vals_div = new Emt('div').setAttrsByStr('class="table-responsive"');
@@ -419,7 +419,7 @@
                             console.log(btn, this, form_edit.apiHandle, rolecodes_map);
                             //  return false;
                             kl.ajax({
-                                url: '/dp/v1/admin/dbdata/update?user_token=' + utk,
+                                url: '/_dp/v1/dbdata/update?user_token=' + utk,
                                 //attr: form,
                                 data: {
                                     attr: {
@@ -428,13 +428,13 @@
                                         column_sn: form_edit.apiHandle.ele.input.sn.apiHandle.getVal(),
                                         out_datatype: form_edit.apiHandle.ele.input.out_datatype.apiHandle.getVal(),
                                         in_datatype: form_edit.apiHandle.ele.input.in_datatype.apiHandle.getVal(),
-                                        val_range: form_edit.apiHandle.ele.input.val_range.apiHandle.getVal(),
+                                        val_items: form_edit.apiHandle.ele.input.val_items.apiHandle.getVal(),
                                         remark: form_edit.apiHandle.ele.input.remark.apiHandle.getVal(),
                                         read_roles: JSON.stringify(rolecodes_map.read),
-                                        opt_roles: JSON.stringify(rolecodes_map.opt),
-                                        add_roles: JSON.stringify(rolecodes_map.add),
+                                        update_roles: JSON.stringify(rolecodes_map.opt),
+                                        all_roles: JSON.stringify(rolecodes_map.add),
                                     },
-                                    table_name: dbdata_column_tableName,
+                                    dbconf_name: dbconf_name,table_name: dbdata_column_tableName,
                                 },
                                 type: 'json',
                                 success: function (res_save_column) {
@@ -476,7 +476,7 @@
                             let post_data = {
                                 page: {index: 1, size: 1000},
                                 attr: page_data.filter,
-                                table_name: dbdata_column_tableName,
+                                dbconf_name: dbconf_name,table_name: dbdata_column_tableName,
                             };
                             post_data.attr.table_name = window.serverData.table_name;
 
@@ -488,7 +488,7 @@
                                 post_data.sort[page_data.sort.key] = page_data.sort.type;
                             }
                             kl.ajax({
-                                url: '/dp/v1/admin/dbdata/select?user_token=' + utk,
+                                url: '/_dp/v1/dbdata/select?user_token=' + utk,
                                 data: post_data,
                                 type: 'json',
                                 success: function (res_request_data) {
@@ -559,7 +559,7 @@
                                     console.log('PRE drop', pre_area, pre_area.data_id, window.dragedEle, window.dragedEle.data_id, tmp_ar);
 
                                     kl.ajax({
-                                        url: '/dp/v1/admin/dbdata/sortColumn?user_token=' + utk,
+                                        url: '/_dp/v1/dbdata/sortColumn?user_token=' + utk,
                                         data: {
                                             ids: tmp_ar
                                         },
@@ -600,7 +600,7 @@
                                     });
                                     console.log('NEXT drop', pre_area, pre_area.data_id, window.dragedEle, window.dragedEle.data_id, tmp_ar);
                                     kl.ajax({
-                                        url: '/dp/v1/admin/dbdata/sortColumn?user_token=' + utk,
+                                        url: '/_dp/v1/dbdata/sortColumn?user_token=' + utk,
                                         data: {
                                             ids: tmp_ar
                                         },
@@ -645,7 +645,7 @@
                             cell.textContent = row_data.out_datatype;
                         });
 
-                        datagrid.api.preCreateColumn('val_range').setColumnInfo({}).setHeaderText('字段值范围').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                        datagrid.api.preCreateColumn('val_items').setColumnInfo({}).setHeaderText('字段值范围').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
                             let tmp_pre = new Emt('pre');
                             console.log(row_data.column_name);
                             if (0) {
@@ -660,11 +660,11 @@
                                     tmp_pre.textContent = '自由定义';
                                 }
                             } else {
-                                if (row_data.val_range !== undefined && row_data.val_range !== null && row_data.val_range.length && row_data.val_range !== '[]') {
-                                    let tmp_val_range = JSON.parse(row_data.val_range);
-                                    console.log(row_data.val_range, typeof row_data.val_range);
+                                if (row_data.val_items !== undefined && row_data.val_items !== null && row_data.val_items.length && row_data.val_items !== '[]') {
+                                    let tmp_val_items = JSON.parse(row_data.val_items);
+                                    console.log(row_data.val_items, typeof row_data.val_items);
                                     let tmp_strs = [];
-                                    tmp_val_range.forEach(function (val_opt_info) {
+                                    tmp_val_items.forEach(function (val_opt_info) {
                                         tmp_strs.push(JSON.stringify(val_opt_info));
                                     });
                                     tmp_pre.textContent = tmp_strs.join("\n");
@@ -689,9 +689,9 @@
                         datagrid.api.preCreateColumn('remark').setColumnInfo({}).setHeaderText('备注').setSortable(true).setFixedFilterInputConfig({valueItems: []});
 
                         datagrid.api.preCreateColumn('read_roles').setColumnInfo({}).setHeaderText('read_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-                        datagrid.api.preCreateColumn('opt_roles').setColumnInfo({}).setHeaderText('opt_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                        datagrid.api.preCreateColumn('update_roles').setColumnInfo({}).setHeaderText('update_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
 
-                        datagrid.api.preCreateColumn('add_roles').setColumnInfo({}).setHeaderText('add_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                        datagrid.api.preCreateColumn('all_roles').setColumnInfo({}).setHeaderText('all_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
 
                         datagrid.api.preCreateColumn('op').setColumnInfo({}).setHeaderText('操作').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
                             let btn_import_column = new Emt('button').setPros({textContent: '修改'});
@@ -710,7 +710,7 @@
                                 column_inDataType_input.apiHandle.setInitVal(row_data.in_datatype);
                                 column_outDataType_input.apiHandle.setInitVal(row_data.out_datatype);
                                 let tmp_obj = {};
-                                ['read_roles', 'opt_roles', 'add_roles'].forEach((column_name) => {
+                                ['read_roles', 'update_roles', 'all_roles'].forEach((column_name) => {
                                     if (row_data[column_name] === null) {
                                         tmp_obj[column_name] = [];
                                     } else {
@@ -723,13 +723,13 @@
                                 });
                                 role_table.loadColumnsRoles(tmp_obj);
 
-                                if (row_data.val_range === null) {
-                                    row_data.val_range = '[]';
+                                if (row_data.val_items === null) {
+                                    row_data.val_items = '[]';
                                 }
-                                column_valRange_input.value = row_data.val_range;
+                                column_valRange_input.value = row_data.val_items;
 
-                                let tmp_val_range = JSON.parse(row_data.val_range);
-                                valueRangeTable.loadItems(tmp_val_range);
+                                let tmp_val_items = JSON.parse(row_data.val_items);
+                                valueRangeTable.loadItems(tmp_val_items);
 
                                 //handle_in_datatype_select.loadVal([row_data.out_datatype,'string','int','date']);
 
@@ -770,7 +770,7 @@
     </div>
 </footer>
 
-<script src="/static/file/admin/js/jquery.js"></script>
-<script src="/static/file/admin/js/bootstrap.js"></script>
+<script src="/static/_dp/js/jquery.js"></script>
+<script src="/static/_dp/js/bootstrap.js"></script>
 </body>
 </html>

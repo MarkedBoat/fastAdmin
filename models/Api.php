@@ -26,10 +26,34 @@ class Api implements IDispatcher
     {
         ob_start();
         $uri = trim(preg_replace('/\?(.*)?$/', '', $_SERVER['REQUEST_URI']), '/');
+
+        $routes = Sys::app()->getConfig()['routes'];
+        foreach ($routes as $fake_router => $true_route)
+        {
+           // var_dump('*', $uri, $fake_router, $fake_router === $uri);
+            if ($fake_router === $uri)
+            {
+                $uri = $true_route;
+                break;
+            }
+            else if (isset($fake_router[0]) && $fake_router[0] === '^')
+            {
+                $pattern = "/{$fake_router}/isU";
+                preg_match_all($pattern, $uri, $ar);
+                $res = preg_replace($pattern, $true_route, $uri);
+                if ($uri !== $res)
+                {
+                    $uri = $res;
+                    break;
+                }
+
+            }
+        }
         $arr = explode('/', $uri);
+        //var_dump($arr, $routes);
         if (count($arr) < 3)
         {
-            die('禁止访问');
+            die('uri格式错误，禁止访问');
         }
         $version         = $arr[1];
         $arr[1]          = explode('.', $version)[0];

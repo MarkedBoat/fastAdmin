@@ -26,6 +26,7 @@ class ActionInfo extends AdminBaseAction
         //  $dbconf_name = $this->inputDataBox->getStringNotNull('dbconf_name');
         $table_name = $this->inputDataBox->getStringNotNull('table_name');
 
+
         $table_name = DbTable::replaceFakeTableName($table_name);
 
 

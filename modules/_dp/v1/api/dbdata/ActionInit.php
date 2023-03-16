@@ -21,7 +21,7 @@ class ActionInit extends AdminBaseAction
 
     public function run()
     {
-        $init_sql='CREATE SCHEMA `fast_bg` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  ;';
+        $init_sql = 'CREATE SCHEMA `fast_bg` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  ;';
         //  $this->dispatcher->setOutType(Api::outTypeText);
         //  \models\Api::$hasOutput = true;
         $db          = 'dev_bg';
@@ -138,7 +138,7 @@ class ActionInit extends AdminBaseAction
                 $insert_data = $db_table->getDbConnect()->setText($select_sql)->queryRow();
 
                 $log_dao                 = DbOpLogDao::model();
-                $log_dao->db_name        = $db;
+                $log_dao->dbconf_name    = $db;
                 $log_dao->table_name     = $table_name;
                 $log_dao->row_pk         = $pk_val;
                 $log_dao->op_type        = $op_type;
@@ -151,7 +151,7 @@ class ActionInit extends AdminBaseAction
                     ]
                 ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                 $log_dao->exec_res       = $res;
-                $log_dao->exec_by       = $this->user->id;
+                $log_dao->exec_by        = $this->user->id;
                 $log_dao->log_struct_ver = '2022-11-21';
                 $log_dao->insert(false);
 

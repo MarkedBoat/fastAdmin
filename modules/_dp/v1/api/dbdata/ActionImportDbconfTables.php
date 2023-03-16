@@ -31,10 +31,19 @@ class ActionImportDbconfTables extends AdminBaseAction
 
         $db_code = $this->inputDataBox->getStringNotNull('dbconf_code');
 
-        $conf_model  = DbDbConf::model()->findOneByWhere(['db_code' => $db_code]);
-        $dbconf_name = $db_code;
-        $db_name     = $conf_model->conf_dbname;
-        $db_cnn      = $conf_model->getConfDbConnect();
+        if ($db_code === '_sys_')
+        {
+            $dbconf_name = '_sys_';
+            $db_name     = 'kl_dev_bg';
+            $db_cnn      = Sys::app()->db('_sys_');
+        }
+        else
+        {
+            $conf_model  = DbDbConf::model()->findOneByWhere(['db_code' => $db_code]);
+            $dbconf_name = $db_code;
+            $db_name     = $conf_model->conf_dbname;
+            $db_cnn      = $conf_model->getConfDbConnect();
+        }
 
 
         $rows        = $db_cnn->setText("SELECT `table_schema`,`table_name`,table_comment FROM information_schema.Tables WHERE table_schema = '{$db_name}';")->queryAll();
@@ -45,8 +54,9 @@ class ActionImportDbconfTables extends AdminBaseAction
         $table_names = [];
         foreach ($rows as $i => $row)
         {
-            $table_names[]       = $row['TABLE_NAME'];
-            $bind[":db_{$i}"]    = $row['TABLE_SCHEMA'];
+            $table_names[] = $row['TABLE_NAME'];
+            //   $bind[":db_{$i}"]    = $row['TABLE_SCHEMA'];
+            $bind[":db_{$i}"]    = $dbconf_name;
             $bind[":tn_{$i}"]    = $row['TABLE_NAME'];
             $bind[":title_{$i}"] = $row['TABLE_COMMENT'];
             $sqls[]              = "insert ignore into {$tn} set dbconf_name=:db_{$i},table_name=:tn_{$i},title=:title_{$i},remark=:title_{$i} on duplicate key update is_ok=1";
@@ -86,7 +96,7 @@ class ActionImportDbconfTables extends AdminBaseAction
                 if ($pk === '' && $row['Key'] === 'PRI')
                 {
                     $pk            = $row['Field'];
-                    $update_sqls[] = "update {$tn_table} set pk_key='{$pk}' where dbconf_name='{$db_name}' and table_name='{$tn}'";
+                    $update_sqls[] = "update {$tn_table} set pk_key='{$pk}' where dbconf_name='{$db_code}' and table_name='{$tn}'";
                 }
             }
             if (count($ks))

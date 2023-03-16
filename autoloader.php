@@ -1,5 +1,47 @@
 <?php
 
+function lastError()
+{
+    if (\models\Api::$hasOutput)
+        return false;
+    $d = error_get_last();
+    if ($d)
+    {
+        ob_end_clean();
+        // if( \models\common\sys\Sys::app()->params['errorHttpCode']===400){
+        @header('HTTP/1.1 400 Not Found');
+        @header("status: 400 Not Found");
+        //}
+
+        @header('content-Type:text/json;charset=utf8');
+        $data = ['status' => 400, 'code' => 'code_error_', 'msg' => '服务器错误',];
+        if (\models\common\sys\Sys::isInit())
+        {
+            if (\models\common\sys\Sys::app()->isDebug())
+            {
+                $d['message']    = explode("\n", $d['message']);
+                $data['__debug'] = [
+                    'out'   => __CLASS__ . '==>' . __METHOD__ . '() ##' . __LINE__,
+                    'log'   => \models\common\sys\Sys::app()->interruption()->getLogs(),
+                    'error' => $d
+                ];
+            }
+            echo json_encode($data);
+        }
+        else
+        {
+            if (__KL_DEBUG__ === 'yes')
+            {
+                var_dump($d);
+            }
+
+        }
+
+    }
+}
+
+register_shutdown_function('lastError');
+
 /*
  * regist autoloader
  */

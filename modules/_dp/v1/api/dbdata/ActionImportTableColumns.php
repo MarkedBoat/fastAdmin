@@ -31,14 +31,24 @@ class ActionImportTableColumns extends AdminBaseAction
 
         $tn = DbTable::replaceFakeTableName($tn);
 
-
-
         $db_code = $this->inputDataBox->getStringNotNull('dbconf_code');
 
-        $conf_model  = DbDbConf::model()->findOneByWhere(['db_code' => $db_code]);
-        $dbconf_name = $db_code;
-        $db_name     = $conf_model->conf_dbname;
-        $db_cnn      = $conf_model->getConfDbConnect();
+        if ($db_code === '_sys_')
+        {
+            $dbconf_name = '_sys_';
+            $db_name     = 'kl_dev_bg';
+            $db_cnn      = Sys::app()->db('_sys_');
+        }
+        else
+        {
+            $conf_model  = DbDbConf::model()->findOneByWhere(['db_code' => $db_code]);
+            $dbconf_name = $db_code;
+            $db_name     = $conf_model->conf_dbname;
+            $db_cnn      = $conf_model->getConfDbConnect();
+        }
+
+
+
 
 
         $tn_table    = DbTable::model()->getTableName();

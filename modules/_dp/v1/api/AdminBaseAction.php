@@ -25,11 +25,21 @@ abstract class AdminBaseAction extends ActionBase
     public function init()
     {
         parent::init();
-        $rsa_token = $this->inputDataBox->tryGetString('user_token');
-        if (!$rsa_token)
+
+        session_start();
+        if (isset($_SESSION['utk']))
         {
-            throw new AdvError(AdvError::user_token_not_exist);
+            $rsa_token = $_SESSION['utk'];
         }
+        else
+        {
+            $rsa_token = $this->inputDataBox->tryGetString('user_token');
+            if (!$rsa_token)
+            {
+                throw new AdvError(AdvError::user_token_not_exist);
+            }
+        }
+
 
         $pri_key    = file_get_contents(__ROOT_DIR__ . '/config/file/web/admin_bg.pri.key');
         $true_token = RSA::de($pri_key, $rsa_token);

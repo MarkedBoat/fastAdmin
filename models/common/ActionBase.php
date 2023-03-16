@@ -163,24 +163,8 @@ abstract class ActionBase
             }
         $contents = ob_get_contents();
         ob_end_clean();
-        $jsScript = "<script>\n//server.outVarToJs\nvar serverData={};\n";
-        foreach ($jsVars as $k => $v)
-        {
-            if (is_string($v))
-            {
-                $jsScript .= "serverData.{$k}='{$v}';\n";
-            }
-            else if (is_int($v))
-            {
-                $jsScript .= "serverData.{$k}={$v};\n";
-            }
-            else
-            {
-                $json     = json_encode($v);
-                $jsScript .= "serverData.{$k}={$json};\n";
-            }
-        }
-        $jsScript .= "</script>\n";
+        $jsScript = "<script>\n//server.outVarToJs\nvar serverData=".json_encode($jsVars).";\n</script>\n";
+
         return preg_replace('/<body(.*)?>/', "<body$1>\n" . $jsScript, $contents);
     }
 
