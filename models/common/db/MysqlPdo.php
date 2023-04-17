@@ -27,17 +27,19 @@ class MysqlPdo extends \PDO
 
         $opt = array(
             \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES {$config['charset']}",
-            \PDO::ATTR_TIMEOUT            => 5,
+            \PDO::ATTR_TIMEOUT            => 10,
             \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION,
             \PDO::ATTR_PERSISTENT         => true,
             \PDO::ATTR_EMULATE_PREPARES   => true
         );
         try
         {
+            //if(strstr($config['connectionString'],'www'))throw new \Exception('xxx');
             //var_dump($config['connectionString']);
-            $model = new MysqlPdo($config['connectionString'], $config['username'], $config['password'], array_merge($config['attributes'], $opt));
+            $model = new MysqlPdo($config['connectionString'] . ";charset={$config['charset']}", $config['username'], $config['password'], array_merge($config['attributes'], $opt));
         } catch (\Exception $e)
         {
+            Sys::app()->addLog([$config, $opt], '数据库配置');
             Sys::app()->interruption()->setMsg('操作失败' . '数据库链接失败' . $e->getMessage() . $e->getCode())->setDebugData($config)->outError();
         }
 

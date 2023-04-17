@@ -249,6 +249,7 @@
 
 
                     let import_tables_btn = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '导入所有表'});
+                    let import_force_tables_btn = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '强制覆盖所有表'});
 
                     let goto_tables_href = new Emt('a').setPros({className: 'btn btn-info btn-sm', href: '/dp/dbdata/tables?dbconf_name=' + row_data.db_code, target: '_blank', textContent: '查询下属表'});
 
@@ -304,8 +305,29 @@
                         })
                     });
 
+                    import_force_tables_btn.addEventListener('click', function () {
+                        if (window.prompt('强制覆盖，清输入【ok】') === 'ok') {
+                            kl.ajax({
+                                url: '/_dp/v1/dbdata/importDbconfTables?user_token=' + utk + '&is_force=yes&&dbconf_code=' + row_data.db_code,
+                                method: 'GET',
+                                type: 'text',
+                                success: function (import_tables_res) {
+                                    if (import_tables_res.indexOf('SUCCESS')) {
+                                        alert('覆盖导入 tables 成功');
+                                    } else {
+                                        alert('覆盖导入 tables 请求结果异常')
+                                    }
+                                },
+                                error: function (import_tables_res) {
+                                    console.log(import_tables_res);
+                                    alert('覆盖导入 tables 网络异常');
+                                }
+                            })
+                        }
+                    });
 
-                    cell.addNodes([edit_btn, import_tables_btn,goto_tables_href]);
+
+                    cell.addNodes([edit_btn, import_tables_btn, import_force_tables_btn, goto_tables_href]);
                 });
 
 

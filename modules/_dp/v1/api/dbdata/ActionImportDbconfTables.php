@@ -4,6 +4,7 @@ namespace modules\_dp\v1\api\dbdata;
 
 use Cassandra\Column;
 use models\Api;
+use models\common\db\MysqlPdo;
 use models\common\opt\Opt;
 use models\common\sys\Sys;
 use modules\_dp\v1\api\AdminBaseAction;
@@ -20,8 +21,25 @@ class ActionImportDbconfTables extends AdminBaseAction
     public function run()
     {
 
+
         $this->dispatcher->setOutType(Api::outTypeText);
         \models\Api::$hasOutput = true;
+
+        if (0)
+        {
+            $db = new MysqlPdo("mysql:host=www.markedboat.com;port=3306;dbname=test;charset=utf8mb4", "u20230411", "@Bc123", array_merge([], [
+                //  \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4",
+                \PDO::ATTR_TIMEOUT          => 10,
+                \PDO::ATTR_ERRMODE          => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_PERSISTENT       => true,
+                \PDO::ATTR_EMULATE_PREPARES => true
+            ]));
+            // $db->setText('SET NAMES utf8mb4;')->execute();
+            $res = $db->setText('select * from test.kz_mark limit 2;')->queryAll();
+            var_dump($res);
+            die;
+        }
+
 
         $is_super = in_array('super_admin', $this->user->role_codes, true);
         if (!$is_super)
@@ -29,7 +47,8 @@ class ActionImportDbconfTables extends AdminBaseAction
             die('super_admin only ');
         }
 
-        $db_code = $this->inputDataBox->getStringNotNull('dbconf_code');
+        $db_code    = $this->inputDataBox->getStringNotNull('dbconf_code');
+        $is_recover = ($this->inputDataBox->tryGetString('is_force') === 'yes');
 
         if ($db_code === '_sys_')
         {
@@ -46,7 +65,7 @@ class ActionImportDbconfTables extends AdminBaseAction
         }
 
 
-        $rows        = $db_cnn->setText("SELECT `table_schema`,`table_name`,table_comment FROM information_schema.Tables WHERE table_schema = '{$db_name}';")->queryAll();
+        $rows        = $db_cnn->setText("SELECT `table_schema`,`table_name` 'TABLE_NAME',table_comment 'TABLE_COMMENT' FROM information_schema.Tables WHERE table_schema = '{$db_name}';")->queryAll();
         $tn          = DbTable::model()->getTableName();
         $sqls        = [];
         $date_now    = date('Y-m-d H:i:s');
@@ -59,9 +78,11 @@ class ActionImportDbconfTables extends AdminBaseAction
             $bind[":db_{$i}"]    = $dbconf_name;
             $bind[":tn_{$i}"]    = $row['TABLE_NAME'];
             $bind[":title_{$i}"] = $row['TABLE_COMMENT'];
-            $sqls[]              = "insert ignore into {$tn} set dbconf_name=:db_{$i},table_name=:tn_{$i},title=:title_{$i},remark=:title_{$i} on duplicate key update is_ok=1";
+            $recover_sql         = $is_recover ? ",title=:title_{$i},remark=:title_{$i}" : '';
+            $sqls[]              = "insert ignore into {$tn} set dbconf_name=:db_{$i},table_name=:tn_{$i},title=:title_{$i},remark=:title_{$i} on duplicate key update is_ok=1{$recover_sql}";
         }
         $res = DbTable::model()->getDbConnect()->setText(join(';', $sqls))->bindArray($bind)->execute();
+        var_dump($sqls, $bind);
 
         $tn_col   = DbColumn::model()->getTableName();
         $tn_table = DbTable::model()->getTableName();
@@ -90,7 +111,8 @@ class ActionImportDbconfTables extends AdminBaseAction
                 $bind[":db_datatype_len_{$i}"] = isset($ar[1]) ? intval(str_replace([')'], '', $ar[1])) : 0;
                 $bind[":index_key_{$i}"]       = $row['Key'];
                 $bind[":default_val_{$i}"]     = $row['Default'];
-                $sqls[]                        = "insert ignore into {$tn_col} set dbconf_name=:dbconf_name,table_name=:tn,column_name=:column_name_{$i},title=:title_{$i},remark=:title_{$i},out_datatype=:out_datatype_{$i},db_datatype=:db_datatype_{$i},db_datatype_len=:db_datatype_len_{$i},index_key=:index_key_{$i},default_val=:default_val_{$i},val_items='[]' on duplicate key update db_datatype=:db_datatype_{$i},db_datatype_len=:db_datatype_len_{$i},index_key=:index_key_{$i},default_val=:default_val_{$i},is_ok=1";
+                $recover_sql                   = $is_recover ? ",title=:title_{$i},remark=:title_{$i}" : '';
+                $sqls[]                        = "insert ignore into {$tn_col} set dbconf_name=:dbconf_name,table_name=:tn,column_name=:column_name_{$i},title=:title_{$i},remark=:title_{$i},out_datatype=:out_datatype_{$i},db_datatype=:db_datatype_{$i},db_datatype_len=:db_datatype_len_{$i},index_key=:index_key_{$i},default_val=:default_val_{$i},val_items='[]' on duplicate key update db_datatype=:db_datatype_{$i},db_datatype_len=:db_datatype_len_{$i},index_key=:index_key_{$i},default_val=:default_val_{$i},is_ok=1{$recover_sql}";
                 if (isset($ks[$row['Field']]))
                     unset($ks[$row['Field']]);
                 if ($pk === '' && $row['Key'] === 'PRI')
