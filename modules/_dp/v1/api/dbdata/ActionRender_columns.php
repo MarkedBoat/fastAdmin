@@ -20,13 +20,15 @@ class ActionRender_columns extends ActionBase
 {
     public $dataSource = 'GET';
 
+    public function init()
+    {
+        $this->setOutputHtml();
+        parent::init();
+    }
+
     public function run()
     {
-        $this->dispatcher->setOutType(Api::outTypeHtml);
-
-
         return $this->renderTpls(['/modules/_dp/v1/view/data/columns.html'], $this->inputDataBox->getData());
-
     }
 
 

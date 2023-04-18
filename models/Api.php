@@ -14,6 +14,11 @@ class Api implements IDispatcher
     const outTypeJson = 'json';
     const outTypeHtml = 'html';
     const outTypeText = 'text';
+
+    const actoinStatusInit   = 'init';
+    const actoinStatusRunned = 'runed';
+
+
     /**
      * @var ActionBase
      */
@@ -21,6 +26,7 @@ class Api implements IDispatcher
     public static $hasOutput = false;//是否已经输出数据，如果已经输出，其它地方就不要再输出了
     private       $_outType  = 'json';
 
+    private $actionStatus = '';
 
     public function run()
     {
@@ -30,7 +36,7 @@ class Api implements IDispatcher
         $routes = Sys::app()->getConfig()['routes'];
         foreach ($routes as $fake_router => $true_route)
         {
-           // var_dump('*', $uri, $fake_router, $fake_router === $uri);
+            // var_dump('*', $uri, $fake_router, $fake_router === $uri);
             if ($fake_router === $uri)
             {
                 $uri = $true_route;
@@ -62,7 +68,8 @@ class Api implements IDispatcher
         $action          = $arr[$lastIndex];
         $arr[$lastIndex] = 'Action' . ucfirst($action);
         array_unshift($arr, 'modules');
-        $actionClassPath = join('\\', $arr);
+        $actionClassPath    = join('\\', $arr);
+        $this->actionStatus = self::actoinStatusInit;
         try
         {
             $this->initAction($actionClassPath);
@@ -70,13 +77,28 @@ class Api implements IDispatcher
             $this->__action->setAction($uri);
             $this->__action->setDispatcher($this);
             $this->__action->initInputParam();
+        } catch (AdvError $advError)
+        {
+            $this->outAdvError($advError, 'init');
+        } catch (\Exception $e)
+        {
+            $this->outBaseException($e, 'init');
+        }
+
+        $this->actionStatus = self::actoinStatusRunned;
+        try
+        {
+            $this->__action->init();
             $this->output();
         } catch (AdvError $advError)
         {
-            $this->outAdvError($advError, 'try run');
+            if ($this->__action->handleAdvError($advError) === false)
+            {
+                $this->outAdvError($advError, 'run');
+            }
         } catch (\Exception $e)
         {
-            $this->outBaseException($e, 'try run');
+            $this->outBaseException($e, 'run');
         }
     }
 
@@ -276,7 +298,7 @@ class Api implements IDispatcher
             @header("status: 400 Not Found");
         }
 
-        if ($this->_outType === self::outTypeText)
+        if (($this->actionStatus === self::actoinStatusRunned && $this->__action->isOutputText()) || $this->_outType === self::outTypeText)
         {
             @header('content-Type:text/html;charset=utf8');
 

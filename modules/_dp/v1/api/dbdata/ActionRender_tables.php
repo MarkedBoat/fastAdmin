@@ -20,13 +20,16 @@ class ActionRender_tables extends ActionBase
 {
     public $dataSource = 'GET';
 
+
+    public function init()
+    {
+        $this->setOutputHtml();
+        parent::init();
+    }
+
     public function run()
     {
-        $this->dispatcher->setOutType(Api::outTypeHtml);
-
-
         return $this->renderTpls(['/modules/_dp/v1/view/data/tables.html'], $this->inputDataBox->getData());
-
     }
 
 

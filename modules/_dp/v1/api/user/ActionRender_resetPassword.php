@@ -13,11 +13,15 @@ use modules\_dp\v1\model\Admin;
 
 class ActionRender_resetPassword extends ActionBase
 {
+    public function init()
+    {
+        $this->setOutputHtml();
+        parent::init();
+    }
+
     public function run()
     {
-        $this->dispatcher->setOutType(Api::outTypeHtml);
         $pub_key = file_get_contents(__ROOT_DIR__ . '/config/file/web/admin_bg.pub.key');
         return $this->renderTpls(['/modules/_dp/v1/view/admin/resetpsw.html'], ['publicKey' => $pub_key]);
-
     }
 }

@@ -38,6 +38,8 @@ abstract class ActionBase
 
     public $version = 0;
 
+    protected $outType = 'json';
+
     // if ($_SERVER['REQUEST_METHOD'] != "POST")
     //     Sys::app()->interruption()->setMsg('请使用post方法')->outBaseException();
 
@@ -112,7 +114,7 @@ abstract class ActionBase
             Sys::app()->setOpts($sys_opts);
         }
         $this->__apiName = $this->inputDataBox->tryGetString('method');
-        $this->init();
+
     }
 
 
@@ -163,7 +165,7 @@ abstract class ActionBase
             }
         $contents = ob_get_contents();
         ob_end_clean();
-        $jsScript = "<script>\n//server.outVarToJs\nvar serverData=".json_encode($jsVars).";\n</script>\n";
+        $jsScript = "<script>\n//server.outVarToJs\nvar serverData=" . json_encode($jsVars) . ";\n</script>\n";
 
         return preg_replace('/<body(.*)?>/', "<body$1>\n" . $jsScript, $contents);
     }
@@ -303,6 +305,66 @@ abstract class ActionBase
     public function setAction($action)
     {
         $this->uri = $action;
+    }
+
+    /**
+     * 处理预定义 错误
+     * @param AdvError $e
+     * @return bool
+     */
+    public function handleAdvError(AdvError $e)
+    {
+        return false;
+    }
+
+    public function getOutputType()
+    {
+        return $this->outType;
+    }
+
+
+    public function setOutputJson()
+    {
+        $this->outType = 'json';
+        return $this;
+    }
+
+    public function setOutputHtml()
+    {
+        $this->outType = 'html';
+        return $this;
+    }
+
+    public function setOutputText()
+    {
+        $this->outType = 'text';
+        return $this;
+    }
+
+    public function setOutputXml()
+    {
+        $this->outType = 'xml';
+        return $this;
+    }
+
+    public function isOutputJson()
+    {
+        return $this->outType === 'json';
+    }
+
+    public function isOutputHtml()
+    {
+        return $this->outType === 'html';
+    }
+
+    public function isOutputText()
+    {
+        return $this->outType === 'text';
+    }
+
+    public function isOutputXml()
+    {
+        return $this->outType === 'xml';
     }
 }
 

@@ -20,13 +20,15 @@ class ActionRender_dbconfs extends ActionBase
 {
     public $dataSource = 'GET';
 
+    public function init()
+    {
+        $this->setOutputHtml();
+        parent::init();
+    }
+
     public function run()
     {
-        $this->dispatcher->setOutType(Api::outTypeHtml);
-
-
         return $this->renderTpls(['/modules/_dp/v1/view/data/dbconfs.html'], $this->inputDataBox->getData());
-
     }
 
 

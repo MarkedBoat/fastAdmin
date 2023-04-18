@@ -98,4 +98,24 @@ abstract class AdminBaseAction extends ActionBase
     {
         return Sys::app()->params['is_debug'];
     }
+
+    public function handleAdvError(AdvError $e)
+    {
+
+        if (substr($e->getDetailCode(),0,10)==='user_error' && $this->isOutputHtml())
+        {
+
+            //  $url=Sys::app()->params['url'];
+            @header('content-Type:text/html;charset=utf8');
+            header("refresh:3;url=/login");
+            //var_dump($this->open_actions);
+            echo $e->getMessage();
+            return true;
+            // return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
 }

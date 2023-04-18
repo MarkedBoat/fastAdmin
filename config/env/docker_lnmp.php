@@ -77,6 +77,7 @@ return merge_conf_with_cover(include __ROOT_DIR__ . '/config/env/common_param.ph
         'duplicate_route_test' => 'docker/test',
         '^(.*)\/(\w+).html$'   => '$1/render_$2',
         ''                     => '_dp/v1/index/render_index',
+        'login'                => '_dp/v1/user/render_login',
         'dp/login'             => '_dp/v1/user/render_login',
         'dp/resetPsw'          => '_dp/v1/user/render_resetPassword',
         'dp/index'             => '_dp/v1/index/render_index',

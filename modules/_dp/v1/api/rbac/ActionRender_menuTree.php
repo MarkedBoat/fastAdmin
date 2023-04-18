@@ -13,11 +13,16 @@ use modules\_dp\v1\model\rbac\RbacRoleMenu;
 
 class ActionRender_menuTree extends AdminBaseAction
 {
+
+    public function init()
+    {
+        $this->setOutputHtml();
+        parent::init();
+    }
+
     public function run()
     {
-        $this->dispatcher->setOutType(Api::outTypeHtml);
         return $this->renderTpls(['/modules/_dp/v1/view/rbac/menu.html'], []);
-
     }
 
 }
