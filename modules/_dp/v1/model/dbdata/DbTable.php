@@ -254,18 +254,18 @@ class DbTable extends DbTableDao
 
         if (count($list))
         {
-            $relat_tn = DbRelation::$tableName;
-            $rows     = $this->getDbConnect()->setText("select * from {$relat_tn} where index_dbconf_name='{$this->dbconf_name}' and index_table_name='{$this->table_name}' and is_ok=1;")->queryAll();
+            $column_explain_tn = DbColumnExplain::$tableName;
+            $rows     = $this->getDbConnect()->setText("select * from {$column_explain_tn} where index_dbconf_name='{$this->dbconf_name}' and index_table_name='{$this->table_name}' and is_ok=1;")->queryAll();
 
             $filter = new SqlFilter();
             foreach ($rows as $relat_info_row)
             {
                 $src_vals             = [];
-                $src_db               = $relat_info_row['related_dbconf_name'];
-                $src_table            = $relat_info_row['related_table_name'];
-                $src_val_column       = $relat_info_row['related_column_name'];
-                $src_label_column     = $relat_info_row['related_label_column_name'];
-                $src_safe_columns_str = $relat_info_row['related_ext_columns'];
+                $src_db               = $relat_info_row['explain_dbconf_name'];
+                $src_table            = $relat_info_row['explain_table_name'];
+                $src_val_column       = $relat_info_row['explain_column_name'];
+                $src_label_column     = $relat_info_row['explain_label_column_name'];
+                $src_safe_columns_str = $relat_info_row['explain_ext_columns'];
                 $src_safe_columns     = explode(',', $src_safe_columns_str);
                 $val_column           = $relat_info_row['index_column_name'];
                 $relat_map            = ['infos' => [], 'labels' => []];
