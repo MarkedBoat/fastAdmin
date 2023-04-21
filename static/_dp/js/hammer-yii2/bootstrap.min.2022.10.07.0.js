@@ -307,10 +307,62 @@ let hammerYii2Bootstarp = function () {
     };
     bootstrap_hanndle.createTextInput = function (input_param) {
         let text_input_ele = new Emt('INPUT', 'type="text"').setPros({id: bootstrap_hanndle.getEleRandId('text_input')});
-
         text_input_ele.apiHandle = {ele: {root: text_input_ele}};
         bootstrap_hanndle.__initInputEle(text_input_ele, input_param);
         return text_input_ele;
+    }
+
+    bootstrap_hanndle.createWithDroplistTextInput = function (input_param) {
+        let text_input_ele = new Emt('INPUT', 'type="text"').setPros({id: bootstrap_hanndle.getEleRandId('text_input')});
+
+        text_input_ele.apiHandle = {ele: {root: text_input_ele}};
+        let datalist_ele = bootstrap_hanndle.createDatalist();
+        text_input_ele.list = datalist_ele.id;
+        text_input_ele.setAttrs({list: datalist_ele.id});
+
+        text_input_ele.apiHandle.setItems = function (items) {
+            datalist_ele.apiHandle.setItems(items);
+            // text_input_ele.apiHandle.ele.options.forEach((old_opt) => {
+            //     old_opt.remove();
+            // })
+            // text_input_ele.apiHandle.items = items;
+            // text_input_ele.apiHandle.items.forEach(function (item) {
+            //     let new_opt = new Option(item.text, item.val);
+            //     select_input_ele.apiHandle.ele.options.push(new_opt);
+            //     select_input_ele.add(new_opt);
+            // })
+        }
+
+        bootstrap_hanndle.__initInputEle(text_input_ele, input_param);
+        return text_input_ele;
+    }
+
+    bootstrap_hanndle.createDatalist = function (input_param) {
+        let datalist_ele = new Emt('datalist').setPros({id: bootstrap_hanndle.getEleRandId('datalist')});
+        if (input_param && input_param.items && typeof input_param.items.forEach === "function") {
+            input_param.items.forEach(function (item) {
+                datalist_ele.add(new Option(item.text, item.val));
+            });
+        }
+        datalist_ele.apiHandle = {ele: {root: datalist_ele, options: []}};
+        datalist_ele.apiHandle.addItem = function (text, val) {
+            let new_opt = new Option(text, val);
+            datalist_ele.apiHandle.ele.options.push(new_opt);
+            datalist_ele.addNode(new_opt);
+        }
+        datalist_ele.apiHandle.setItems = function (items) {
+            datalist_ele.apiHandle.ele.options.forEach((old_opt) => {
+                old_opt.remove();
+            })
+            datalist_ele.apiHandle.items = items;
+            datalist_ele.apiHandle.items.forEach(function (item) {
+                let new_opt = new Option(item.text, item.val);
+                datalist_ele.apiHandle.ele.options.push(new_opt);
+                datalist_ele.addNode(new_opt);
+            })
+        }
+        document.body.append(datalist_ele);
+        return datalist_ele;
     }
 
     bootstrap_hanndle.createNumberInput = function (input_param) {
@@ -435,9 +487,15 @@ let hammerYii2Bootstarp = function () {
     bootstrap_hanndle.createCheckBoxs = function (input_param) {
         let checkboxs_div = new Emt('div', 'class="xxxx"');
 
-        checkboxs_div.apiHandle = {ele: {root: checkboxs_div}, checkboxs: []};
+        checkboxs_div.apiHandle = {ele: {root: checkboxs_div}, checkboxs: [], items: []};
 
         checkboxs_div.apiHandle.setItems = function (items) {
+            if (items === undefined || typeof items.forEach !== "function") {
+                console.log(items);
+                console.trace();
+                throw '错误的items 不是数组';
+            }
+
             checkboxs_div.apiHandle.items = items;
             checkboxs_div.apiHandle.checkboxs = [];
             checkboxs_div.apiHandle.items.forEach(function (item) {
@@ -452,7 +510,10 @@ let hammerYii2Bootstarp = function () {
                 checkboxs_div.apiHandle.checkboxs.push(item_checkbox);
             });
         };
-        checkboxs_div.apiHandle.setItems(input_param.items);
+        if (typeof input_param.items === "function") {
+            checkboxs_div.apiHandle.setItems(input_param.items);
+        }
+
 
         checkboxs_div.apiHandle.val = {
             init: undefined
@@ -489,6 +550,125 @@ let hammerYii2Bootstarp = function () {
         checkboxs_div.apiHandle.setRemoteItems = checkboxs_div.apiHandle.__setRemoteItems;
 
         return checkboxs_div;
+    }
+
+    bootstrap_hanndle.createSearchTags = function (input_param) {
+        let searchTags_div = new Emt('div', 'class="xxxx"');
+
+        searchTags_div.apiHandle = {ele: {root: searchTags_div}, vals: [], checkboxs: [], items: []};
+
+        searchTags_div.apiHandle.ele.toggleSearchBtn = bootstrap_hanndle.createButton({type: 'button', text: '🔍'});
+        searchTags_div.apiHandle.ele.tagsDiv = new Emt('div');
+        searchTags_div.apiHandle.ele.droplistDiv = new Emt('div', 'class="hide"');
+        searchTags_div.apiHandle.ele.textInputEle = bootstrap_hanndle.createTextInput(input_param);
+        searchTags_div.apiHandle.ele.datalistEle = bootstrap_hanndle.createDatalist(input_param);
+
+
+        searchTags_div.apiHandle.ele.textInputEle.list = searchTags_div.apiHandle.ele.datalistEle.id;
+        searchTags_div.apiHandle.ele.textInputEle.setAttrs({list: searchTags_div.apiHandle.ele.datalistEle.id});
+        searchTags_div.addNodes([
+            searchTags_div.apiHandle.ele.tagsDiv.addNodes([
+                searchTags_div.apiHandle.ele.toggleSearchBtn
+            ]),
+            searchTags_div.apiHandle.ele.droplistDiv.addNodes([
+                searchTags_div.apiHandle.ele.textInputEle,
+                searchTags_div.apiHandle.ele.datalistEle
+            ])
+        ]);
+
+
+        searchTags_div.apiHandle.trySelectItemVal = function (inputVal) {
+            if (inputVal.length > 0 && searchTags_div.apiHandle.vals.indexOf(inputVal) === -1) {
+                searchTags_div.apiHandle.items.forEach((item) => {
+                    if (item.val === inputVal) {
+                        let item_checkbox = new Emt('input', 'type="checkbox"', '', {dataVal: item.val, value: item.val, checked: true});
+                        searchTags_div.apiHandle.ele.tagsDiv.addNode(
+                            new Emt('label').addNodes([
+                                item_checkbox,
+                                new Emt('span', '', item.text)
+                            ])
+                        );
+                        searchTags_div.apiHandle.checkboxs.push(item_checkbox);
+                        searchTags_div.apiHandle.vals.push(item.val);
+                        item_checkbox.addEventListener('change', function () {
+                            if (item_checkbox.checked === false) {
+                                item_checkbox.parentElement.remove();
+                            }
+                            searchTags_div.apiHandle.vals = searchTags_div.apiHandle.getVal();
+                            console.log('vals', searchTags_div.apiHandle.vals);
+                        });
+                        searchTags_div.apiHandle.vals = searchTags_div.apiHandle.getVal();
+                        console.log('vals', searchTags_div.apiHandle.vals);
+
+                    }
+                });
+            }
+        }
+
+
+        searchTags_div.apiHandle.setItems = function (items) {
+            if (items === undefined || typeof items.forEach !== "function") {
+                console.log(items);
+                console.trace();
+                throw '错误的items 不是数组';
+            }
+            searchTags_div.apiHandle.items = items;
+            searchTags_div.apiHandle.ele.datalistEle.apiHandle.setItems(items);
+        };
+        if (typeof input_param.items === "function") {
+            searchTags_div.apiHandle.setItems(input_param.items);
+        }
+
+
+        searchTags_div.apiHandle.val = {
+            init: undefined
+        };
+        input_param.keepClass = true;
+        bootstrap_hanndle.__initInputEle(searchTags_div, input_param);
+
+        searchTags_div.apiHandle.getVal = function () {
+            let vals = [];
+            searchTags_div.apiHandle.checkboxs.forEach(function (checkbox) {
+                if (checkbox.checked === true) {
+                    vals.push(checkbox.dataVal);
+                }
+            });
+            return vals;
+        }
+
+        searchTags_div.apiHandle.__setVal = function (array_val) {
+            array_val = typeof array_val === "object" && typeof array_val.forEach === "function" ? array_val : [];
+            searchTags_div.apiHandle.checkboxs.forEach(function (checkbox) {
+                console.log(checkbox.dataVal);
+                if (array_val.indexOf(checkbox.dataVal) === -1) {
+                    checkbox.remove();
+                } else {
+                    checkbox.checked = true;
+                }
+            });
+            return searchTags_div;
+        }
+
+        searchTags_div.apiHandle.isChange = function () {
+            return !(JSON.stringify(searchTags_div.apiHandle.getInitVal()) === JSON.stringify(searchTags_div.apiHandle.getVal()));
+        }
+        searchTags_div.apiHandle.setRemoteItems = searchTags_div.apiHandle.__setRemoteItems;
+
+        searchTags_div.apiHandle.ele.toggleSearchBtn.addEventListener('click', function () {
+            searchTags_div.apiHandle.ele.droplistDiv.classList.toggle('hide');
+        });
+        searchTags_div.apiHandle.ele.textInputEle.addEventListener('focusout', function () {
+            searchTags_div.apiHandle.ele.droplistDiv.classList.add('hide');
+            searchTags_div.apiHandle.ele.textInputEle.value = '';
+        });
+
+        //datalist 选中的，展现在标签上
+        searchTags_div.apiHandle.ele.textInputEle.addEventListener('change', function () {
+            searchTags_div.apiHandle.trySelectItemVal(searchTags_div.apiHandle.ele.textInputEle.value);
+        });
+
+
+        return searchTags_div;
     }
 
     bootstrap_hanndle.createFileInput = function (input_param) {
@@ -568,6 +748,7 @@ let hammerYii2Bootstarp = function () {
             let tmp_ele = false;
             if (type === 'text') {
                 tmp_ele = bootstrap_hanndle.createTextInput(tmp.param);
+
             } else if (type === 'number') {
                 tmp_ele = bootstrap_hanndle.createNumberInput(tmp.param);
             } else if (type === 'select') {
@@ -584,6 +765,8 @@ let hammerYii2Bootstarp = function () {
                 tmp_ele = bootstrap_hanndle.createFileInput(tmp.param);
             } else if (type === 'text1') {
                 tmp_ele = bootstrap_hanndle.createTextInput(tmp.param);
+            } else if (type === 'search_tags') {
+                tmp_ele = bootstrap_hanndle.createSearchTags(tmp.param);
             }
             if (tmp.onCreate === false) {
                 return tmp_ele;

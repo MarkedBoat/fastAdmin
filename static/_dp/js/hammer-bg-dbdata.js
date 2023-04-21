@@ -190,6 +190,7 @@ let hammerBgDataApi = function () {
             } else {
                 window.serverData.dataLib[dataLibIndex] = window.serverData.dataLib[dataLibIndex] || {};
                 window.serverData.dataLib[dataLibIndex].tableInfo = res.result.data.table;
+                window.serverData.dataLib[dataLibIndex].relations = res.result.data.relations;
                 window.serverData.dataLib[dataLibIndex].__column = {map: {}, items: res.result.data.columns};
 
                 res.result.data.columns.forEach(function (colInfo) {

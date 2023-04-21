@@ -336,16 +336,16 @@ class DbTable extends DbTableDao
             {
                 if (in_array($tmp_row[$this->main_table_model->pk_key], $relat_pks))
                 {
-                    $query_all_list[$i]['__relat'][$val_column] = [
+                    $query_all_list[$i]['__explain'][$val_column] = [
                         'label' => isset($relat_map['labels'][$tmp_row[$val_column]]) ? $relat_map['labels'][$tmp_row[$val_column]] : false,
                         'info'  => isset($relat_map['infos'][$tmp_row[$val_column]]) ? $relat_map['infos'][$tmp_row[$val_column]] : new \stdClass(),
                     ];
                 }
                 else
                 {
-                    if (empty($query_all_list[$i]['__relat'][$val_column]))
+                    if (empty($query_all_list[$i]['__explain'][$val_column]))
                     {
-                        $query_all_list[$i]['__relat'][$val_column] = [
+                        $query_all_list[$i]['__explain'][$val_column] = [
                             'label' => false,
                             'info'  => new \stdClass(),
                         ];
@@ -377,8 +377,12 @@ class DbTable extends DbTableDao
                     {
                         $left_val_to_row_i_map[$left_val] = [];
                     }
-                    $left_val_2_row_i_map[$left_val][]                         = $query_row_i;
-                    $query_all_list[$query_row_i][$relation->realtion_res_key] = [];
+                    $left_val_2_row_i_map[$left_val][] = $query_row_i;
+                    if (!isset($queryed_row['__relat']))
+                    {
+                        $query_all_list[$query_row_i]['__relat'] = [];
+                    }
+                    $query_all_list[$query_row_i]['__relat'][$relation->realtion_res_key] = [];
                 }
             }
             Sys::app()->addLog($left_table_index_field_vals, '$left_table_index_field_vals');
@@ -429,7 +433,7 @@ class DbTable extends DbTableDao
                         {
                             foreach ($left_val_2_row_i_map[$queryed_left_val] as $left_queryed_row_index)
                             {
-                                $query_all_list[$left_queryed_row_index][$relation->realtion_res_key] = $relation_row;
+                                $query_all_list[$left_queryed_row_index]['__relat'][$relation->realtion_res_key] = $relation_row;
                             }
                         }
                         else
@@ -448,7 +452,7 @@ class DbTable extends DbTableDao
                         {
                             foreach ($left_val_2_row_i_map[$queryed_left_val] as $left_queryed_row_index)
                             {
-                                $query_all_list[$left_queryed_row_index][$relation->realtion_res_key][] = $relation_row;
+                                $query_all_list[$left_queryed_row_index]['__relat'][$relation->realtion_res_key][] = $relation_row;
                             }
                         }
                         else
@@ -470,12 +474,15 @@ class DbTable extends DbTableDao
 
     public function getInfo()
     {
-        $table_model   = $this->getBizTableInfo();
-        $column_models = $this->getBizTableColumns();
+        $table_model     = $this->getBizTableInfo();
+        $column_models   = $this->getBizTableColumns();
+        $relation_models = $this->getBizTableRelations();
+
 
         return [
-            'table'   => $table_model->getOpenInfo(),
-            'columns' => array_map(function ($column_model) { return $column_model->getOpenInfo(); }, $column_models)
+            'table'     => $table_model->getOpenInfo(),
+            'columns'   => array_map(function ($column_model) { return $column_model->getOpenInfo(); }, $column_models),
+            'relations' => array_map(function ($column_model) { return $column_model->getOuterDataArray(); }, $relation_models)
         ];
 
 
@@ -498,6 +505,12 @@ class DbTable extends DbTableDao
     {
         return DbColumn::model()->addSort('column_sn', 'desc')->findAllByWhere(['dbconf_name' => $this->dbconf_name, 'table_name' => $this->table_name, 'is_ok' => Opt::isOk]);
     }
+
+    public function getBizTableRelations()
+    {
+        return DbRelation::model()->addSort('id', 'desc')->findAllByWhere(['dbconf_name' => $this->dbconf_name, 'left_table_name' => $this->table_name, 'is_ok' => Opt::isOk]);
+    }
+
 
     /**
      * @param DbTable $dbTable

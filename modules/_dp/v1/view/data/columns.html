@@ -305,6 +305,16 @@
                 let column_inDataType_input = form_edit.apiHandle.ele.input.in_datatype;
 
 
+                form_edit.apiHandle.addGroupPreCreate().setLabelText('页面输入类型').setIndexKey('query_input_type').setNameVar('query_input_type').setItems(serverData.dataLib.dbdataColumnTable.__column.map.query_input_type.val_items).create('select');
+                let column_queryInputType_input = form_edit.apiHandle.ele.input.query_input_type;
+
+                form_edit.apiHandle.addGroupPreCreate().setLabelText('是否有datalist').setIndexKey('has_query_datalist').setNameVar('has_query_datalist').setItems(serverData.dataLib.dbdataColumnTable.__column.map.has_query_datalist.val_items).create('select');
+                let column_hasQueryDatalist_input = form_edit.apiHandle.ele.input.has_query_datalist;
+
+                form_edit.apiHandle.addGroupPreCreate().setLabelText('多值查询').setIndexKey('is_query_multi').setNameVar('is_query_multi').setItems(serverData.dataLib.dbdataColumnTable.__column.map.is_query_multi.val_items).create('select');
+                let column_isQueryMulti_input = form_edit.apiHandle.ele.input.is_query_multi;
+
+
                 let role_table = rolesTable();
                 let role_groupDiv = hammerYii2Bootstarp1.createFormInputGroupDiv({});
                 role_groupDiv.apiHandle.setText('权限控制').apiHandle.addInputEle(role_table);
@@ -332,6 +342,11 @@
                                 read_roles: JSON.stringify(rolecodes_map.read),
                                 update_roles: JSON.stringify(rolecodes_map.opt),
                                 all_roles: JSON.stringify(rolecodes_map.add),
+                                query_input_type: form_edit.apiHandle.ele.input.query_input_type.apiHandle.getVal(),
+                                has_query_datalist: form_edit.apiHandle.ele.input.has_query_datalist.apiHandle.getVal(),
+                                is_query_multi: form_edit.apiHandle.ele.input.is_query_multi.apiHandle.getVal(),
+
+
                             },
                             dbconf_name: serverData.dataLib.bgDataApi.config.dbconf_name,
                             table_name: window.serverData.dataLib.bgDataApi.config.dbdata_column_tableName,
@@ -598,6 +613,22 @@
 
                 datagrid.api.preCreateColumn('all_roles').setColumnInfo({}).setHeaderText('all_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
 
+                datagrid.api.preCreateColumn('query_input_type').setColumnInfo({}).setHeaderText('页面查询类型').setSortable(false).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                    cell.addNodes([
+                        new Emt('p').setAttrsByStr('', (window.serverData.dataLib.dbdataColumnTable.__column.map.query_input_type.valItemMap[row_data.query_input_type] || ('错误信息:' + row_data.query_input_type))),
+                    ]);
+                });
+                datagrid.api.preCreateColumn('has_query_datalist').setColumnInfo({}).setHeaderText('datalist?').setSortable(false).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                    cell.addNodes([
+                        new Emt('p').setAttrsByStr('', (window.serverData.dataLib.dbdataColumnTable.__column.map.has_query_datalist.valItemMap[row_data.has_query_datalist] || '错误信息')),
+                    ]);
+                });
+                datagrid.api.preCreateColumn('is_query_multi').setColumnInfo({}).setHeaderText('多项查询?').setSortable(false).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                    cell.addNodes([
+                        new Emt('p').setAttrsByStr('', (window.serverData.dataLib.dbdataColumnTable.__column.map.is_query_multi.valItemMap[row_data.is_query_multi] || '错误信息')),
+                    ]);
+                });
+
                 datagrid.api.preCreateColumn('op').setColumnInfo({}).setHeaderText('操作').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
                     let btn_import_column = new Emt('button').setPros({textContent: '修改'});
                     btn_import_column.addEventListener('click', function () {
@@ -614,6 +645,11 @@
                         column_remark_input.value = row_data.remark;
                         column_inDataType_input.apiHandle.setInitVal(row_data.in_datatype);
                         column_outDataType_input.apiHandle.setInitVal(row_data.out_datatype);
+
+                        column_queryInputType_input.apiHandle.setInitVal(row_data.query_input_type);
+                        column_hasQueryDatalist_input.apiHandle.setInitVal(row_data.has_query_datalist);
+                        column_isQueryMulti_input.apiHandle.setInitVal(row_data.is_query_multi);
+
                         let tmp_obj = {};
                         ['read_roles', 'update_roles', 'all_roles'].forEach((column_name) => {
                             if (row_data[column_name] === null) {
