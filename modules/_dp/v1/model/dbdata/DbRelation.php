@@ -17,5 +17,6 @@ use modules\_dp\v1\model\TInfo;
 
 class DbRelation extends DbRelationDao
 {
-
+    const HAS_MANY = 'has_many';
+    const HAS_ONE  = 'has_one';
 }

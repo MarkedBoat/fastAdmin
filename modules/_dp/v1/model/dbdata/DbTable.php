@@ -254,93 +254,8 @@ class DbTable extends DbTableDao
 
         if (count($list))
         {
-            $column_explain_tn = DbColumnExplain::$tableName;
-            $rows     = $this->getDbConnect()->setText("select * from {$column_explain_tn} where index_dbconf_name='{$this->dbconf_name}' and index_table_name='{$this->table_name}' and is_ok=1;")->queryAll();
-
-            $filter = new SqlFilter();
-            foreach ($rows as $relat_info_row)
-            {
-                $src_vals             = [];
-                $src_db               = $relat_info_row['explain_dbconf_name'];
-                $src_table            = $relat_info_row['explain_table_name'];
-                $src_val_column       = $relat_info_row['explain_column_name'];
-                $src_label_column     = $relat_info_row['explain_label_column_name'];
-                $src_safe_columns_str = $relat_info_row['explain_ext_columns'];
-                $src_safe_columns     = explode(',', $src_safe_columns_str);
-                $val_column           = $relat_info_row['index_column_name'];
-                $relat_map            = ['infos' => [], 'labels' => []];
-
-                if ($relat_info_row['ext_filter_sql'])
-                {
-                    $filter->setBySql($relat_info_row['ext_filter_sql']);
-                }
-                $relat_pks = [];
-                foreach ($list as $queryed_row)
-                {
-                    if (!empty($relat_info_row['ext_filter_sql']))
-                    {
-                        if (!$filter->isSave($queryed_row))
-                        {
-                            continue;
-                        }
-                    }
-                    if (!is_null($queryed_row[$val_column]))
-                    {
-                        $src_vals[]  = $queryed_row[$relat_info_row['index_column_name']];
-                        $relat_pks[] = $queryed_row[$this->main_table_model->pk_key];
-                    }
-                }
-                if (count($src_vals) === 0)
-                {
-                    continue;
-                }
-
-                $tmp_relat_res = (new static())->setTable($src_db, $src_table)->setAttrs([$src_val_column => array_unique($src_vals)])->query();
-                if (count($tmp_relat_res['dataRows']))
-                {
-                    foreach ($tmp_relat_res['dataRows'] as $tmp_res_row)
-                    {
-                        $src_val = $tmp_res_row[$src_val_column];
-                        if (isset($tmp_res_row[$src_label_column]))
-                        {
-                            $relat_map['labels'][$src_val] = $tmp_res_row[$src_label_column];
-                        }
-                        $tmp_ar = [];
-                        foreach ($src_safe_columns as $src_safe_column)
-                        {
-                            $tmp_ar[$src_safe_column] = $tmp_res_row[$src_safe_column];
-                        }
-                        $relat_map['infos'][$src_val] = $tmp_ar;
-                    }
-                }
-
-
-                foreach ($list as $i => $tmp_row)
-                {
-                    if (in_array($tmp_row[$this->main_table_model->pk_key], $relat_pks))
-                    {
-                        $list[$i]['__relat'][$val_column] = [
-                            'label' => isset($relat_map['labels'][$tmp_row[$val_column]]) ? $relat_map['labels'][$tmp_row[$val_column]] : false,
-                            'info'  => isset($relat_map['infos'][$tmp_row[$val_column]]) ? $relat_map['infos'][$tmp_row[$val_column]] : new \stdClass(),
-                        ];
-                    }
-                    else
-                    {
-                        if (empty($list[$i]['__relat'][$val_column]))
-                        {
-                            $list[$i]['__relat'][$val_column] = [
-                                'label' => false,
-                                'info'  => new \stdClass(),
-                            ];
-                        }
-
-                    }
-
-                }
-
-            }
-
-
+            $list = $this->appendExplainInfo($list);
+            $list = $this->appendRelatData($list);
         }
 
         $page_total = ceil($count / $this->limit_size);
@@ -352,6 +267,204 @@ class DbTable extends DbTableDao
         {
             return ['rowsTotal' => intval($count), 'pageTotal' => $page_total, 'pageIndex' => $this->page_index, 'pageSize' => $this->limit_size, 'dataRows' => $list];
         }
+    }
+
+    public function appendExplainInfo($query_all_list)
+    {
+        $column_explain_tn = DbColumnExplain::$tableName;
+        $rows              = $this->getDbConnect()->setText("select * from {$column_explain_tn} where index_dbconf_name='{$this->dbconf_name}' and index_table_name='{$this->table_name}' and is_ok=1;")->queryAll();
+
+        $filter = new SqlFilter();
+        foreach ($rows as $relat_info_row)
+        {
+            $src_vals             = [];
+            $src_db               = $relat_info_row['explain_dbconf_name'];
+            $src_table            = $relat_info_row['explain_table_name'];
+            $src_val_column       = $relat_info_row['explain_column_name'];
+            $src_label_column     = $relat_info_row['explain_label_column_name'];
+            $src_safe_columns_str = $relat_info_row['explain_ext_columns'];
+            $src_safe_columns     = explode(',', $src_safe_columns_str);
+            $val_column           = $relat_info_row['index_column_name'];
+            $relat_map            = ['infos' => [], 'labels' => []];
+
+            if ($relat_info_row['ext_filter_sql'])
+            {
+                $filter->setBySql($relat_info_row['ext_filter_sql']);
+            }
+            $relat_pks = [];
+            foreach ($query_all_list as $queryed_row)
+            {
+                if (!empty($relat_info_row['ext_filter_sql']))
+                {
+                    if (!$filter->isSave($queryed_row))
+                    {
+                        continue;
+                    }
+                }
+                if (!is_null($queryed_row[$val_column]))
+                {
+                    $src_vals[]  = $queryed_row[$relat_info_row['index_column_name']];
+                    $relat_pks[] = $queryed_row[$this->main_table_model->pk_key];
+                }
+            }
+            if (count($src_vals) === 0)
+            {
+                continue;
+            }
+
+            $tmp_relat_res = (new static())->setTable($src_db, $src_table)->setAttrs([$src_val_column => array_unique($src_vals)])->query();
+            if (count($tmp_relat_res['dataRows']))
+            {
+                foreach ($tmp_relat_res['dataRows'] as $tmp_res_row)
+                {
+                    $src_val = $tmp_res_row[$src_val_column];
+                    if (isset($tmp_res_row[$src_label_column]))
+                    {
+                        $relat_map['labels'][$src_val] = $tmp_res_row[$src_label_column];
+                    }
+                    $tmp_ar = [];
+                    foreach ($src_safe_columns as $src_safe_column)
+                    {
+                        $tmp_ar[$src_safe_column] = $tmp_res_row[$src_safe_column];
+                    }
+                    $relat_map['infos'][$src_val] = $tmp_ar;
+                }
+            }
+
+
+            foreach ($query_all_list as $i => $tmp_row)
+            {
+                if (in_array($tmp_row[$this->main_table_model->pk_key], $relat_pks))
+                {
+                    $query_all_list[$i]['__relat'][$val_column] = [
+                        'label' => isset($relat_map['labels'][$tmp_row[$val_column]]) ? $relat_map['labels'][$tmp_row[$val_column]] : false,
+                        'info'  => isset($relat_map['infos'][$tmp_row[$val_column]]) ? $relat_map['infos'][$tmp_row[$val_column]] : new \stdClass(),
+                    ];
+                }
+                else
+                {
+                    if (empty($query_all_list[$i]['__relat'][$val_column]))
+                    {
+                        $query_all_list[$i]['__relat'][$val_column] = [
+                            'label' => false,
+                            'info'  => new \stdClass(),
+                        ];
+                    }
+
+                }
+
+            }
+
+        }
+        return $query_all_list;
+    }
+
+    public function appendRelatData($query_all_list)
+    {
+
+        $relations = DbRelation::model()->findAllByWhere(['dbconf_name' => $this->dbconf_name, 'left_table_name' => $this->table_name, 'is_ok' => 1]);
+        foreach ($relations as $relation)
+        {
+            $left_table_index_field_vals = [];
+            $left_val_2_row_i_map        = [];
+            foreach ($query_all_list as $query_row_i => $queryed_row)
+            {
+                if (!is_null($queryed_row[$relation->left_table_index_field]))
+                {
+                    $left_val                      = $queryed_row[$relation->left_table_index_field];
+                    $left_table_index_field_vals[] = $left_val;
+                    if (!isset($left_val_to_row_i_map[$left_val]))
+                    {
+                        $left_val_to_row_i_map[$left_val] = [];
+                    }
+                    $left_val_2_row_i_map[$left_val][]                         = $query_row_i;
+                    $query_all_list[$query_row_i][$relation->realtion_res_key] = [];
+                }
+            }
+            Sys::app()->addLog($left_table_index_field_vals, '$left_table_index_field_vals');
+            if (count($left_table_index_field_vals) === 0)
+            {
+                continue;
+            }
+            $left_table_index_field_vals     = array_unique($left_table_index_field_vals);
+            $left_table_index_field_vals_str = join(',', $left_table_index_field_vals);//没错，必须是 int
+
+
+            $sql_selcet_parts = [];
+            $sql_join_parts   = [];
+            $sql_where_parts  = [];
+            $bind_values      = [];
+
+            $sql_selcet_parts[] = "{$relation->realtion_left_field} as _left_val";
+            $sql_selcet_parts[] = "{$relation->right_table_name}.{$relation->right_table_label_field} as _label";
+            if (strlen($relation->right_table_info_fields))
+            {
+                $tmp_ar = explode(',', $relation->right_table_info_fields);
+                foreach ($tmp_ar as $tmp_str)
+                {
+                    $sql_selcet_parts[] = "{$relation->right_table_name}.{$tmp_str}";
+                }
+            }
+
+            if (strlen($relation->relation_ext_field))
+            {
+                $sql_join_parts[] = " and `{$relation->relation_ext_field}`='{$relation->relation_ext_field_val}' ";// 没错，这种扩展值，只接受string
+            }
+            $sql_select_str    = join(',', array_unique($sql_selcet_parts));
+            $sql_left_join_str = join(' ', $sql_join_parts);
+
+
+            $query_sql = "select {$sql_select_str} from {$relation->relation_table_name} left join {$relation->right_table_name} on {$relation->relation_table_name}.{$relation->realtion_right_field}={$relation->right_table_name}.{$relation->right_table_index_field} {$sql_left_join_str} where {$relation->relation_table_name}.{$relation->realtion_left_field} in ({$left_table_index_field_vals_str})";
+
+
+            $relation_rows = DbDbConf::model()->findOneByWhere(['db_code' => $this->dbconf_name])->getConfDbConnect()->setText($query_sql)->queryAll();
+            if (count($relation_rows))
+            {
+                if ($relation->realtion_type === DbRelation::HAS_ONE)
+                {
+                    foreach ($relation_rows as $relation_row)
+                    {
+                        $queryed_left_val = $relation_row['_left_val'];
+                        if (isset($left_val_2_row_i_map[$queryed_left_val]))
+                        {
+                            foreach ($left_val_2_row_i_map[$queryed_left_val] as $left_queryed_row_index)
+                            {
+                                $query_all_list[$left_queryed_row_index][$relation->realtion_res_key] = $relation_row;
+                            }
+                        }
+                        else
+                        {
+                            //应该报错
+                        }
+
+                    }
+                }
+                else if ($relation->realtion_type === DbRelation::HAS_MANY)
+                {
+                    foreach ($relation_rows as $relation_row)
+                    {
+                        $queryed_left_val = $relation_row['_left_val'];
+                        if (isset($left_val_2_row_i_map[$queryed_left_val]))
+                        {
+                            foreach ($left_val_2_row_i_map[$queryed_left_val] as $left_queryed_row_index)
+                            {
+                                $query_all_list[$left_queryed_row_index][$relation->realtion_res_key][] = $relation_row;
+                            }
+                        }
+                        else
+                        {
+                            //应该报错
+                        }
+
+                    }
+                }
+                else
+                {
+
+                }
+            }
+        }
+        return $query_all_list;
     }
 
 

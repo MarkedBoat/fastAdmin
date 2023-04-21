@@ -16,7 +16,7 @@ use modules\_dp\v1\model\Admin;
 
 class DbDbConf extends DbDbConfDao
 {
-
+    private static $connecetions = [];
 
     public function getOpenInfo()
     {
@@ -38,18 +38,23 @@ class DbDbConf extends DbDbConfDao
         {
             return $this->getDbConnect();
         }
-        $dev_cfg = [
-            'connectionString' => "mysql:host={$this->conf_host};port={$this->conf_port};dbname={$this->conf_dbname}",
-            'username'         => $this->conf_username,
-            'password'         => $this->conf_password,
-            'charset'          => $this->conf_charset,
-            'readOnly'         => true,
-            'attributes'       => [
-                \PDO::ATTR_TIMEOUT => 1
-            ]
-        ];
-        //Sys::app()->addLog($dev_cfg);
-        return MysqlPdo::configDb($dev_cfg);
+        if (!isset(self::$connecetions[$this->db_code]))
+        {
+            $dev_cfg = [
+                'connectionString' => "mysql:host={$this->conf_host};port={$this->conf_port};dbname={$this->conf_dbname}",
+                'username'         => $this->conf_username,
+                'password'         => $this->conf_password,
+                'charset'          => $this->conf_charset,
+                'readOnly'         => true,
+                'attributes'       => [
+                    \PDO::ATTR_TIMEOUT => 1
+                ]
+            ];
+            //Sys::app()->addLog($dev_cfg);
+            self::$connecetions[$this->db_code] = MysqlPdo::configDb($dev_cfg);
+        }
+
+        return self::$connecetions[$this->db_code];
 
     }
 
