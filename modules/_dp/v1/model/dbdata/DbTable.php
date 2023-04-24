@@ -33,6 +33,10 @@ class DbTable extends DbTableDao
     private $column_names     = [];
 
     private $attrs = [];
+    /**
+     * @var DbRelation[]
+     */
+    private $input_related_models = [];
 
 
     private $sort_key  = '';
@@ -46,6 +50,19 @@ class DbTable extends DbTableDao
     private $ext_sql_opts = [];
 
     public static $db_connects = [];
+
+    /**
+     * @var static
+     */
+    private $table_model;
+    /**
+     * @var DbColumn[]
+     */
+    private $column_models = [];
+    /**
+     * @var DbRelation[]
+     */
+    private $relation_models = [];
 
 
     /**
@@ -91,7 +108,25 @@ class DbTable extends DbTableDao
 
     public function setAttrs($attrs)
     {
-        $this->attrs = $attrs;
+        $exist_attrs = [];
+        $this->attrs = [];
+        foreach ($this->column_models as $column_model)
+        {
+            if ($column_model->is_ok && isset($attrs[$column_model->column_name]))
+            {
+                $this->attrs[$column_model->column_name] = $attrs[$column_model->column_name];
+            }
+        }
+        $this->input_related_models = [];
+        foreach ($this->relation_models as $relation_model)
+        {
+            if ($relation_model->is_ok && isset($attrs["__relat__{$relation_model->relation_res_key}"]) && count($attrs["__relat__{$relation_model->relation_res_key}"]) > 0)
+            {
+                $this->input_related_models[$relation_model->relation_res_key] = $relation_model->setInputVals($attrs["__relat__{$relation_model->relation_res_key}"]);
+
+            }
+        }
+
         return $this;
     }
 
@@ -153,9 +188,12 @@ class DbTable extends DbTableDao
      */
     public function query()
     {
-        $db    = $this->getDbconfConnect();
-        $where = '';
-        $bind  = [];
+        $db             = $this->getDbconfConnect();
+        $where          = '';
+        $bind           = [];
+        $left_join_strs = [];
+        $ext_froms      = [];
+        $ext_wheres     = [];
         if (count($this->attrs) > 0)
         {
             $tmp_ar = [];
@@ -200,6 +238,32 @@ class DbTable extends DbTableDao
             count($tmp_ar) ? $where = " where " . join(' and ', $tmp_ar) : null;
         }
 
+        if (count($this->input_related_models) > 0)
+        {
+            $tmp_ar = [];
+            foreach ($this->input_related_models as $relation)
+            {
+                $sql_join_parts = [];
+                if (strlen($relation->relation_ext_field))
+                {
+                    $sql_join_parts[] = " and {$relation->relation_table_name}.`{$relation->relation_ext_field}`='{$relation->relation_ext_field_val}' ";// 没错，这种扩展值，只接受string
+                }
+                $sql_left_join_str = join(' ', $sql_join_parts);
+                $left_join_strs[]  = " left join {$relation->relation_table_name} on {$relation->relation_table_name}.{$relation->relation_left_field}={$relation->left_table_name}.{$relation->left_table_index_field} {$sql_left_join_str} ";
+                $vals              = $relation->getInputVals();
+                $tmp_ar2           = [];
+                foreach ($vals as $val_i => $val)
+                {
+                    $tmp_ar2[]                                       = ":{$relation->relation_res_key}_{$val_i}";
+                    $bind[":{$relation->relation_res_key}_{$val_i}"] = $val;//后期补上 针对类型的
+                }
+                $tmp_str      = join(',', $tmp_ar2);
+                $ext_wheres[] = " {$relation->relation_table_name}.`{$relation->relation_right_field}` in ($tmp_str)";
+
+            }
+
+        }
+
         if ($this->page_index)
         {
             $str_limit = " limit {$this->limit_offset},{$this->limit_size}";
@@ -219,8 +283,7 @@ class DbTable extends DbTableDao
             $str_sort = "order by " . join(',', $tmp_ar);
         }
         $column_names_str = join(",", $this->column_names);
-        $ext_froms        = [];
-        $ext_wheres       = [];
+
         foreach ($this->ext_sql_opts as $ext_sql_opt)
         {
             if (is_array($ext_sql_opt))
@@ -240,17 +303,20 @@ class DbTable extends DbTableDao
                 }
             }
         }
-
-        $ext_from = join(' ', $ext_froms);
+        $left_join_str = join(' ', $left_join_strs);
+        $ext_from      = join(' ', $ext_froms);
         //$where    = $where . count($ext_wheres) > 0 ? (($where ? (" and ") : (" where ")) . join(' and ', $ext_wheres)) : '';
         if (count($ext_wheres))
         {
             $where = $where . ($where ? (" and ") : (" where ")) . join(' and ', $ext_wheres);
         }
-        $sql     = "select {$column_names_str} from {$this->table_name} {$ext_from} {$where} {$str_sort} {$str_limit}";
-        $sql_cnt = "select count({$this->table_name}.`{$this->main_table_model->pk_key}`) from {$this->table_name} {$ext_from} {$where} ";
-        $list    = $db->setText($sql)->bindArray($bind)->queryAll();
-        $count   = $db->setText($sql_cnt)->bindArray($bind)->queryScalar();
+        $sql     = "select {$column_names_str} from {$this->table_name} {$left_join_str} {$ext_from} {$where} {$str_sort} {$str_limit}";
+        $sql_cnt = "select count({$this->table_name}.`{$this->main_table_model->pk_key}`) from {$this->table_name}  {$left_join_str} {$ext_from} {$where} ";
+      //  var_dump(['sqls' => [$sql, $sql_cnt], 'bind' => $bind]);
+       // die;
+        Sys::app()->addLog(['sqls' => [$sql, $sql_cnt], 'bind' => $bind], 'dbtable->query');
+        $list  = $db->setText($sql)->bindArray($bind)->queryAll();
+        $count = $db->setText($sql_cnt)->bindArray($bind)->queryScalar();
 
         if (count($list))
         {
@@ -362,8 +428,7 @@ class DbTable extends DbTableDao
     public function appendRelatData($query_all_list)
     {
 
-        $relations = DbRelation::model()->findAllByWhere(['dbconf_name' => $this->dbconf_name, 'left_table_name' => $this->table_name, 'is_ok' => 1]);
-        foreach ($relations as $relation)
+        foreach ($this->relation_models as $relation)
         {
             $left_table_index_field_vals = [];
             $left_val_2_row_i_map        = [];
@@ -382,7 +447,7 @@ class DbTable extends DbTableDao
                     {
                         $query_all_list[$query_row_i]['__relat'] = [];
                     }
-                    $query_all_list[$query_row_i]['__relat'][$relation->realtion_res_key] = [];
+                    $query_all_list[$query_row_i]['__relat'][$relation->relation_res_key] = [];
                 }
             }
             Sys::app()->addLog($left_table_index_field_vals, '$left_table_index_field_vals');
@@ -399,7 +464,7 @@ class DbTable extends DbTableDao
             $sql_where_parts  = [];
             $bind_values      = [];
 
-            $sql_selcet_parts[] = "{$relation->realtion_left_field} as _left_val";
+            $sql_selcet_parts[] = "{$relation->relation_left_field} as _left_val";
             $sql_selcet_parts[] = "{$relation->right_table_name}.{$relation->right_table_label_field} as _label";
             if (strlen($relation->right_table_info_fields))
             {
@@ -412,19 +477,19 @@ class DbTable extends DbTableDao
 
             if (strlen($relation->relation_ext_field))
             {
-                $sql_join_parts[] = " and `{$relation->relation_ext_field}`='{$relation->relation_ext_field_val}' ";// 没错，这种扩展值，只接受string
+                $sql_join_parts[] = " and  {$relation->relation_table_name}.`{$relation->relation_ext_field}`='{$relation->relation_ext_field_val}' ";// 没错，这种扩展值，只接受string
             }
             $sql_select_str    = join(',', array_unique($sql_selcet_parts));
             $sql_left_join_str = join(' ', $sql_join_parts);
 
 
-            $query_sql = "select {$sql_select_str} from {$relation->relation_table_name} left join {$relation->right_table_name} on {$relation->relation_table_name}.{$relation->realtion_right_field}={$relation->right_table_name}.{$relation->right_table_index_field} {$sql_left_join_str} where {$relation->relation_table_name}.{$relation->realtion_left_field} in ({$left_table_index_field_vals_str})";
+            $query_sql = "select {$sql_select_str} from {$relation->relation_table_name} left join {$relation->right_table_name} on {$relation->relation_table_name}.{$relation->relation_right_field}={$relation->right_table_name}.{$relation->right_table_index_field} {$sql_left_join_str} where {$relation->relation_table_name}.{$relation->relation_left_field} in ({$left_table_index_field_vals_str})";
 
 
             $relation_rows = DbDbConf::model()->findOneByWhere(['db_code' => $this->dbconf_name])->getConfDbConnect()->setText($query_sql)->queryAll();
             if (count($relation_rows))
             {
-                if ($relation->realtion_type === DbRelation::HAS_ONE)
+                if ($relation->relation_type === DbRelation::HAS_ONE)
                 {
                     foreach ($relation_rows as $relation_row)
                     {
@@ -433,7 +498,7 @@ class DbTable extends DbTableDao
                         {
                             foreach ($left_val_2_row_i_map[$queryed_left_val] as $left_queryed_row_index)
                             {
-                                $query_all_list[$left_queryed_row_index]['__relat'][$relation->realtion_res_key] = $relation_row;
+                                $query_all_list[$left_queryed_row_index]['__relat'][$relation->relation_res_key] = $relation_row;
                             }
                         }
                         else
@@ -443,7 +508,7 @@ class DbTable extends DbTableDao
 
                     }
                 }
-                else if ($relation->realtion_type === DbRelation::HAS_MANY)
+                else if ($relation->relation_type === DbRelation::HAS_MANY)
                 {
                     foreach ($relation_rows as $relation_row)
                     {
@@ -452,7 +517,7 @@ class DbTable extends DbTableDao
                         {
                             foreach ($left_val_2_row_i_map[$queryed_left_val] as $left_queryed_row_index)
                             {
-                                $query_all_list[$left_queryed_row_index]['__relat'][$relation->realtion_res_key][] = $relation_row;
+                                $query_all_list[$left_queryed_row_index]['__relat'][$relation->relation_res_key][] = $relation_row;
                             }
                         }
                         else
@@ -474,15 +539,15 @@ class DbTable extends DbTableDao
 
     public function getInfo()
     {
-        $table_model     = $this->getBizTableInfo();
-        $column_models   = $this->getBizTableColumns();
-        $relation_models = $this->getBizTableRelations();
+        $this->table_model     = $this->getBizTableInfo();
+        $this->column_models   = $this->getBizTableColumns();
+        $this->relation_models = $this->getBizTableRelations();
 
 
         return [
-            'table'     => $table_model->getOpenInfo(),
-            'columns'   => array_map(function ($column_model) { return $column_model->getOpenInfo(); }, $column_models),
-            'relations' => array_map(function ($column_model) { return $column_model->getOuterDataArray(); }, $relation_models)
+            'table'     => $this->table_model->getOpenInfo(),
+            'columns'   => array_map(function (DbColumn $column_model) { return $column_model->getOpenInfo(); }, $this->column_models),
+            'relations' => array_map(function (DbRelation $column_model) { return $column_model->getAllInfo(); }, $this->relation_models)
         ];
 
 
@@ -506,6 +571,10 @@ class DbTable extends DbTableDao
         return DbColumn::model()->addSort('column_sn', 'desc')->findAllByWhere(['dbconf_name' => $this->dbconf_name, 'table_name' => $this->table_name, 'is_ok' => Opt::isOk]);
     }
 
+    /**
+     * @return \models\common\db\ORM[]|DbRelation[]
+     * @throws \models\common\error\AdvError
+     */
     public function getBizTableRelations()
     {
         return DbRelation::model()->addSort('id', 'desc')->findAllByWhere(['dbconf_name' => $this->dbconf_name, 'left_table_name' => $this->table_name, 'is_ok' => Opt::isOk]);

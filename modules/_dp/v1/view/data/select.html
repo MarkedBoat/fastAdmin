@@ -283,11 +283,17 @@
 
             });
 
-
+            //关联数据
             window.serverData.dataLib.mainTable.relations.forEach((relationInfo) => {
-                datagrid.api.preCreateColumn('_relat.'+relationInfo.realtion_res_key).setColumnInfo({}).setHeaderText(relationInfo.realtion_res_key).setSortable(false).setHeaderFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
-                    cell.textContent=row_data.__relat[relationInfo.realtion_res_key].map((obj)=>{return obj._label;}).join('/');
+                let inputKey = '__relat__' + relationInfo.relation_res_key;
+                searchForm.apiHandle.addGroupPreCreate().setLabelText(relationInfo.relation_res_title).setItems(relationInfo.val_items).setIndexKey(inputKey).create(relationInfo.query_input_type);
+
+                datagrid.api.preCreateColumn(inputKey).setColumnInfo({}).setHeaderText(relationInfo.relation_res_title).setSortable(false).setHeaderFilterInputConfig({valueItems: []}).bindFreeFilterInput(searchForm.apiHandle.ele.input[inputKey]).setRenderFunction((cell, row_data) => {
+                    cell.textContent = row_data.__relat[relationInfo.relation_res_key].map((obj) => {
+                        return obj._label;
+                    }).join('/');
                 });
+
             });
             searchForm.apiHandle.addGroupPreCreate().setLabelText('#').setIndexKey('submitBtn').setContentText('搜索').setType('button').create('button');
             updateRowForm.apiHandle.addGroupPreCreate().setLabelText('#').setIndexKey('submitBtn').setContentText('修改').setType('button').create('button');

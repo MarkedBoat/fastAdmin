@@ -339,11 +339,11 @@ let hammerYii2Bootstarp = function () {
 
     bootstrap_hanndle.createDatalist = function (input_param) {
         let datalist_ele = new Emt('datalist').setPros({id: bootstrap_hanndle.getEleRandId('datalist')});
-        if (input_param && input_param.items && typeof input_param.items.forEach === "function") {
-            input_param.items.forEach(function (item) {
-                datalist_ele.add(new Option(item.text, item.val));
-            });
-        }
+        // if (input_param && input_param.items && typeof input_param.items.forEach === "function") {
+        //     input_param.items.forEach(function (item) {
+        //         datalist_ele.addNode(new Option(item.text, item.val));
+        //     });
+        // }
         datalist_ele.apiHandle = {ele: {root: datalist_ele, options: []}};
         datalist_ele.apiHandle.addItem = function (text, val) {
             let new_opt = new Option(text, val);
@@ -578,6 +578,7 @@ let hammerYii2Bootstarp = function () {
 
 
         searchTags_div.apiHandle.trySelectItemVal = function (inputVal) {
+            inputVal = inputVal.toString();
             if (inputVal.length > 0 && searchTags_div.apiHandle.vals.indexOf(inputVal) === -1) {
                 searchTags_div.apiHandle.items.forEach((item) => {
                     if (item.val === inputVal) {
@@ -602,6 +603,8 @@ let hammerYii2Bootstarp = function () {
 
                     }
                 });
+            } else {
+                console.log(' searchTags_div.apiHandle.trySelectItemVal skip:', inputVal.length, searchTags_div.apiHandle.vals.indexOf(inputVal));
             }
         }
 
@@ -612,10 +615,16 @@ let hammerYii2Bootstarp = function () {
                 console.trace();
                 throw '错误的items 不是数组';
             }
+            items = items.map((item) => {
+                item.val = item.val.toString();
+                return item;
+            });
+
             searchTags_div.apiHandle.items = items;
             searchTags_div.apiHandle.ele.datalistEle.apiHandle.setItems(items);
+            return searchTags_div;
         };
-        if (typeof input_param.items === "function") {
+        if (input_param.items !== undefined && typeof input_param.items.forEach === "function") {
             searchTags_div.apiHandle.setItems(input_param.items);
         }
 
