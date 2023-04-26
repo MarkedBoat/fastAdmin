@@ -309,14 +309,26 @@ let hammerBootstarpDatagrid = function (input_opt) {
             if (columnHandle.columnInfo && columnHandle.columnInfo.remark) {
                 columnHandle.sortButton.setAttribute("title", columnHandle.columnInfo.remark);
             }
-            dataGrid.titleTr.addTd(columnHandle.columnKey).addNodes([columnHandle.sortButton]);
 
+            let resize_box = new Emt('div', 'style="float:right;min-height:100%;min-width:1px;background:#000;;cursor: e-resize;"', '|', {isWidthResizeBtn: true});
+
+            dataGrid.titleTr.addTd(columnHandle.columnKey).addNodes([
+                new Emt('div', 'style="float:left;overflow-x:auto;display: inline-table;"').addNodes([
+                    new Emt('div', 'style="float:left;"').addNodes([
+                        columnHandle.sortButton
+                    ]),
+                    resize_box
+
+
+                ])
+            ]);
 
 
             if (columnHandle.headerFilterInput === false) {
                 dataGrid.filterTr.addTd(columnHandle.columnKey).textContent = columnHandle.filterInputPlacehoderString || '';
             } else {
                 columnHandle.headerFilterInput.classList.add('col-md-12');
+                columnHandle.headerFilterInput.setStyle({width: '100%', minHeight: '1em'});
                 dataGrid.filterTr.addTd(columnHandle.columnKey).addNodes([columnHandle.headerFilterInput]);
                 columnHandle.headerFilterInput.addEventListener('change', function () {
                     if (columnHandle.freeFilterInput !== false) {
@@ -345,7 +357,6 @@ let hammerBootstarpDatagrid = function (input_opt) {
             }
 
 
-
             //预置搜索条件
             if (dataGrid.initSearchCondtion && dataGrid.initSearchCondtion.attrs && dataGrid.initSearchCondtion.attrs[columnHandle.columnKey] !== undefined && dataGrid.initSearchCondtion.attrs[columnHandle.columnKey].length > 0) {
                 if (columnHandle.freeFilterInput !== false) {
@@ -360,6 +371,8 @@ let hammerBootstarpDatagrid = function (input_opt) {
             dataGrid.column.handle.list.push(columnHandle);
             dataGrid.column.handle.map[columnHandle.columnKey] = columnHandle;
             dataGrid.column.keys.push(columnHandle.columnKey);
+
+
             return columnHandle;
 
         }
@@ -548,3 +561,18 @@ let hammerBootstarpDatagrid = function (input_opt) {
 
 };
 
+
+document.addEventListener('mousedown', (event) => {
+    if (event.target.isWidthResizeBtn) {
+        let resize_box = event.target;
+        let start_x = event.x;
+        let td_width = resize_box.parentElement.offsetWidth;
+        let mousemove = (e) => {
+            resize_box.parentElement.style.width = (e.x - start_x + td_width) + 'px';
+        };
+        document.addEventListener('mousemove', mousemove);
+        document.addEventListener('mouseup', (event2) => {
+            document.removeEventListener('mousemove', mousemove);
+        });
+    }
+});
