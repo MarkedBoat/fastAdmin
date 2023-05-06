@@ -59,7 +59,14 @@ let hammerBootstarpDatagrid = function (input_opt) {
 
 
     //tableTpart
-    dataGrid.ele.Table = new Emt('table', 'class="table table-bordered table-striped table-hover"');
+    dataGrid.ele.Table = new Emt('table', '' +
+        'class="table table-bordered table-striped table-hover" ' +
+        'style="' +
+        //'table-layout: fixed; ' +
+        'word-break:break-all;' +
+        'word-wrap:break-word;' +
+        '"'
+    );
     dataGrid.ele.THead = dataGrid.ele.Table.createTHead();
     dataGrid.ele.TBody = dataGrid.ele.Table.createTBody();
     dataGrid.ele.TFoot = dataGrid.ele.Table.createTFoot();
@@ -310,14 +317,30 @@ let hammerBootstarpDatagrid = function (input_opt) {
                 columnHandle.sortButton.setAttribute("title", columnHandle.columnInfo.remark);
             }
 
-            let resize_box = new Emt('div', 'style="float:right;min-height:100%;min-width:1px;background:#000;;cursor: e-resize;"', '|', {isWidthResizeBtn: true});
+            let resize_box = new Emt('button', 'style="' +
+                'float:right;' +
+                'min-height:100%;' +
+                'min-width:1px;' +
+                'background:#000;' +
+                'cursor: e-resize;' +
+                'padding:1em 0px;' +
+                'margin-right:0px;' +
+                '"', '', {isWidthResizeBtn: true});
 
             dataGrid.titleTr.addTd(columnHandle.columnKey).addNodes([
-                new Emt('div', 'style="float:left;overflow-x:auto;display: inline-table;"').addNodes([
+                new Emt('div', 'style="' +
+                    'float:left;' +
+                    'overflow-x:auto;' +
+                    'display: block;' +
+                    'width:100%;' +
+                    '"').addNodes([
                     new Emt('div', 'style="float:left;"').addNodes([
                         columnHandle.sortButton
                     ]),
-                    resize_box
+                    new Emt('div', 'style="float:left;"').addNodes([
+                        resize_box
+                    ]),
+
 
 
                 ])
@@ -381,7 +404,7 @@ let hammerBootstarpDatagrid = function (input_opt) {
     };
 
     dataGrid.createSortButton = (buttonText, columnDataKey) => {
-        let sortButton = new Emt('BUTTON', 'type="button" class="btn-default btn-xs hide_btn_sort"', buttonText);
+        let sortButton = new Emt('BUTTON', 'type="button" class="btn-default btn-xs hide_btn_sort" style="white-space: nowrap"', buttonText);
         sortButton.addNodes([
             new Emt('SPAN', 'class="glyphicon glyphicon-arrow-up btn_sort_asc"', ''),
             new Emt('SPAN', 'class="glyphicon glyphicon-arrow-down btn_sort_desc"', '')
@@ -566,9 +589,25 @@ document.addEventListener('mousedown', (event) => {
     if (event.target.isWidthResizeBtn) {
         let resize_box = event.target;
         let start_x = event.x;
-        let td_width = resize_box.parentElement.offsetWidth;
+        let min_width = resize_box.parentElement.previousElementSibling.offsetWidth + 1 + event.target.offsetWidth;
+        let td_width = resize_box.parentElement.parentElement.parentElement.offsetWidth;
+
         let mousemove = (e) => {
-            resize_box.parentElement.style.width = (e.x - start_x + td_width) + 'px';
+            let diff = e.x - start_x;
+           // let expect = diff + min_width;
+            let expect = diff + td_width;
+            console.log({dffi:diff, min_width:min_width, td_width:td_width,expect:expect});
+
+            if (diff < 0) {
+                if (expect < min_width) {
+                    resize_box.parentElement.parentElement.parentElement.style.width = min_width + 'px';
+                } else {
+                    resize_box.parentElement.parentElement.parentElement.style.width = expect + 'px';
+                }
+            } else {
+                resize_box.parentElement.parentElement.style.width = expect + 'px';
+            }
+            // resize_box.parentElement.style.width = ((diff > 0 ? diff : 0) + td_width) + 'px';
         };
         document.addEventListener('mousemove', mousemove);
         document.addEventListener('mouseup', (event2) => {
