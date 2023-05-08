@@ -312,8 +312,8 @@ class DbTable extends DbTableDao
         }
         $sql     = "select {$column_names_str} from {$this->table_name} {$left_join_str} {$ext_from} {$where} {$str_sort} {$str_limit}";
         $sql_cnt = "select count({$this->table_name}.`{$this->main_table_model->pk_key}`) from {$this->table_name}  {$left_join_str} {$ext_from} {$where} ";
-      //  var_dump(['sqls' => [$sql, $sql_cnt], 'bind' => $bind]);
-       // die;
+        //  var_dump(['sqls' => [$sql, $sql_cnt], 'bind' => $bind]);
+        // die;
         Sys::app()->addLog(['sqls' => [$sql, $sql_cnt], 'bind' => $bind], 'dbtable->query');
         $list  = $db->setText($sql)->bindArray($bind)->queryAll();
         $count = $db->setText($sql_cnt)->bindArray($bind)->queryScalar();
@@ -577,7 +577,7 @@ class DbTable extends DbTableDao
      */
     public function getBizTableRelations()
     {
-        return DbRelation::model()->addSort('id', 'desc')->findAllByWhere(['dbconf_name' => $this->dbconf_name, 'left_table_name' => $this->table_name, 'is_ok' => Opt::isOk]);
+        return DbRelation::model()->addSort('id', 'desc')->setLimit(0, 10000)->findAllByWhere(['dbconf_name' => $this->dbconf_name, 'left_table_name' => $this->table_name, 'is_ok' => Opt::isOk]);
     }
 
 

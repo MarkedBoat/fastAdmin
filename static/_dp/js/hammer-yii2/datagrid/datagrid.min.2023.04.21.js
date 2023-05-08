@@ -321,26 +321,28 @@ let hammerBootstarpDatagrid = function (input_opt) {
                 'float:right;' +
                 'min-height:100%;' +
                 'min-width:1px;' +
-                'background:#000;' +
+                //'background:#000;' +
                 'cursor: e-resize;' +
                 'padding:1em 0px;' +
                 'margin-right:0px;' +
-                '"', '', {isWidthResizeBtn: true});
-
-            dataGrid.titleTr.addTd(columnHandle.columnKey).addNodes([
+                'cursor:col-resize;' +
+                '"', '', {isWidthResizeBtn:true});
+            let titleTd = dataGrid.titleTr.addTd(columnHandle.columnKey);
+           // titleTd.isWidthResizeBtn = true;
+            titleTd.addNodes([
                 new Emt('div', 'style="' +
-                    'float:left;' +
+                   // 'float:left;' +
                     'overflow-x:auto;' +
-                    'display: block;' +
+                    'display: flex;' +
                     'width:100%;' +
+                    'height:2.5em;' +
                     '"').addNodes([
-                    new Emt('div', 'style="float:left;"').addNodes([
+                    new Emt('div', 'style="overflow:hidden;"').addNodes([
                         columnHandle.sortButton
                     ]),
-                    new Emt('div', 'style="float:left;"').addNodes([
+                    new Emt('div', 'style="flex:1;"').addNodes([
                         resize_box
                     ]),
-
 
 
                 ])
@@ -585,28 +587,27 @@ let hammerBootstarpDatagrid = function (input_opt) {
 };
 
 
+
 document.addEventListener('mousedown', (event) => {
     if (event.target.isWidthResizeBtn) {
         let resize_box = event.target;
         let start_x = event.x;
-        let min_width = resize_box.parentElement.previousElementSibling.offsetWidth + 1 + event.target.offsetWidth;
+        let min_width = resize_box.parentElement.previousElementSibling.firstElementChild.offsetWidth + 10 + event.target.offsetWidth;
         let td_width = resize_box.parentElement.parentElement.parentElement.offsetWidth;
 
         let mousemove = (e) => {
             let diff = e.x - start_x;
-           // let expect = diff + min_width;
+            // let expect = diff + min_width;
             let expect = diff + td_width;
-            console.log({dffi:diff, min_width:min_width, td_width:td_width,expect:expect});
+            console.log({dffi: diff, min_width: min_width, td_width: td_width, expect: expect});
+          //  resize_box.parentElement.parentElement.style.width = expect + 'px';
 
-            if (diff < 0) {
                 if (expect < min_width) {
-                    resize_box.parentElement.parentElement.parentElement.style.width = min_width + 'px';
+                    resize_box.parentElement.parentElement.style.width = min_width + 'px';
                 } else {
-                    resize_box.parentElement.parentElement.parentElement.style.width = expect + 'px';
+                    resize_box.parentElement.parentElement.style.width = expect + 'px';
                 }
-            } else {
-                resize_box.parentElement.parentElement.style.width = expect + 'px';
-            }
+
             // resize_box.parentElement.style.width = ((diff > 0 ? diff : 0) + td_width) + 'px';
         };
         document.addEventListener('mousemove', mousemove);
