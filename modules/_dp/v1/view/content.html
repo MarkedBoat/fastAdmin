@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DP-后台首页</title>
+    <link href="/static/_dp/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/_dp/css/site.css" rel="stylesheet">
+    <link href="/static/_dp/css/bg.css" rel="stylesheet">
+
+    <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
+    <script src="/static/_dp/js/string/string.js"></script>
+
+    <script src="/static/_dp/js/jquery.js"></script>
+    <script src="/static/_dp/js/bootstrap.js"></script>
+
+</head>
+<body>
+<style>
+    .root_div {
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        float: left;
+    }
+
+    .header_div {
+        width: 100%;
+        min-height: 2em;
+        float: left;
+        display: flex;
+        position: fixed;
+    }
+
+    .menu_toggle_btn {
+        float: left;
+        flex: 0;
+    }
+
+    .tab_button_list {
+        float: left;
+        flex: 1;
+        background-color: #222;
+        border-color: #080808;
+        padding-left: 150px;
+    }
+
+    .body_div {
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        float: left;
+        display: flex;
+    }
+
+    .menu_div {
+        min-width: 10em;
+        height: auto;
+        float: left;
+        flex: 0;
+    }
+
+    .content_div {
+        width: 100%;
+        min-height: auto;
+        float: left;
+        flex: 1;
+        display: flex;
+        padding-left: 1.5em;
+        margin-top: 80px
+    }
+
+    .content_div iframe {
+        display: block;
+        /* flex: 0; */
+        width: 100%;
+        float: left;
+        border: none;
+    }
+
+    .tab_btn_div {
+        display: block;
+        float: left;
+        /*border: 1px solid #FFF;*/
+        margin-left: 0.5em;
+    }
+
+    .tab_btn_div .tab_top_btn {
+        border: none;
+        background: #666;
+        color: #AAA;
+    }
+
+    .tab_btn_div button:nth-child(2) {
+        margin-left: 1px;
+    }
+
+    .selected .tab_top_btn {
+        background: #000;
+        color: #DDD;
+    }
+
+    .tab_button_list .selected {
+        color: #000;
+        background: #FFF;
+        border-bottom: 1px solid #FFF;
+    }
+
+    .menu_div .selected {
+        color: #FFF;
+        background: #000;
+    }
+</style>
+<div class="root_div">
+    <div class="header_div">
+        <div id="menu_toggle_btn" class="navbar-brand menu_toggle_btn">导航</div>
+        <div id="tab_button_list" class="navbar-brand page_title tab_button_list"></div>
+    </div>
+    <div class="body_div">
+        <div class="menu_div" id="menu_div"></div>
+        <div class="content_div" id="content_div"></div>
+    </div>
+</div>
+
+<script>
+    window.ctrl = false;
+    document.addEventListener('keydown', (e) => {
+        window.ctrl = e.ctrlKey;
+    });
+    document.addEventListener('keyup', (e) => {
+        window.ctrl = e.ctrlKey;
+    });
+
+    let bg_init = function (page_init_fun) {
+        let utk = localStorage.getItem('utk');
+        let loginUrl = '/_dp/v1/user/login.html';
+        if (!utk) {
+            alert('未登录，自动到登录');
+            document.location = loginUrl;
+            // throw  '查看';
+        }
+        if (serverData === undefined) {
+            let ar = document.location.href.split('?');
+
+            if (ar.length !== 2) {
+                //alert('丢失参数错误');
+                //throw  '查看';
+                window.serverData = {};
+            } else {
+                console.log(ar[1], ar[1].urldecode());
+                let ar2 = ar[1].split('#');
+                try {
+                    window.serverData = JSON.parse(ar2[0].urldecode());
+                    //serverData = JSON.parse(ar[1]);
+                } catch (e) {
+                    alert('参数格式错误');
+                    console.log(e, e.message);
+                    throw  '查看';
+                }
+            }
+
+        }
+
+
+        window.serverData.table = {};
+        window.serverData.columns = {};
+        window.serverData.vals_map = {};
+        window.serverData.vals_range_map = {};
+
+
+        let rander_tree = function (dataTree) {
+
+            let menu_root_div = new Emt('div', 'class="_dp_menu_root_div"');
+            menu_root_div.apiHandle = {
+                menu: {list: [], map: {}},
+            };
+            menu_root_div.createMenuDiv = function () {
+                let menu_div = new Emt('div', 'class="_dp_menu_div"');
+                menu_div.apiHandle = {};
+
+                menu_div.apiHandle.title_td = new Emt('div', 'class="_dp_title_td"');
+                menu_div.apiHandle.body_div = new Emt('div', 'class="_dp_menu_body_div"');
+                menu_div.apiHandle.body_div.apiHandle = menu_div.apiHandle;
+                menu_div.apiHandle.menus_div = new Emt('div', 'class="_dp_menus_div"');
+
+                menu_div.addNodes([
+                    menu_div.apiHandle.body_div.addNodes([
+                        menu_div.apiHandle.title_td,
+                    ]),
+                    menu_div.apiHandle.menus_div.addNodes([]),
+                ]);
+
+                menu_div.apiHandle.setMenuInfo = function (menuInfo) {
+                    menu_div.apiHandle.data = menuInfo;
+
+                    if (menuInfo.sub_menus.length === 0) {
+                        let menuSpan = new Emt('span').setPros({textContent: menuInfo.title});
+                        menu_div.apiHandle.title_td.append(menuSpan);
+                        menuSpan.addEventListener('click', function () {
+                            menuInfo.text = menuInfo.title;
+                            menuInfo.src = kl.isUndefined(menuInfo, 'opts.link') ? '#' : menuInfo.opts.link;
+                            menuInfo.menuBtn = menuSpan;
+                            createTabWindow(menuInfo);
+                        });
+                    } else {
+                        let title_div = new Emt('div', 'class="_dp_menu_title_div"');
+                        title_div.addNode(new Emt('div', '', menuInfo.title));
+                        menu_div.apiHandle.title_td.append(title_div);
+                    }
+                };
+
+                return menu_div;
+            };
+
+
+            menu_root_div.appendMenuTreeNode = function (menuInfo) {
+                let menu_div = menu_root_div.createMenuDiv();
+                menu_root_div.apiHandle.menu.list.push(menu_div);
+                menu_root_div.apiHandle.menu.map[menuInfo.id] = menu_div;
+                if (menuInfo.pid == '0') {
+                    menu_root_div.addNodes([menu_div]);
+                } else {
+                    if (menu_root_div.apiHandle.menu.map[menuInfo.pid] === undefined) {
+                        menu_div.classList.add('pid_not_found');
+                        menu_root_div.addNodes([menu_div]);
+                    } else {
+                        menu_root_div.apiHandle.menu.map[menuInfo.pid].apiHandle.menus_div.addNode(menu_div);
+                    }
+                }
+                menu_div.apiHandle.setMenuInfo(menuInfo);
+                if (menuInfo.sub_menus.length === 0) {
+                    menu_div.apiHandle.menus_div.remove();
+
+                } else {
+                    menuInfo.sub_menus.forEach(function (menuInfo2, tmp_index) {
+                        menuInfo2.pathName = menuInfo.pathName + '/' + menuInfo2.title;
+                        menu_root_div.appendMenuTreeNode(menuInfo2);
+                    });
+                }
+            };
+            dataTree.forEach(function (menuInfo) {
+                menuInfo.pathName = '/' + menuInfo.title;
+                menu_root_div.appendMenuTreeNode(menuInfo);
+            });
+            return menu_root_div;
+        };
+
+
+        let getMenus = function () {
+            kl.ajax({
+                url: '/_dp/v1/rbac/menu',
+                data: {},
+                method: 'POST',
+                success: function (res_menu) {
+                    console.log(res_menu);
+                    if (res_menu.status) {
+                        if (res_menu.status === 200) {
+                            let btn = kl.id('menu_toggle_btn');
+                            btn.textContent = '导航';
+                            let menu_root_div = rander_tree(res_menu.data);
+                            //  document.body.insertBefore(menu_root_div, document.body.firstElementChild);
+                            kl.id('menu_div').append(menu_root_div);
+                            //     menu_root_div.parentElement.classList.add('hide');
+                            btn.addEventListener('click', function () {
+                                menu_root_div.parentElement.classList.toggle('hide');
+                                //  kl.id('w0').parentElement.classList.toggle('body_content_div');
+                            });
+                            page_init_fun();
+                        } else {
+                            alert('失败:' + (res_menu.msg || '未知'))
+                        }
+                    } else {
+                        alert('数据异常')
+                    }
+                },
+                error: function (res_share) {
+                    console.log(res_share);
+                    alert('网络错误！');
+                },
+                type: 'json',
+            });
+        };
+
+        kl.ajax({
+            url: '/_dp/v1/user/info',
+            data: {},
+            method: 'POST',
+            success: function (admin_info_res) {
+                console.log(admin_info_res);
+                if (admin_info_res.status) {
+                    if (admin_info_res.status === 200) {
+                        window.utk = utk;
+                        window.adminInfo = admin_info_res.data;
+                        getMenus()
+                    } else {
+                        if (admin_info_res.code.indexOf('user_error_token') === 0) {
+                            alert('未登录，跳转到登录');
+                            document.location = loginUrl;
+                        } else {
+                            alert('失败:' + (admin_info_res.msg || '未知'))
+                        }
+                    }
+                } else {
+                    alert('数据异常')
+                }
+            },
+            error: function (res_share) {
+                console.log(res_share);
+                alert('网络错误！');
+            },
+            type: 'json',
+        });
+    };
+
+    let createTabButton = function (input_val) {
+        let btnDiv = new Emt('div', 'class="tab_btn_div"');
+        let windowBtn = new Emt('button', 'type="button" class="tab_top_btn"', input_val.text);
+        let closeBtn = new Emt('button', 'type="button" class="tab_top_btn"', 'X');
+        btnDiv.dataInfo = input_val;
+        btnDiv.ifr = false;
+        btnDiv.menuBtn = false;
+
+        btnDiv.bindIframe = function (ifr) {
+            btnDiv.ifr = ifr;
+            return btnDiv;
+        };
+        btnDiv.bindMenuBtn = function (menuBtn) {
+            btnDiv.menuBtn = menuBtn;
+            return btnDiv;
+        };
+        btnDiv.bindMenuBtn(input_val.menuBtn);
+
+        btnDiv.selected = () => {
+            Object.values(kl.id('tab_button_list').childNodes).forEach((tabBtn) => {
+                if (tabBtn === btnDiv) {
+                    btnDiv.classList.add('selected');
+                    btnDiv.menuBtn.classList.add('selected');
+                    btnDiv.ifr.classList.remove('hide');
+                } else {
+                    tabBtn.classList.remove('selected');
+                    tabBtn.ifr.classList.add('hide');
+                    tabBtn.menuBtn.classList.remove('selected');
+                }
+            });
+            return btnDiv;
+        };
+        btnDiv.close = () => {
+            if (Object.values(kl.id('tab_button_list').childNodes).length > 1) {
+                Object.values(kl.id('tab_button_list').childNodes)[0].selected();
+            }
+            btnDiv.menuBtn.classList.remove('selected');
+            btnDiv.ifr.remove();
+            btnDiv.remove();
+        };
+        windowBtn.addEventListener('click', () => {
+            if (window.ctrl) {
+                window.open(btnDiv.dataInfo.src);
+            } else {
+                btnDiv.selected();
+            }
+        });
+        closeBtn.addEventListener('click', () => {
+            btnDiv.close();
+        });
+        return btnDiv.addNodes([
+            windowBtn, closeBtn
+        ]);
+    };
+    let createTabWindow = function (input_val) {
+        if (window.ctrl === false) {
+            let hasSmaeUrlWindow = false;
+            Object.values(kl.id('tab_button_list').childNodes).forEach((tabBtn) => {
+                if (tabBtn.dataInfo.src === input_val.src) {
+                    hasSmaeUrlWindow = true;
+                    tabBtn.selected();
+                } else {
+
+                }
+            });
+            if (hasSmaeUrlWindow) {
+                return false;
+            }
+        }
+
+        let ifr = new Emt('iframe').setPros({src: input_val.src});
+        let btn = createTabButton(input_val);
+        kl.id('tab_button_list').append(btn);
+        kl.id('content_div').append(ifr);
+        // btn.textContent = input_val.text;
+        btn.bindIframe(ifr);
+
+        btn.selected();
+    };
+
+</script>
+<script>
+    domLoaded(function () {
+            let utk = '';
+            bg_init(function () {
+                utk = window.utk;
+            });
+        }
+    );
+</script>
+<style>
+    body {
+        overflow-x: hidden;
+    }
+
+    .body-content iframe {
+        display: block;
+        width: 100%;
+        min-height: auto;
+        height: auto;
+    }
+</style>
+</body>
+</html>

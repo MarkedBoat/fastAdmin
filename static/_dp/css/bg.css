@@ -119,7 +119,7 @@ td > input[type="text"], td > input[type="number"], td > select {
     float: left;
     width: 150px;
     border-right: 1px solid #000;
-    padding-top: 80px;
+    margin-top: 80px;
     padding-bottom: 80px;
     height: 100%;
     overflow: auto;
@@ -131,6 +131,7 @@ td > input[type="text"], td > input[type="number"], td > select {
     position: absolute;
     left: 150px;
     padding-left: 2em;
+    width: 100%;
 }
 
 #w0 > h3 {
@@ -147,6 +148,12 @@ td > input[type="text"], td > input[type="number"], td > select {
 }
 
 .page_title{
-    margin-left: 120px !important;
     color: #FFF !important;
+}
+
+._dp_title_td{
+    cursor: pointer;
+}
+._dp_title_td:hover{
+    background: #AAA;
 }

@@ -22,6 +22,6 @@ class ActionRender_index extends AdminBaseAction
 
     public function run()
     {
-        return $this->renderTpls(['/modules/_dp/v1/view/index.html'], []);
+        return $this->renderTpls(['/modules/_dp/v1/view/content.html'], []);
     }
 }
