@@ -603,6 +603,7 @@ class DbTable extends DbTableDao
             //'is_ok'       => $this->is_ok,
             'read_roles'  => $this->getJsondecodedValue($this->read_roles, 'array'),
             'all_roles'   => $this->getJsondecodedValue($this->all_roles, 'array'),
+            'default'     => $this->getJsondecodedValue($this->default_opts, 'array'),
             'create_time' => $this->create_time,
         ];
     }

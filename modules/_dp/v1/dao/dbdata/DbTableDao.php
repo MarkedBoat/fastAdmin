@@ -14,10 +14,11 @@ use models\common\sys\Sys;
  * @property string table_name
  * @property string pk_key
  * @property string orm_class 可以用来查询的类
- * @property string read_roles 可以读table roles  读一级授权
- * @property string update_roles 改授权，1一级授权
- * @property string all_roles 全部权限
+ * @property string read_roles 可以读table roles
+ * @property string update_roles 可以读table roles
+ * @property string all_roles 可以读table roles
  * @property string add_roles 可以添加row的roles
+ * @property string default_opts 默认选项
  * @property int is_ok 是否正常  1:正常  2:被封禁
  * @property string create_time
  * @property string update_time
@@ -35,6 +36,7 @@ class DbTableDao extends ORM
     public $update_roles = null;
     public $all_roles    = null;
     public $add_roles    = null;
+    public $default_opts = null;
     public $is_ok        = 1;
     public $create_time  = null;
     public $update_time  = null;
@@ -55,6 +57,7 @@ class DbTableDao extends ORM
         'update_roles' => ['db_type' => 'json', 'length' => 0, 'def' => null, 'pro_def' => null],
         'all_roles'    => ['db_type' => 'json', 'length' => 0, 'def' => null, 'pro_def' => null],
         'add_roles'    => ['db_type' => 'json', 'length' => 0, 'def' => null, 'pro_def' => null],
+        'default_opts' => ['db_type' => 'json', 'length' => 0, 'def' => null, 'pro_def' => null],
         'is_ok'        => ['db_type' => 'tinyint', 'length' => 0, 'def' => 1, 'pro_def' => 1],
         'create_time'  => ['db_type' => 'timestamp', 'length' => 0, 'def' => 'CURRENT_TIMESTAMP', 'pro_def' => null],
         'update_time'  => ['db_type' => 'timestamp', 'length' => 0, 'def' => null, 'pro_def' => null],

@@ -36,7 +36,7 @@ let bg_init = function (page_init_fun) {
 
 
     kl.ajax({
-        url: '/_dp/v1/user/info?user_token=' + utk,
+        url: '/_dp/v1/user/info' ,
         data: {},
         method: 'POST',
         success: function (admin_info_res) {

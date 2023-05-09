@@ -129,7 +129,7 @@
                     console.log(btn, this, editTableConfig_Form.apiHandle, rolecodes_map, attr);
                     //return false;
                     kl.ajax({
-                        url: '/_dp/v1/dbdata/update?user_token=' + utk,
+                        url: '/_dp/v1/dbdata/update',
                         //attr: form,
                         data: {
                             attr: attr,
@@ -199,7 +199,7 @@
 
 
                     kl.ajax({
-                        url: '/_dp/v1/dbdata/select?user_token=' + utk,
+                        url: '/_dp/v1/dbdata/select'  ,
                         data: post_data,
                         type: 'json',
                         success: function (res_request_data) {
@@ -304,7 +304,7 @@
 
                     btn_import_column.addEventListener('click', function () {
                         kl.ajax({
-                            url: '/_dp/v1/dbdata/importTableColumns?user_token=' + utk + '&dbconf_code=' + row_data.dbconf_name + '&table=' + row_data.table_name,
+                            url: '/_dp/v1/dbdata/importTableColumns?dbconf_code=' + row_data.dbconf_name + '&table=' + row_data.table_name,
                             method: 'GET',
                             type: 'text',
                             success: function (res_import_columns) {

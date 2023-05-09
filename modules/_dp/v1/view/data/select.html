@@ -182,7 +182,7 @@
 
 
                 kl.ajax({
-                    url: '/_dp/v1/dbdata/select?user_token=' + utk,
+                    url: '/_dp/v1/dbdata/select',
                     data: post_data,
                     type: 'json',
                     success: function (res_request_data) {
@@ -367,7 +367,7 @@
                 console.log(changed_attrs);
                 //return false;
                 kl.ajax({
-                    url: '/_dp/v1/dbdata/update?user_token=' + utk,
+                    url: '/_dp/v1/dbdata/update',
                     data: {
                         attr: changed_attrs,
                         dbconf_name: window.serverData.dataLib.mainTable.tableInfo.dbconf_name,
@@ -400,7 +400,7 @@
                 });
                 console.log(changed_attrs);
                 kl.ajax({
-                    url: '/_dp/v1/dbdata/add?user_token=' + utk,
+                    url: '/_dp/v1/dbdata/add',
                     data: {
                         attr: changed_attrs,
                         dbconf_name: window.serverData.dataLib.mainTable.tableInfo.dbconf_name,
@@ -422,8 +422,12 @@
 
             });
 
-
-            datagrid.api.run().api.requestData('init');
+            datagrid.api.run();
+            if (!kl.isUndefined(serverData.dataLib.mainTable.tableInfo, 'default.sort.field') && !kl.isUndefined(serverData.dataLib.mainTable.tableInfo, 'default.sort.type')) {
+                console.log(datagrid.column.handle.map);
+                datagrid.column.handle.map[serverData.dataLib.mainTable.tableInfo.default.sort.field].sortButton.setSort(serverData.dataLib.mainTable.tableInfo.default.sort.type);
+            }
+            datagrid.api.requestData('init');
 
 
         }

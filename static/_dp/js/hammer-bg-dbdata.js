@@ -88,7 +88,7 @@ let hammerBgDataApi = function () {
 
     apiHandle.getTableAllDataRows = (dbconfCode, tableName, resultAsKey, fun) => {
         return kl.ajax({
-            url: '/_dp/v1/dbdata/select?user_token=' + apiHandle.config.utk,
+            url: '/_dp/v1/dbdata/select' ,
             data: {dbconf_name: dbconfCode, table_name: tableName, page_index: 1, page_size: 1000},
             type: 'json',
             async: true,
@@ -123,7 +123,7 @@ let hammerBgDataApi = function () {
 
     apiHandle.initRoles = (fun) => {
         return kl.ajax({
-            url: '/_dp/v1/dbdata/select?user_token=' + apiHandle.config.utk,
+            url: '/_dp/v1/dbdata/select' ,
             data: {dbconf_name: apiHandle.config.dbconf_name, table_name: apiHandle.config.rbac_role_tableName, page_index: 1, page_size: 1000},
             type: 'json',
             async: true,
@@ -153,7 +153,7 @@ let hammerBgDataApi = function () {
 
     apiHandle.initDbConfs = (fun) => {
         return kl.ajax({
-            url: '/_dp/v1/dbdata/select?user_token=' + apiHandle.config.utk,
+            url: '/_dp/v1/dbdata/select',
             data: {dbconf_name: apiHandle.config.dbconf_name, table_name: apiHandle.config.dbdata_dbconf_tableName, page_index: 1, page_size: 1000},
             type: 'json',
             async: true,
@@ -180,7 +180,7 @@ let hammerBgDataApi = function () {
 
     apiHandle.initTableInfo = async (dbconf_code, table_name, dataLibIndex, fun) => {
         return kl.ajax({
-            url: '/_dp/v1/dbdata/info?user_token=' + apiHandle.config.utk,
+            url: '/_dp/v1/dbdata/info' ,
             data: {dbconf_name: dbconf_code || apiHandle.config.dbconf_name, table_name: table_name},
             type: 'json',
             async: true,

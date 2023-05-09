@@ -167,11 +167,9 @@ let hammerBootstarpDatagrid = function (input_opt) {
      * 执行/展示  datagrid
      */
     dataGrid.api.run = () => {
-        console.log('\n dataGrid.initSearchCondtion  预置搜索条件:<<<<\n', dataGrid.initSearchCondtion, '\n>>>>> dataGrid.initSearchCondtion  预置搜索条件\n');
         dataGrid.column.handle.unInitList.forEach((columnHandle) => {
             columnHandle.initColumn();
         })
-        console.log('\n dataGrid.getRequestParam  :<<<<\n', dataGrid.api.getRequestParam(), '\n>>>>> dataGrid.getRequestParam  \n');
 
         dataGrid.set.dstDivElement.appendChild(new Emt('div', 'class="table-responsive" ').addNodes([dataGrid.ele.Table]));
         return dataGrid;
@@ -321,17 +319,15 @@ let hammerBootstarpDatagrid = function (input_opt) {
                 'float:right;' +
                 'min-height:100%;' +
                 'min-width:1px;' +
-                //'background:#000;' +
                 'cursor: e-resize;' +
                 'padding:1em 0px;' +
                 'margin-right:0px;' +
                 'cursor:col-resize;' +
-                '"', '', {isWidthResizeBtn:true});
+                '"', '', {isWidthResizeBtn: true});
             let titleTd = dataGrid.titleTr.addTd(columnHandle.columnKey);
-           // titleTd.isWidthResizeBtn = true;
             titleTd.addNodes([
                 new Emt('div', 'style="' +
-                   // 'float:left;' +
+                    // 'float:left;' +
                     'overflow-x:auto;' +
                     'display: flex;' +
                     'width:100%;' +
@@ -420,16 +416,26 @@ let hammerBootstarpDatagrid = function (input_opt) {
                 sortButton.classList.remove('hide_btn_sort_asc');
                 sortButton.classList.add('hide_btn_sort_desc');
                 sortButton.classList.remove('hide_btn_sort');
+
+                sortKey_hideInput.value = sortButton.columnKey;
+                sortType_hideInput.value = sortButton.sortType;
             } else if (type === 'desc') {
                 sortButton.sortType = 'desc';
                 sortButton.classList.add('hide_btn_sort_asc');
                 sortButton.classList.remove('hide_btn_sort_desc');
                 sortButton.classList.remove('hide_btn_sort');
+
+                sortKey_hideInput.value = sortButton.columnKey;
+                sortType_hideInput.value = sortButton.sortType;
             } else {
                 sortButton.sortType = false;
                 sortButton.classList.remove('hide_btn_sort_asc');
                 sortButton.classList.remove('hide_btn_sort_desc');
                 sortButton.classList.add('hide_btn_sort');
+
+                sortKey_hideInput.value = sortButton.columnKey;
+                sortType_hideInput.value = sortButton.sortType;
+
             }
 
         }
@@ -587,7 +593,6 @@ let hammerBootstarpDatagrid = function (input_opt) {
 };
 
 
-
 document.addEventListener('mousedown', (event) => {
     if (event.target.isWidthResizeBtn) {
         let resize_box = event.target;
@@ -600,13 +605,13 @@ document.addEventListener('mousedown', (event) => {
             // let expect = diff + min_width;
             let expect = diff + td_width;
             console.log({dffi: diff, min_width: min_width, td_width: td_width, expect: expect});
-          //  resize_box.parentElement.parentElement.style.width = expect + 'px';
+            //  resize_box.parentElement.parentElement.style.width = expect + 'px';
 
-                if (expect < min_width) {
-                    resize_box.parentElement.parentElement.style.width = min_width + 'px';
-                } else {
-                    resize_box.parentElement.parentElement.style.width = expect + 'px';
-                }
+            if (expect < min_width) {
+                resize_box.parentElement.parentElement.style.width = min_width + 'px';
+            } else {
+                resize_box.parentElement.parentElement.style.width = expect + 'px';
+            }
 
             // resize_box.parentElement.style.width = ((diff > 0 ? diff : 0) + td_width) + 'px';
         };
