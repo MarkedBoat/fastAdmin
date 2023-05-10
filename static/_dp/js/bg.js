@@ -6,7 +6,7 @@ let bg_init = function (page_init_fun) {
         document.location = loginUrl;
         // throw  '查看';
     }
-    if(serverData===undefined){
+    if (window.serverData === undefined) {
         let ar = document.location.href.split('?');
 
         if (ar.length !== 2) {
@@ -36,7 +36,7 @@ let bg_init = function (page_init_fun) {
 
 
     kl.ajax({
-        url: '/_dp/v1/user/info' ,
+        url: '/_dp/v1/user/info',
         data: {},
         method: 'POST',
         success: function (admin_info_res) {

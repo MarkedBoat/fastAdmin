@@ -24,12 +24,13 @@
     <div class="container">
         <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
         <script src="/static/_dp/js/string/string.js"></script>
-        <script src="/static/_dp/js/hammer-yii2/bootstrap.min.20211020.1.js?t=37778"></script>
-        <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.20211020.1.js?t=53332"></script>
+        <script src="/static/_dp/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
+        <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2023.04.21.js?t=53332"></script>
         <script src="/static/_dp/js/bg.js"></script>
-        <script src="/static/file/struct/bi_input.js"></script>
         <script src="/static/_dp/js/db_struct.js"></script>
-        <script src="/static/_dp/js/bi_items.js"></script>
+        <script src="/static/_dp/js/hammer/hammer-struct2.js"></script>
+
+        <script src="/static/file/admin/js/bi_items.js"></script>
 
 
         <div class="site-index">
@@ -125,13 +126,272 @@
                             bi_struct_ele.remove();
 
                         }
-                        bi_struct_ele = new biStruct(tmp_struct_data, tmp_data, function (val) {
-                            data_out_textarea.value = JSON.stringify(val);
+                        bi_struct_ele = new hammerStruct(tmp_struct_data, tmp_data, function (val) {
+
+                            data_out_textarea.style.height = '20px';
+                            data_out_textarea.style.height = data_out_textarea.scrollHeight + 'px';
+                            data_out_textarea.value = JSON.stringify(val, null, 4);
                         });
                         struct_div.addNode(bi_struct_ele);
+                        console.log(bi_struct_ele, tmp_struct_data);
                         json_output_textarea.value = JSON.stringify(tmp_struct_data);
 
+
                     });
+                    json_input_textarea.value = JSON.stringify(
+                        {
+                            "struct_code": "config_item_rate",
+                            "struct": [
+                                {
+                                    "key": "rate",
+                                    "must": true,
+                                    "title": "比率",
+                                    "comment": "",
+                                    "default": "",
+                                    "inputType": "string"
+                                }
+                            ]
+                        }
+                        , null, 4);
+                    json_input_textarea.value = JSON.stringify(
+                        {
+                            "struct_code": "config_item_rate",
+                            "struct": [
+                                {
+                                    "key": "rate",
+                                    "must": true,
+                                    "title": "比率",
+                                    "comment": "",
+                                    "default": "",
+                                    "inputType": "number"
+                                },
+                                {
+                                    "key": "status",
+                                    "must": true,
+                                    "title": "状态",
+                                    "comment": "",
+                                    "default": true,
+                                    "inputType": "bool"
+                                },
+                                {
+                                    "key": "select_val",
+                                    "must": true,
+                                    "title": "状态",
+                                    "comment": "",
+                                    "default": "v3",
+                                    "inputType": "select",
+                                    "vals": [
+                                        {"text": "k1", "val": "v1"},
+                                        {"text": "k2", "val": "v2"},
+                                        {"text": "k3", "val": "v3"},
+                                        {"text": "k4", "val": "v4"},
+                                        {"text": "k5", "val": "v5"},
+                                    ]
+                                },
+                                {
+                                    "key": "timeUnit",
+                                    "must": true,
+                                    "title": "时间单位",
+                                    "comment": "",
+                                    "default": 'H',
+                                    "inputType": "date_unit"
+                                },
+                                {
+                                    "key": "info",
+                                    "must": true,
+                                    "title": "信息",
+                                    "comment": "",
+                                    "default": "",
+                                    "inputType": "object",
+                                    "attrs": [
+                                        {
+                                            "key": "username",
+                                            "must": true,
+                                            "title": "账户",
+                                            "comment": "",
+                                            "default": "",
+                                            "inputType": "string"
+                                        },
+                                        {
+                                            "key": "password",
+                                            "must": true,
+                                            "title": "密码",
+                                            "comment": "",
+                                            "default": "",
+                                            "inputType": "string"
+                                        },
+                                        {
+                                            "key": "birth",
+                                            "must": true,
+                                            "title": "出生",
+                                            "comment": "",
+                                            "default": "",
+                                            "inputType": "object",
+                                            "attrs": [
+                                                {
+                                                    "key": "y",
+                                                    "must": true,
+                                                    "title": "年",
+                                                    "comment": "",
+                                                    "default": "",
+                                                    "inputType": "string",
+                                                },
+                                                {
+                                                    "key": "m",
+                                                    "must": true,
+                                                    "title": "月",
+                                                    "comment": "",
+                                                    "default": "",
+                                                    "inputType": "string",
+                                                },
+                                                {
+                                                    "key": "d",
+                                                    "must": true,
+                                                    "title": "日",
+                                                    "comment": "",
+                                                    "default": "",
+                                                    "inputType": "string",
+                                                }
+                                            ]
+                                        },
+                                    ],
+                                },
+                                {
+                                    "key": "strs",
+                                    "must": true,
+                                    "title": "strs",
+                                    "comment": "",
+                                    "default": "",
+                                    "inputType": "array",
+                                    "arrayElementConfig": {
+                                        "inputType": "string",
+                                        "min": 0,
+                                        "max": 0,
+                                        "title": "str[]",
+                                        "attr": {
+                                            "must": true,
+                                            "title": "str[]",
+                                            "comment": "",
+                                            "default": "",
+                                            "inputType": "string",
+                                        }
+                                    }
+                                },
+                                {
+                                    "key": "objects",
+                                    "must": true,
+                                    "title": "对象数组",
+                                    "comment": "",
+                                    "default": "",
+                                    "inputType": "array",
+                                    "arrayElementConfig": {
+                                        "min": 0,
+                                        "max": 0,
+                                        "title": "对象数组 元素",
+                                        "comment": "",
+                                        "inputType": "object",
+                                        "attrs": [
+                                            {
+                                                "key": "k1",
+                                                "must": true,
+                                                "title": "objects[]k1",
+                                                "comment": "",
+                                                "default": "",
+                                                "inputType": "string"
+                                            },
+                                            {
+                                                "key": "k2",
+                                                "must": true,
+                                                "title": "objects[]k2",
+                                                "comment": "",
+                                                "default": "",
+                                                "inputType": "string"
+                                            },
+                                            {
+                                                "key": "objects2",
+                                                "must": true,
+                                                "title": "lev2对象数组",
+                                                "comment": "",
+                                                "default": "",
+                                                "inputType": "array",
+                                                "arrayElementConfig": {
+                                                    "min": 0,
+                                                    "max": 0,
+                                                    "title": "lev2对象数组 元素",
+                                                    "comment": "",
+                                                    "inputType": "object",
+                                                    "attrs": [
+                                                        {
+                                                            "key": "lev2_k1",
+                                                            "must": true,
+                                                            "title": "objects[]k1",
+                                                            "comment": "",
+                                                            "default": "",
+                                                            "inputType": "string"
+                                                        },
+                                                        {
+                                                            "key": "lev2_k2",
+                                                            "must": true,
+                                                            "title": "objects[]k2",
+                                                            "comment": "",
+                                                            "default": "",
+                                                            "inputType": "string"
+                                                        },
+                                                    ]
+                                                }
+                                            },
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": "arrays",
+                                    "must": true,
+                                    "title": "数组1",
+                                    "comment": "",
+                                    "default": "",
+                                    "inputType": "array",
+                                    "arrayElementConfig": {
+                                        "min": 0,
+                                        "max": 0,
+                                        "key": "arrays",
+                                        "must": true,
+                                        "title": "数组1[]",
+                                        "comment": "",
+                                        "default": "",
+                                        "inputType": "array",
+                                        "arrayElementConfig": {
+                                            "min": 0,
+                                            "max": 0,
+                                            "title": "数组1[][]对象",
+                                            "comment": "",
+                                            "inputType": "object",
+                                            "attrs": [
+                                                {
+                                                    "key": "k1",
+                                                    "must": true,
+                                                    "title": "数据[][]->k1",
+                                                    "comment": "",
+                                                    "default": "",
+                                                    "inputType": "string"
+                                                },
+                                                {
+                                                    "key": "k2",
+                                                    "must": true,
+                                                    "title": "数据[][]->k2",
+                                                    "comment": "",
+                                                    "default": "",
+                                                    "inputType": "string"
+                                                },
+                                            ]
+                                        }
+                                    }
+                                },
+                            ]
+                        }
+                        , null, 4
+                    );
+                    data_input_textarea.value = JSON.stringify({rate: 1}, null, 4);
+
                 });
 
 
@@ -159,6 +419,83 @@
                 width: 100%;
                 float: left;
                 min-height: 200px;
+            }
+
+            .object_attrs {
+                float: left;
+                border-left: 1px solid #000;
+                margin-top: 1em;
+            }
+
+            .object_attrs > div {
+                float: left;
+                width: 100%;
+            }
+
+            .array_elements {
+                float: left;
+                border-left: 1px solid #000;
+                margin-top: 1em;
+            }
+
+            .array_elements > div {
+                float: left;
+                width: 100%;
+            }
+
+            .array_node > button {
+                display: block;
+                float: left;
+            }
+
+            .object_node {
+                display: flex;
+            }
+
+            .object_node > div:nth-child(1) {
+                flex: 0;
+            }
+
+            .object_node > div:nth-child(2) {
+                flex: 1;
+            }
+
+            .input_node {
+                display: flex;
+            }
+
+            .input_node > div:nth-child(1) {
+                flex: 0;
+            }
+
+            .input_node > div:nth-child(2) {
+                flex: 1;
+            }
+
+            .struct_title {
+                flex-wrap: nowrap;
+                white-space: nowrap;
+            }
+
+            .new_array_element_add_div {
+                width: 100%;
+                display: flex;
+            }
+
+            .new_array_element_add_div > div:nth-child(1) {
+                flex: 0;
+            }
+
+            .new_array_element_add_div > div:nth-child(2) {
+                flex: 1;
+            }
+
+            .array_content_div {
+                border-left: 1px solid #000;
+                border-top: 1px solid #000;
+
+                padding-left: 0.5em;
+                padding-top: 0.5em;
             }
 
         </style>
