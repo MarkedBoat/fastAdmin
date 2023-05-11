@@ -11,7 +11,7 @@
     <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
     <script src="/static/_dp/js/string/string.js"></script>
     <script src="/static/_dp/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
-    <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2022.11.16.js"></script>
+    <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2023.04.21.js"></script>
     <script src="/static/_dp/js/bg.js"></script>
     <script src="/static/_dp/js/hammer-bg-dbdata.js"></script>
 
@@ -431,13 +431,13 @@
 
                 });
 
-                datagrid.api.preCreateColumn('id').setColumnInfo({}).setHeaderText('ID').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('id').setColumnInfo({}).setHeaderText('ID').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
-                datagrid.api.preCreateColumn('dbconf_name').setColumnInfo({}).setHeaderText('库配置').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-                datagrid.api.preCreateColumn('table_name').setColumnInfo({}).setHeaderText('表名').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('dbconf_name').setColumnInfo({}).setHeaderText('库配置').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('table_name').setColumnInfo({}).setHeaderText('表名').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
 
-                datagrid.api.preCreateColumn('column_sn').setColumnInfo({}).setHeaderText('字段序号').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                datagrid.api.preCreateColumn('column_sn').setColumnInfo({}).setHeaderText('字段序号').setSortable(true).setHeaderFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
                     let input_data = datagrid.api.getRequestParam();
                     //                            console.log(input_data);
                     if (input_data.sort.key === 'column_sn' && input_data.sort.type === 'desc') {
@@ -550,21 +550,21 @@
 
 
                 });
-                datagrid.api.preCreateColumn('title').setColumnInfo({}).setHeaderText('标题').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('title').setColumnInfo({}).setHeaderText('标题').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
-                datagrid.api.preCreateColumn('column_name').setColumnInfo({}).setHeaderText('列字段名').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-                datagrid.api.preCreateColumn('data_type').setColumnInfo({}).setHeaderText('类型').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                datagrid.api.preCreateColumn('column_name').setColumnInfo({}).setHeaderText('列字段名').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('data_type').setColumnInfo({}).setHeaderText('类型').setSortable(true).setHeaderFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
                     cell.textContent = row_data.db_datatype + '(' + row_data.db_datatype_len.toString() + '])';
                 });
 
-                datagrid.api.preCreateColumn('in_datatype').setColumnInfo({}).setHeaderText('接收类型').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                datagrid.api.preCreateColumn('in_datatype').setColumnInfo({}).setHeaderText('接收类型').setSortable(true).setHeaderFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
                     cell.textContent = row_data.in_datatype;
                 });
-                datagrid.api.preCreateColumn('out_datatype').setColumnInfo({}).setHeaderText('展示类型').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                datagrid.api.preCreateColumn('out_datatype').setColumnInfo({}).setHeaderText('展示类型').setSortable(true).setHeaderFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
                     cell.textContent = row_data.out_datatype;
                 });
 
-                datagrid.api.preCreateColumn('val_items').setColumnInfo({}).setHeaderText('字段值范围').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                datagrid.api.preCreateColumn('val_items').setColumnInfo({}).setHeaderText('字段值范围').setSortable(true).setHeaderFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
                     let tmp_pre = new Emt('pre');
                     console.log(row_data.column_name);
                     if (0) {
@@ -599,36 +599,36 @@
                 });
 
 
-                datagrid.api.preCreateColumn('is_ok').setColumnInfo({}).setHeaderText('禁用').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                datagrid.api.preCreateColumn('is_ok').setColumnInfo({}).setHeaderText('禁用').setSortable(true).setHeaderFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
                     cell.addNodes([
                         new Emt('p').setAttrsByStr('', (window.serverData.dataLib.dbdataColumnTable.__column.map.is_ok.valItemMap[row_data.is_ok] || '错误信息')),
                     ]);
                 });
 
-                datagrid.api.preCreateColumn('remark').setColumnInfo({}).setHeaderText('备注').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('remark').setColumnInfo({}).setHeaderText('备注').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
-                datagrid.api.preCreateColumn('read_roles').setColumnInfo({}).setHeaderText('read_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-                datagrid.api.preCreateColumn('update_roles').setColumnInfo({}).setHeaderText('update_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('read_roles').setColumnInfo({}).setHeaderText('read_roles').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('update_roles').setColumnInfo({}).setHeaderText('update_roles').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
-                datagrid.api.preCreateColumn('all_roles').setColumnInfo({}).setHeaderText('all_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('all_roles').setColumnInfo({}).setHeaderText('all_roles').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
-                datagrid.api.preCreateColumn('query_input_type').setColumnInfo({}).setHeaderText('页面查询类型').setSortable(false).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                datagrid.api.preCreateColumn('query_input_type').setColumnInfo({}).setHeaderText('页面查询类型').setSortable(false).setHeaderFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
                     cell.addNodes([
                         new Emt('p').setAttrsByStr('', (window.serverData.dataLib.dbdataColumnTable.__column.map.query_input_type.valItemMap[row_data.query_input_type] || ('错误信息:' + row_data.query_input_type))),
                     ]);
                 });
-                datagrid.api.preCreateColumn('has_query_datalist').setColumnInfo({}).setHeaderText('datalist?').setSortable(false).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                datagrid.api.preCreateColumn('has_query_datalist').setColumnInfo({}).setHeaderText('datalist?').setSortable(false).setHeaderFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
                     cell.addNodes([
                         new Emt('p').setAttrsByStr('', (window.serverData.dataLib.dbdataColumnTable.__column.map.has_query_datalist.valItemMap[row_data.has_query_datalist] || '错误信息')),
                     ]);
                 });
-                datagrid.api.preCreateColumn('is_query_multi').setColumnInfo({}).setHeaderText('多项查询?').setSortable(false).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                datagrid.api.preCreateColumn('is_query_multi').setColumnInfo({}).setHeaderText('多项查询?').setSortable(false).setHeaderFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
                     cell.addNodes([
                         new Emt('p').setAttrsByStr('', (window.serverData.dataLib.dbdataColumnTable.__column.map.is_query_multi.valItemMap[row_data.is_query_multi] || '错误信息')),
                     ]);
                 });
 
-                datagrid.api.preCreateColumn('op').setColumnInfo({}).setHeaderText('操作').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                datagrid.api.preCreateColumn('op').setColumnInfo({}).setHeaderText('操作').setSortable(true).setHeaderFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
                     let btn_import_column = new Emt('button').setPros({textContent: '修改'});
                     btn_import_column.addEventListener('click', function () {
 

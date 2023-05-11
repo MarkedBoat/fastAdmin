@@ -13,7 +13,7 @@
     <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
     <script src="/static/_dp/js/string/string.js"></script>
     <script src="/static/_dp/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
-    <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2022.11.16.js"></script>
+    <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2023.04.21.js"></script>
     <script src="/static/_dp/js/bg.js"></script>
     <script src="/static/_dp/js/hammer-bg-dbdata.js"></script>
 
@@ -226,35 +226,35 @@
 
                 });
 
-                datagrid.api.preCreateColumn('_rowIndexCount').setColumnInfo({}).setHeaderText('i').setSortable(false).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                datagrid.api.preCreateColumn('_rowIndexCount').setColumnInfo({}).setHeaderText('i').setSortable(false).setHeaderFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
                     rowIndexCount++;
                     cell.textContent = rowIndexCount.toString();
                 });
 
-                datagrid.api.preCreateColumn('id').setColumnInfo({}).setHeaderText('ID').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('id').setColumnInfo({}).setHeaderText('ID').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
-                datagrid.api.preCreateColumn('title').setColumnInfo({}).setHeaderText('标题').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-                datagrid.api.preCreateColumn('dbconf_name').setColumnInfo({}).setHeaderText('数据库').setSortable(true).setFixedFilterInputConfig({valueItems: window.serverData.dataLib.dbconf.codeItems});
+                datagrid.api.preCreateColumn('title').setColumnInfo({}).setHeaderText('标题').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('dbconf_name').setColumnInfo({}).setHeaderText('数据库').setSortable(true).setHeaderFilterInputConfig({valueItems: window.serverData.dataLib.dbconf.codeItems});
 
-                datagrid.api.preCreateColumn('table_name').setColumnInfo({}).setHeaderText('表名').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('table_name').setColumnInfo({}).setHeaderText('表名').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
 
-                datagrid.api.preCreateColumn('is_ok').setColumnInfo({}).setHeaderText('禁用').setSortable(true).setFixedFilterInputConfig({valueItems: window.serverData.dataLib.dbdataTablesTable.__column.map.is_ok.val_items}).setRenderFunction((cell, row_data) => {
+                datagrid.api.preCreateColumn('is_ok').setColumnInfo({}).setHeaderText('禁用').setSortable(true).setHeaderFilterInputConfig({valueItems: window.serverData.dataLib.dbdataTablesTable.__column.map.is_ok.val_items}).setRenderFunction((cell, row_data) => {
                     cell.addNodes([
                         new Emt('p').setAttrsByStr('', (window.serverData.dataLib.dbdataTablesTable.__column.map.is_ok.valItemMap[row_data.is_ok] || '错误信息')),
                     ]);
                 });
 
-                datagrid.api.preCreateColumn('remark').setColumnInfo({}).setHeaderText('备注').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('remark').setColumnInfo({}).setHeaderText('备注').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
-                datagrid.api.preCreateColumn('read_roles').setColumnInfo({}).setHeaderText('read_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-                datagrid.api.preCreateColumn('update_roles').setColumnInfo({}).setHeaderText('update_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-                datagrid.api.preCreateColumn('add_roles').setColumnInfo({}).setHeaderText('add_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
-                datagrid.api.preCreateColumn('all_roles').setColumnInfo({}).setHeaderText('all_roles').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('read_roles').setColumnInfo({}).setHeaderText('read_roles').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('update_roles').setColumnInfo({}).setHeaderText('update_roles').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('add_roles').setColumnInfo({}).setHeaderText('add_roles').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('all_roles').setColumnInfo({}).setHeaderText('all_roles').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
-                datagrid.api.preCreateColumn('create_time').setColumnInfo({}).setHeaderText('创建时间').setSortable(true).setFixedFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('create_time').setColumnInfo({}).setHeaderText('创建时间').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
-                datagrid.api.preCreateColumn('op').setColumnInfo({}).setHeaderText('操作').setSortable(true).setFixedFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
+                datagrid.api.preCreateColumn('op').setColumnInfo({}).setHeaderText('操作').setSortable(true).setHeaderFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
                     let edit_btn = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '修改'});
                     let btn_import_column = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '导入字段'});
 
