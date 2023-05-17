@@ -1310,6 +1310,9 @@ let hammerYii2Bootstarp = function () {
                         '    input[class="hammer_input_option"]:checked + span {\n' +
                         '        background: #000;\n' +
                         '        color: #FFF;\n' +
+                        '    }' +
+                        '    .modal-dialog {\n' +
+                        '        width: 80%;\n' +
                         '    }'
                     )
                 )

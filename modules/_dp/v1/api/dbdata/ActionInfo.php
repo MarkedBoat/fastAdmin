@@ -38,21 +38,21 @@ class ActionInfo extends AdminBaseAction
 
 
         $info                         = DbTable::model()->setTable($dbconf_name, $table_name)->getInfo();
-        $is_super                     = in_array('super_admin', $this->user->role_codes, true);
-        $info['table']['is_readable'] = $is_super || count($info['table']['read_roles']) === 0 || array_intersect($this->user->role_codes, $info['table']['read_roles']);
-        $info['table']['is_addable']  = $is_super || count($info['table']['all_roles']) === 0 || array_intersect($this->user->role_codes, $info['table']['all_roles']);
+        $is_super                     = in_array('_super_admin', $this->user->role_codes, true);
+        $info['table']['is_readable'] = $is_super || count($info['table']['accessRoles']) === 0 || array_intersect($this->user->role_codes, $info['table']['accessRoles']);
+        $info['table']['is_addable']  = $is_super || count($info['table']['accessInsertRoles']) === 0 || array_intersect($this->user->role_codes, $info['table']['accessInsertRoles']);
 
         $colinfos = [];
         if ($info['table']['is_readable'])
         {
             foreach ($info['columns'] as $i => $col_info)
             {
-                $col_info['is_readable']  = $is_super || count($col_info['read_roles']) === 0 || count(array_intersect($this->user->role_codes, $col_info['read_roles'])) > 0;
+                $col_info['is_readable']  = $is_super || count($col_info['accessSelectRoles']) === 0 || count(array_intersect($this->user->role_codes, $col_info['accessSelectRoles'])) > 0;
                 $col_info['is_readable2'] = [
-                    array_intersect($this->user->role_codes, $col_info['read_roles'])
+                    array_intersect($this->user->role_codes, $col_info['accessSelectRoles'])
                 ];
-                $col_info['is_optable']   = $is_super || count($col_info['update_roles']) === 0 || count(array_intersect($this->user->role_codes, $col_info['update_roles'])) > 0;
-                $col_info['is_addable']   = $is_super || count($col_info['all_roles']) === 0 || count(array_intersect($this->user->role_codes, $col_info['all_roles'])) > 0;
+                $col_info['is_optable']   = $is_super || count($col_info['accessUpdateRoles']) === 0 || count(array_intersect($this->user->role_codes, $col_info['accessUpdateRoles'])) > 0;
+                $col_info['is_addable']   = $is_super || count($col_info['accessUpdateRoles']) === 0 || count(array_intersect($this->user->role_codes, $col_info['accessUpdateRoles'])) > 0;
                 if ($col_info['is_readable'])
                 {
                     $colinfos[] = $col_info;

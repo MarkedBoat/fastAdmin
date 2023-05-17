@@ -7,6 +7,8 @@
     <link href="/static/_dp/css/bootstrap.css" rel="stylesheet">
     <link href="/static/_dp/css/site.css" rel="stylesheet">
     <link href="/static/_dp/css/bg.css" rel="stylesheet">
+    <link href="/static/_dp/css/hammer-struct.css" rel="stylesheet">
+
     <script src="/static/_dp/js/jquery.js"></script>
     <script src="/static/_dp/js/bootstrap.js"></script>
 
@@ -74,6 +76,16 @@
                     console.log('主表初始化 1');
                 });
                 console.log('主表初始化2', window.serverData.dataLib.bgDataApi.config.mainTable_dbConfCode, window.serverData.dataLib.bgDataApi.config.mainTable_tableName);
+
+                await window.serverData.dataLib.bgDataApi.getTableAllDataRows(window.serverData.dataLib.bgDataApi.config.dbconf_name, window.serverData.dataLib.bgDataApi.config.dbdata_struct_tableName, 'dbdataStructTable', function () {
+                    serverData.dataLib.dbdataStructTable.list.forEach((data_row) => {
+                        try {
+                            window.serverData.dataLib.struct.map[data_row.struct_code] = JSON.parse(data_row.struct_json);
+                        } catch (e) {
+
+                        }
+                    });
+                });
 
 
                 content();
@@ -223,15 +235,16 @@
                 let inputType = 'text';
                 if (columnConfigInfo.db_datatype === 'json') {
                     inputType = 'textarea';
-                    if (columnConfigInfo.struct_code) {
+                    if (columnConfigInfo.columnDefault !== undefined && columnConfigInfo.columnDefault.struct_code !== undefined) {
                         updateRowForm[columnConfigInfo.column_name + 'Struct'] = {
                             groupDiv: hammerYii2Bootstarp1.createFormInputGroupDiv({text: '结构'})
                         };
                         insertRowForm[columnConfigInfo.column_name + 'Struct'] = {
                             groupDiv: hammerYii2Bootstarp1.createFormInputGroupDiv({text: '结构'})
                         };
-                        updateRowForm.addNodes(updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv);
-                        updateRowForm.addNodes(insertRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv);
+                        //console.log(updateRowForm,insertRowForm,updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv,insertRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv,updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv);
+                        updateRowForm.addNodes([updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv]);
+                        updateRowForm.addNodes([insertRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv]);
                     }
 
                 }
@@ -310,15 +323,19 @@
                             return false;
                         }
                         updateRowForm.apiHandle.ele.input[inputKey].apiHandle.setInitVal(row_data[columnConfigInfo.column_name]);
-                        console.log(columnConfigInfo, updateRowForm.apiHandle.ele.input[inputKey], row_data[columnConfigInfo.column_name]);
-                        if (columnConfigInfo.db_datatype === 'json' && columnConfigInfo.struct_code) {
-                            let tmp_data = kl.jsonDecode(row_data[columnConfigInfo.column_name], {});
-                            if (tmp_data.struct_code !== undefined && window.serverData.dataLib.struct.map[tmp_data.struct_code] !== undefined) {
-                                updateRowForm[columnConfigInfo.column_name + 'Struct'].addNodes([
-                                    new hammerStruct(window.serverData.dataLib.struct.map[tmp_data.struct_code].struct_json, tmp_data, function (val) {
-                                        updateRowForm.apiHandle.ele.input[inputKey].apiHandle.setChangedVal(JSON.stringify(val));
-                                    })
-                                ]);
+                        console.log('columnConfigInfo', columnConfigInfo, updateRowForm.apiHandle.ele.input[inputKey], row_data[columnConfigInfo.column_name]);
+                        if (columnConfigInfo.db_datatype === 'json' && row_data[columnConfigInfo.column_name] && columnConfigInfo.columnDefault !== undefined && columnConfigInfo.columnDefault.struct_code !== undefined) {
+                            let struct_code = columnConfigInfo.columnDefault.struct_code;
+                            let row_column_data = kl.jsonDecode(row_data[columnConfigInfo.column_name], {});
+                            if (row_column_data.struct_code !== undefined && window.serverData.dataLib.struct.map[struct_code] !== undefined) {
+                                if (updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv.apiHandle.ele.dataStruct === undefined) {
+                                    updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv.apiHandle.ele.dataStruct = new hammerStruct();
+                                    updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv.apiHandle.addInputEle(updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv.apiHandle.ele.dataStruct);
+                                }
+
+                                updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv.apiHandle.ele.dataStruct.setFullStructData(window.serverData.dataLib.struct.map[struct_code]).setInfoData(row_column_data).setCallFunction(function (val) {
+                                    updateRowForm.apiHandle.ele.input[inputKey].apiHandle.setChangedVal(JSON.stringify(val));
+                                }).reload();
                             }
                         }
 
@@ -423,9 +440,9 @@
             });
 
             datagrid.api.run();
-            if (!kl.isUndefined(serverData.dataLib.mainTable.tableInfo, 'default.sort.field') && !kl.isUndefined(serverData.dataLib.mainTable.tableInfo, 'default.sort.type')) {
+            if (!kl.isUndefined(serverData.dataLib.mainTable.tableInfo, 'tableDefault.sort.field') && !kl.isUndefined(serverData.dataLib.mainTable.tableInfo, 'tableDefault.sort.type')) {
                 console.log(datagrid.column.handle.map);
-                datagrid.column.handle.map[serverData.dataLib.mainTable.tableInfo.default.sort.field].sortButton.setSort(serverData.dataLib.mainTable.tableInfo.default.sort.type);
+                datagrid.column.handle.map[serverData.dataLib.mainTable.tableInfo.tableDefault.sort.field].sortButton.setSort(serverData.dataLib.mainTable.tableInfo.tableDefault.sort.type);
             }
             datagrid.api.requestData('init');
 

@@ -34,7 +34,7 @@ class ActionInit extends AdminBaseAction
             $table_name = Sys::app()->params['sys_setting']['db']['tableNameFakeCode'][$table_name];
         }
 
-        $is_super     = in_array('super_admin', $this->user->role_codes, true);
+        $is_super     = in_array('_super_admin', $this->user->role_codes, true);
         $user_roles   = $this->user->role_codes;
         $user_roles[] = '*';
         $db_table     = DbTable::model()->setTable($db, $table_name);
@@ -45,7 +45,7 @@ class ActionInit extends AdminBaseAction
         $sets         = [];
         $update       = [];
         $pk           = '';
-        if ($is_super || array_intersect($user_roles, $table_model->read_roles))
+        if ($is_super || array_intersect($user_roles, $table_model->access_role_codes))
         {
             $column_models = $db_table->getBizTableColumns();
             Sys::app()->addLog($column_models);
@@ -70,7 +70,7 @@ class ActionInit extends AdminBaseAction
 
                 if (isset($attr[$column_model->column_name]))
                 {
-                    if ($is_super || array_intersect($user_roles, $column_model->all_roles) || (array_intersect($user_roles, $column_model->update_roles) && in_array($attr[$column_model->column_name], $column_model->val_items)))
+                    if ($is_super || (array_intersect($user_roles, $column_model->access_update_role_codes) && in_array($attr[$column_model->column_name], $column_model->val_items)))
                     {
                         $sets[":{$column_model->column_name}"] = "`{$column_model->column_name}`=:{$column_model->column_name}";
                         $bind[":{$column_model->column_name}"] = $attr[$column_model->column_name];
@@ -82,7 +82,7 @@ class ActionInit extends AdminBaseAction
                 }
                 if (isset($update_attr[$column_model->column_name]))
                 {
-                    if ($is_super || array_intersect($user_roles, $column_model->all_roles) || (array_intersect($user_roles, $column_model->update_roles) && in_array($attr[$column_model->column_name], $column_model->val_items)))
+                    if ($is_super || (array_intersect($user_roles, $column_model->access_update_role_codes) && in_array($attr[$column_model->column_name], $column_model->val_items)))
                     {
                         $update[":update_{$column_model->column_name}"] = "`{$column_model->column_name}`=:update_{$column_model->column_name}";
                         $bind[":update_{$column_model->column_name}"]   = $update_attr[$column_model->column_name];

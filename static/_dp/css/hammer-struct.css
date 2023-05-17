@@ -1,0 +1,82 @@
+
+.hammer_input_option {
+    display: none;
+}
+
+
+.object_attrs {
+    float: left;
+    border-left: 1px solid #000;
+    margin-top: 1em;
+}
+
+.object_attrs > div {
+    float: left;
+    width: 100%;
+}
+
+.array_elements {
+    float: left;
+    border-left: 1px solid #000;
+    margin-top: 1em;
+}
+
+.array_elements > div {
+    float: left;
+    width: 100%;
+}
+
+.array_node > button {
+    display: block;
+    float: left;
+}
+
+.object_node {
+    display: flex;
+}
+
+.object_node > div:nth-child(1) {
+    flex: 0;
+}
+
+.object_node > div:nth-child(2) {
+    flex: 1;
+}
+
+.input_node {
+    display: flex;
+}
+
+.input_node > div:nth-child(1) {
+    flex: 0;
+}
+
+.input_node > div:nth-child(2) {
+    flex: 1;
+}
+
+.struct_title {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+}
+
+.new_array_element_add_div {
+    width: 100%;
+    display: flex;
+}
+
+.new_array_element_add_div > div:nth-child(1) {
+    flex: 0;
+}
+
+.new_array_element_add_div > div:nth-child(2) {
+    flex: 1;
+}
+
+.array_content_div {
+    border-left: 1px solid #000;
+    border-top: 1px solid #000;
+
+    padding-left: 0.5em;
+    padding-top: 0.5em;
+}

@@ -29,24 +29,22 @@ class ActionUpdate extends AdminBaseAction
         $attr       = $this->inputDataBox->tryGetArray('attr');
 
 
-        $is_super      = in_array('super_admin', $this->user->role_codes, true);
+        $is_super      = in_array('_super_admin', $this->user->role_codes, true);
         $db_conf_model = DbDbConf::model()->findOneByWhere(['db_code' => $db_code, 'is_ok' => Opt::YES]);
-        if ($is_super === false && $db_conf_model->checkAllAccess($this->user) === false)
+        if ($is_super === false && $db_conf_model->checkAccess($this->user) === false)
         {
-            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权访问Db:[{$db_code}]", false);
+            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "需要数据库授权:[{$db_code}]", false);
         }
         $table_name       = DbTable::replaceFakeTableName($table_name);
         $table_conf_model = DbTable::model()->findOneByWhere(['dbconf_name' => $db_code, 'table_name' => $table_name, 'is_ok' => Opt::YES]);
-        if ($is_super === false && $table_conf_model->checkAllAccess($this->user) === false && $table_conf_model->checkUpdateAccess($this->user) === false)
+        if ($is_super === false && $table_conf_model->checkAccess($this->user) === false)
         {
-            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权访问表:[{$db_code}.{$table_name}]", false);
+            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "需要表授权:[{$db_code}.{$table_name}]", false);
         }
-        $dbconf_name = $db_code;
 
-        $is_super     = in_array('super_admin', $this->user->role_codes, true);
         $user_roles   = $this->user->role_codes;
         $user_roles[] = '*';
-        $db_table     = DbTable::model()->setBizTableModel($table_conf_model)->setTable($dbconf_name, $table_name);
+        $db_table     = DbTable::model()->setBizTableModel($table_conf_model)->setTable($db_code, $table_name);
         $table_model  = $table_conf_model;
         $errors       = [];
         $bind         = [];
@@ -54,7 +52,7 @@ class ActionUpdate extends AdminBaseAction
         $sets         = [];
         $wheres       = [];
         $pk_val       = 0;
-        if ($is_super || is_null($table_model->read_roles) || count($table_model->read_roles) === 0 || count(array_intersect($user_roles, $table_model->read_roles)) > 0)
+        if (1)
         {
             $column_models = $db_table->getBizTableColumns();
             Sys::app()->addLog($column_models);
@@ -76,61 +74,36 @@ class ActionUpdate extends AdminBaseAction
                     }
 
                 }
+                else
+                {
+                    $column_model->checkUpdateAccess($this->user);
+                }
                 if (isset($attr[$column_model->column_name]))
                 {
-                    $is_add_enable = false;
-                    if (is_null($column_model->all_roles))
+
+                    $val_check = true;
+                    if (count($column_model->val_items))
                     {
-                        $is_add_enable = true;
-                    }
-                    else
-                    {
-                        if (is_array($column_model->all_roles))
-                        {
-                            if (count($column_model->all_roles) === 0)
-                            {
-                                $is_add_enable = true;
-                            }
-                            else
-                            {
-                                $is_add_enable = count(array_intersect($user_roles, $column_model->all_roles)) > 0;
-                            }
-                        }
-                    }
-                    $is_opt_enable = false;
-                    $val_in_range  = is_null($column_model->val_items) ? false : in_array($attr[$column_model->column_name], $column_model->val_items, true);
-                    if ($val_in_range)
-                    {
-                        if (is_null($column_model->update_roles))
-                        {
-                            $is_opt_enable = true;
-                        }
-                        else
-                        {
-                            if (is_array($column_model->update_roles))
-                            {
-                                if (count($column_model->update_roles) === 0)
-                                {
-                                    $is_opt_enable = true;
-                                }
-                                else
-                                {
-                                    $is_opt_enable = count(array_intersect($user_roles, $column_model->update_roles)) > 0;
-                                }
-                            }
-                        }
+                        $val_check = in_array($attr[$column_model->column_name], array_column($column_model->val_items, 'val'));
                     }
 
-
-                    if ($is_super || $is_add_enable || $is_opt_enable)
+                    if ($val_check)
                     {
                         $sets[":{$column_model->column_name}"] = "`{$column_model->column_name}`=:{$column_model->column_name}";
                         $bind[":{$column_model->column_name}"] = $attr[$column_model->column_name];
                     }
                     else
                     {
+                        if ($is_super)
+                        {
+                            $sets[":{$column_model->column_name}"] = "`{$column_model->column_name}`=:{$column_model->column_name}";
+                            $bind[":{$column_model->column_name}"] = $attr[$column_model->column_name];
+                        }
+                        else
+                        {
+                            $errors[] = "字段值非预期: key:[{$column_model->column_name}] val:[{$attr[$column_model->column_name]}]";
+                        }
                         // Sys::app()->addLog([$column_model->column_name, $column_model->column_name[$attr[$column_model->column_name],$column_model->val_items], 'xxxxxxx');
-                        $errors[] = "无权操作字段:{$column_model->column_name}";
                     }
                 }
             }
@@ -163,7 +136,7 @@ class ActionUpdate extends AdminBaseAction
             $new_info   = $db_table->getDbconfConnect()->setText($select_sql)->bindArray($select_bind)->queryRow();
 
             $log_dao                 = DbOpLogDao::model();
-            $log_dao->db_name        = $dbconf_name;
+            $log_dao->db_name        = $db_code;
             $log_dao->table_name     = $table_name;
             $log_dao->row_pk         = $pk_val;
             $log_dao->op_type        = 'update';

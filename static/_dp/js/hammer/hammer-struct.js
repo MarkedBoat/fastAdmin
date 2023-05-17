@@ -217,32 +217,115 @@ let attrNode = function (opt, init_val) {
 };
 
 
-let hammerStruct = function (struct_data, db_data, callFunction) {
+let hammerStruct = function (struct_data, db_data, call_function) {
     let struct_div = new Emt('div', 'class="bi_struct"');
-    let struct_json = JSON.stringify(struct_data);
-    console.log("\nstruct:\n\n\n" + struct_json + "\n\n\n", struct_data);
 
+    struct_div.lastSetting = {fullStructData: false, infoData: false, callFunction: false};
 
-    let root_node = new attrNode({
-        inputType: 'object',
-        title: '根',
-        attrs: struct_data.struct,
-        key: 'root',
-        var_path: '',
-        onChanged: function (input_ele) {
-            console.log('hammerStruct', {inputEle: input_ele});
-            let val = root_node.getVal();
-            val.struct_code = struct_data.struct_code;
-            console.log('hammerStruct inputEle.getVal', val, console.log(JSON.stringify(val, null, 4)));
-            console.log("\nval:\n\n\n" + JSON.stringify(val) + "\n\n\n");
-            console.log("\nstruct:\n\n\n" + struct_json + "\n\n\n");
-            if (typeof callFunction === "function") {
-                callFunction(val);
-            }
+    struct_div.reload = () => {
+        if (struct_div.root_node && typeof struct_div.root_node.remove === "function") {
+            struct_div.root_node.remove();
         }
-    }, db_data);
-    struct_div.addNode(
-        root_node
-    );
+        struct_div.root_node = new attrNode({
+            inputType: 'object',
+            title: '根',
+            attrs: struct_div.lastSetting.fullStructData.struct,
+            key: 'root',
+            var_path: '',
+            onChanged: function (input_ele) {
+                console.log('hammerStruct', {inputEle: input_ele});
+                if (typeof struct_div.lastSetting.callFunction === "function") {
+                    let val = struct_div.getResultInfoData();
+                    struct_div.lastSetting.callFunction(val);
+                }
+            }
+        }, struct_div.lastSetting.infoData);
+        struct_div.addNode(
+            struct_div.root_node
+        );
+        return struct_div;
+
+    };
+    struct_div.loadNewInfoData = (infoData) => {
+        if (struct_div.root_node && typeof struct_div.root_node.remove === "function") {
+            struct_div.root_node.remove();
+            struct_div.lastSetting.infoData = false;
+        }
+        struct_div.lastSetting.infoData = infoData;
+        struct_div.reload();
+        return struct_div;
+    };
+    struct_div.loadNewStructAndInfo = function (fullStructData, infoData, callFunction) {
+        if (struct_div.root_node && typeof struct_div.root_node.remove === "function") {
+            struct_div.root_node.remove();
+            struct_div.lastSetting.infoData = false;
+            struct_div.lastSetting.fullStructData = false;
+            struct_div.lastSetting.callFunction = false;
+        }
+
+        struct_div.lastSetting.infoData = infoData;
+        struct_div.lastSetting.fullStructData = fullStructData;
+        struct_div.setCallFunction(callFunction);
+
+        struct_div.reload();
+        return struct_div;
+    };
+
+    struct_div.setCallFunction = (callFunction) => {
+        if (typeof callFunction === 'function') {
+            struct_div.lastSetting.callFunction = callFunction;
+        } else {
+            console.log(' struct_div.setCallFunction  参数不是一个function');
+            struct_div.lastSetting.callFunction = false;
+        }
+        return struct_div;
+    };
+    struct_div.setFullStructData = (fullStructData) => {
+        if (typeof fullStructData === 'object' && fullStructData.struct_code !== undefined) {
+            struct_div.lastSetting.fullStructData = fullStructData;
+        } else {
+            console.log(fullStructData);
+            throw  ' struct_div.setFullStructData  参数异常';
+        }
+        return struct_div;
+    };
+    struct_div.setInfoData = (infoData) => {
+        if (typeof infoData === 'object' && infoData.struct_code !== undefined) {
+            struct_div.lastSetting.infoData = infoData;
+        } else {
+            console.log(infoData);
+            throw  ' struct_div.setInfoData  参数异常';
+        }
+        return struct_div;
+    };
+
+    struct_div.getResultInfoData = () => {
+        if (struct_div.lastSetting.fullStructData === false) {
+            throw 'hammer struct 没有相关设置，不能 getInfoData';
+        }
+        let val = struct_div.root_node.getVal();
+        val.struct_code = struct_div.lastSetting.fullStructData.struct_code;
+        console.log('hammerStruct inputEle.getVal', val, console.log(JSON.stringify(val, null, 4)));
+        console.log("\nval:\n\n\n" + JSON.stringify(val) + "\n\n\n");
+        console.log("\nstruct:\n\n\n" + JSON.stringify(struct_div.lastSetting.fullStructData) + "\n\n\n");
+        return val;
+    };
+
+    if (struct_data !== undefined) {
+        let struct_json = JSON.stringify(struct_data);
+        console.log("\nstruct:\n\n\n" + struct_json + "\n\n\n", struct_data);
+        struct_div.setFullStructData(struct_data);
+    }
+    if (db_data !== undefined) {
+        struct_div.setInfoData(db_data);
+    }
+    if (typeof call_function === 'function') {
+        struct_div.setCallFunction(call_function);
+    }
+
+    if (struct_div.lastSetting.fullStructData && struct_div.lastSetting.infoData) {
+        struct_div.reload();
+    }
+
     return struct_div;
 };

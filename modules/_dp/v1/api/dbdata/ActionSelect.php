@@ -30,15 +30,15 @@ class ActionSelect extends AdminBaseAction
         $page_size  = $this->inputDataBox->tryGetInt('page_size');
         $sort_map   = $this->inputDataBox->tryGetArray('sort');
 
-        $is_super = in_array('super_admin', $this->user->role_codes, true);
+        $is_super = in_array('_super_admin', $this->user->role_codes, true);
         $db_conf_model = DbDbConf::model()->findOneByWhere(['db_code' => $db_code, 'is_ok' => Opt::YES]);
-        if ($is_super === false && $db_conf_model->checkAllAccess($this->user) === false && $db_conf_model->checkReadAccess($this->user) === false)
+        if ($is_super === false && $db_conf_model->checkAccess($this->user) === false)
         {
             return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权访问Db:[{$db_code}]", false);
         }
         $table_name       = DbTable::replaceFakeTableName($table_name);
         $table_conf_model = DbTable::model()->findOneByWhere(['dbconf_name' => $db_code, 'table_name' => $table_name, 'is_ok' => Opt::YES]);
-        if ($is_super === false && $table_conf_model->checkAllAccess($this->user) === false && $table_conf_model->checkReadAccess($this->user) === false)
+        if ($is_super === false && $table_conf_model->checkAccess($this->user) === false )
         {
             return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权访问表:[{$db_code}.{$table_name}]", false);
         }
@@ -60,7 +60,7 @@ class ActionSelect extends AdminBaseAction
             $deny_keys = [];
             foreach ($info['columns'] as $i => $col_info)
             {
-                if (count($col_info['read_roles']) && count(array_intersect($this->user->role_codes, $col_info['read_roles'])) === 0)
+                if (count($col_info['accessSelectRoles']) && count(array_intersect($this->user->role_codes, $col_info['accessSelectRoles'])) === 0)
                 {
                     $deny_keys[] = $col_info['column_name'];
                 }

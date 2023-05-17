@@ -23,8 +23,7 @@ class DbDbConf extends DbDbConfDao
         return [
             'title'       => $this->title,
             'remark'      => $this->remark,
-            'read_roles'  => $this->getJsondecodedValue($this->read_roles, 'array'),
-            'all_roles'   => $this->getJsondecodedValue($this->all_roles, 'array'),
+            'accessRoles' => $this->getJsondecodedValue($this->access_role_codes, 'array'),
             'create_time' => $this->create_time,
             'update_time' => $this->update_time,
         ];
@@ -58,19 +57,11 @@ class DbDbConf extends DbDbConfDao
 
     }
 
-    public function checkReadAccess(Admin $user)
-    {
-        return $this->checkAccess($user->role_codes, 'read_roles', false);
-    }
-
-    public function checkAllAccess(Admin $user)
-    {
-        return $this->checkAccess($user->role_codes, 'all_roles', false);
-    }
 
 
-    public function checkAccess($user_roles, $access_field, $empty_as_access = true)
+    public function checkAccess($user_roles, $empty_as_access = true)
     {
+        $access_field='access_role_codes';
         if (is_null($this->$access_field))
         {
             Sys::app()->addLog("dbconf_check_access_{$access_field} is null");

@@ -23,11 +23,8 @@ use models\common\sys\Sys;
  * @property string index_key
  * @property string default_val
  * @property string remark 备注
- * @property string read_roles 读roles
- * @property string update_roles 修改权限roles
- * @property string all_roles 全权权限roles
- * @property string opt_roles 选择写roles ，只能在已有value中选择填写
- * @property string add_roles 可添加value 的roles
+ * @property string access_select_role_codes 可读 role codes
+ * @property string access_update_role_codes 可改 role codes
  * @property string default_opts 默认选项
  * @property string query_input_type 查询输入类型  text/select/checkbox_list
  * @property int has_query_datalist 是否有datalist 进行辅助
@@ -38,68 +35,62 @@ use models\common\sys\Sys;
  */
 class DbColumnDao extends ORM
 {
-    public $id                 = null;
-    public $title              = '';
-    public $dbconf_name        = '';
-    public $table_name         = '';
-    public $column_name        = '';
-    public $column_sn          = 100;
-    public $val_items          = null;
-    public $val_items_link     = null;
-    public $val_struct_code    = '';
-    public $db_datatype        = '';
-    public $db_datatype_len    = 0;
-    public $out_datatype       = 'string';
-    public $in_datatype        = 'string';
-    public $index_key          = '';
-    public $default_val        = '';
-    public $remark             = '';
-    public $read_roles         = null;
-    public $update_roles       = null;
-    public $all_roles          = null;
-    public $opt_roles          = null;
-    public $add_roles          = null;
-    public $default_opts       = null;
-    public $query_input_type   = 'text';
-    public $has_query_datalist = 2;
-    public $is_query_multi     = 2;
-    public $is_ok              = 1;
-    public $create_time        = null;
-    public $update_time        = null;
+    public $id                       = null;
+    public $title                    = '';
+    public $dbconf_name              = '';
+    public $table_name               = '';
+    public $column_name              = '';
+    public $column_sn                = 100;
+    public $val_items                = null;
+    public $val_items_link           = null;
+    public $val_struct_code          = '';
+    public $db_datatype              = '';
+    public $db_datatype_len          = 0;
+    public $out_datatype             = 'string';
+    public $in_datatype              = 'string';
+    public $index_key                = '';
+    public $default_val              = '';
+    public $remark                   = '';
+    public $access_select_role_codes = null;
+    public $access_update_role_codes = null;
+    public $default_opts             = null;
+    public $query_input_type         = 'text';
+    public $has_query_datalist       = 2;
+    public $is_query_multi           = 2;
+    public $is_ok                    = 1;
+    public $create_time              = null;
+    public $update_time              = null;
 
 
     public static $_fields_str;
     public static $tableName    = 'bg_db_column';
     public static $pk           = 'id';
     public static $field_config = [
-        'id'                 => ['db_type' => 'int', 'length' => 0, 'def' => null, 'pro_def' => null],
-        'title'              => ['db_type' => 'varchar', 'length' => 128, 'def' => '', 'pro_def' => ''],
-        'dbconf_name'        => ['db_type' => 'varchar', 'length' => 64, 'def' => '', 'pro_def' => ''],
-        'table_name'         => ['db_type' => 'varchar', 'length' => 64, 'def' => '', 'pro_def' => ''],
-        'column_name'        => ['db_type' => 'varchar', 'length' => 64, 'def' => '', 'pro_def' => ''],
-        'column_sn'          => ['db_type' => 'int', 'length' => 0, 'def' => 100, 'pro_def' => 100],
-        'val_items'          => ['db_type' => 'json', 'length' => 0, 'def' => null, 'pro_def' => null],
-        'val_items_link'     => ['db_type' => 'json', 'length' => 0, 'def' => null, 'pro_def' => null],
-        'val_struct_code'    => ['db_type' => 'varchar', 'length' => 64, 'def' => '', 'pro_def' => ''],
-        'db_datatype'        => ['db_type' => 'varchar', 'length' => 16, 'def' => '', 'pro_def' => ''],
-        'db_datatype_len'    => ['db_type' => 'int', 'length' => 0, 'def' => 0, 'pro_def' => 0],
-        'out_datatype'       => ['db_type' => 'varchar', 'length' => 16, 'def' => 'string', 'pro_def' => 'string'],
-        'in_datatype'        => ['db_type' => 'varchar', 'length' => 16, 'def' => 'string', 'pro_def' => 'string'],
-        'index_key'          => ['db_type' => 'varchar', 'length' => 16, 'def' => '', 'pro_def' => ''],
-        'default_val'        => ['db_type' => 'varchar', 'length' => 255, 'def' => '', 'pro_def' => ''],
-        'remark'             => ['db_type' => 'varchar', 'length' => 255, 'def' => '', 'pro_def' => ''],
-        'read_roles'         => ['db_type' => 'json', 'length' => 0, 'def' => null, 'pro_def' => null],
-        'update_roles'       => ['db_type' => 'json', 'length' => 0, 'def' => null, 'pro_def' => null],
-        'all_roles'          => ['db_type' => 'json', 'length' => 0, 'def' => null, 'pro_def' => null],
-        'opt_roles'          => ['db_type' => 'json', 'length' => 0, 'def' => null, 'pro_def' => null],
-        'add_roles'          => ['db_type' => 'json', 'length' => 0, 'def' => null, 'pro_def' => null],
-        'default_opts'       => ['db_type' => 'json', 'length' => 0, 'def' => null, 'pro_def' => null],
-        'query_input_type'   => ['db_type' => 'varchar', 'length' => 32, 'def' => 'text', 'pro_def' => 'text'],
-        'has_query_datalist' => ['db_type' => 'tinyint', 'length' => 0, 'def' => 2, 'pro_def' => 2],
-        'is_query_multi'     => ['db_type' => 'tinyint', 'length' => 0, 'def' => 2, 'pro_def' => 2],
-        'is_ok'              => ['db_type' => 'tinyint', 'length' => 0, 'def' => 1, 'pro_def' => 1],
-        'create_time'        => ['db_type' => 'timestamp', 'length' => 0, 'def' => 'CURRENT_TIMESTAMP', 'pro_def' => null],
-        'update_time'        => ['db_type' => 'timestamp', 'length' => 0, 'def' => null, 'pro_def' => null],
+        'id'                       => ['db_type' => 'int', 'length' => 0, 'def' => null, 'pro_def' => null],
+        'title'                    => ['db_type' => 'varchar', 'length' => 128, 'def' => '', 'pro_def' => ''],
+        'dbconf_name'              => ['db_type' => 'varchar', 'length' => 64, 'def' => '', 'pro_def' => ''],
+        'table_name'               => ['db_type' => 'varchar', 'length' => 64, 'def' => '', 'pro_def' => ''],
+        'column_name'              => ['db_type' => 'varchar', 'length' => 64, 'def' => '', 'pro_def' => ''],
+        'column_sn'                => ['db_type' => 'int', 'length' => 0, 'def' => 100, 'pro_def' => 100],
+        'val_items'                => ['db_type' => 'json', 'length' => 0, 'def' => null, 'pro_def' => null],
+        'val_items_link'           => ['db_type' => 'json', 'length' => 0, 'def' => null, 'pro_def' => null],
+        'val_struct_code'          => ['db_type' => 'varchar', 'length' => 64, 'def' => '', 'pro_def' => ''],
+        'db_datatype'              => ['db_type' => 'varchar', 'length' => 16, 'def' => '', 'pro_def' => ''],
+        'db_datatype_len'          => ['db_type' => 'int', 'length' => 0, 'def' => 0, 'pro_def' => 0],
+        'out_datatype'             => ['db_type' => 'varchar', 'length' => 16, 'def' => 'string', 'pro_def' => 'string'],
+        'in_datatype'              => ['db_type' => 'varchar', 'length' => 16, 'def' => 'string', 'pro_def' => 'string'],
+        'index_key'                => ['db_type' => 'varchar', 'length' => 16, 'def' => '', 'pro_def' => ''],
+        'default_val'              => ['db_type' => 'varchar', 'length' => 255, 'def' => '', 'pro_def' => ''],
+        'remark'                   => ['db_type' => 'varchar', 'length' => 255, 'def' => '', 'pro_def' => ''],
+        'access_select_role_codes' => ['db_type' => 'json', 'length' => 0, 'def' => null, 'pro_def' => null],
+        'access_update_role_codes' => ['db_type' => 'json', 'length' => 0, 'def' => null, 'pro_def' => null],
+        'default_opts'             => ['db_type' => 'json', 'length' => 0, 'def' => null, 'pro_def' => null],
+        'query_input_type'         => ['db_type' => 'varchar', 'length' => 32, 'def' => 'text', 'pro_def' => 'text'],
+        'has_query_datalist'       => ['db_type' => 'tinyint', 'length' => 0, 'def' => 2, 'pro_def' => 2],
+        'is_query_multi'           => ['db_type' => 'tinyint', 'length' => 0, 'def' => 2, 'pro_def' => 2],
+        'is_ok'                    => ['db_type' => 'tinyint', 'length' => 0, 'def' => 1, 'pro_def' => 1],
+        'create_time'              => ['db_type' => 'timestamp', 'length' => 0, 'def' => 'CURRENT_TIMESTAMP', 'pro_def' => null],
+        'update_time'              => ['db_type' => 'timestamp', 'length' => 0, 'def' => null, 'pro_def' => null],
     ];
 
 

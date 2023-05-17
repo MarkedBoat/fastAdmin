@@ -7,6 +7,9 @@
     <link href="/static/_dp/css/bootstrap.css" rel="stylesheet">
     <link href="/static/_dp/css/site.css" rel="stylesheet">
     <link href="/static/_dp/css/bg.css" rel="stylesheet">
+    <link href="/static/_dp/css/hammer-struct.css" rel="stylesheet">
+
+
     <script src="/static/_dp/js/jquery.js"></script>
     <script src="/static/_dp/js/bootstrap.js"></script>
 
@@ -16,6 +19,8 @@
     <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2023.04.21.js"></script>
     <script src="/static/_dp/js/bg.js"></script>
     <script src="/static/_dp/js/hammer-bg-dbdata.js"></script>
+    <script src="/static/_dp/js/hammer/hammer-struct.js"></script>
+
 
 </head>
 <body>
@@ -51,7 +56,8 @@
                     admin: {items: [], list: [], map: {}},
                     role: {items: [], list: [], map: {}},
                     mainTable: {},
-                    dbdataTablesTable: {}
+                    dbdataTablesTable: {},
+                    struct: {items: [], list: [], map: {}},
 
                 };
                 window.serverData.dataLib.bgDataApi = hammerBgDataApi();
@@ -75,6 +81,18 @@
                         console.log('角色初始化 1');
                     });
                     console.log('角色初始化');
+
+                    await window.serverData.dataLib.bgDataApi.getTableAllDataRows(window.serverData.dataLib.bgDataApi.config.dbconf_name, window.serverData.dataLib.bgDataApi.config.dbdata_struct_tableName, 'dbdataStructTable', function () {
+                        serverData.dataLib.dbdataStructTable.list.forEach((data_row) => {
+                            try {
+                                console.log('查询数据结构 ok');
+                                window.serverData.dataLib.struct.map[data_row.struct_code] = JSON.parse(data_row.struct_json);
+                            } catch (e) {
+
+                            }
+                        });
+                    });
+                    console.log('查询数据结构 结束');
 
                     content();
                 })();
@@ -105,10 +123,19 @@
                 editTableConfig_Form.apiHandle.ele.input.dbConf.readOnly = true;
                 editTableConfig_Form.apiHandle.ele.input.tableName.readOnly = true;
 
-                let roleVerticalTable = window.serverData.dataLib.bgDataApi.createVerticalTable(window.serverData.dataLib.role.codeItems, [{val: 'read_roles', text: '读 '}, {val: 'update_roles', text: '改'}, {
-                    val: 'add_roles',
-                    text: '增'
-                }, {val: 'all_roles', text: '所有权限'}]);
+                let defaultOptsDataStructDiv = new hammerStruct();
+                defaultOptsDataStructDiv.setFullStructData(window.serverData.dataLib.struct.map.dbdataTableDefaultOpts);
+
+                let defaultOpts_groupDiv = hammerYii2Bootstarp1.createFormInputGroupDiv({});
+                defaultOpts_groupDiv.apiHandle.setText('默认选项').apiHandle.addInputEle(defaultOptsDataStructDiv);
+
+                editTableConfig_Form.addNode(defaultOpts_groupDiv);
+
+
+                let roleVerticalTable = window.serverData.dataLib.bgDataApi.createVerticalTable(window.serverData.dataLib.role.codeItems, [
+                    {val: 'access_role_codes', text: '读/改/查 '},
+                    {val: 'access_insert_role_codes', text: '增'},
+                    ]);
                 let role_groupDiv = hammerYii2Bootstarp1.createFormInputGroupDiv({});
                 role_groupDiv.apiHandle.setText('权限控制').apiHandle.addInputEle(roleVerticalTable);
                 editTableConfig_Form.addNode(role_groupDiv);
@@ -121,10 +148,9 @@
                         id: editTableConfig_Form.apiHandle.ele.input.idInput.apiHandle.getVal(),
                         title: editTableConfig_Form.apiHandle.ele.input.title.apiHandle.getVal(),
                         remark: editTableConfig_Form.apiHandle.ele.input.remark.apiHandle.getVal(),
-                        read_roles: JSON.stringify(rolecodes_map.read_roles),
-                        update_roles: JSON.stringify(rolecodes_map.update_roles),
-                        add_roles: JSON.stringify(rolecodes_map.add_roles),
-                        all_roles: JSON.stringify(rolecodes_map.all_roles),
+                        access_role_codes: JSON.stringify(rolecodes_map.access_role_codes),
+                        access_insert_role_codes: JSON.stringify(rolecodes_map.access_insert_role_codes),
+                        default_opts: JSON.stringify(defaultOptsDataStructDiv.getResultInfoData()),
                     };
                     console.log(btn, this, editTableConfig_Form.apiHandle, rolecodes_map, attr);
                     //return false;
@@ -199,7 +225,7 @@
 
 
                     kl.ajax({
-                        url: '/_dp/v1/dbdata/select'  ,
+                        url: '/_dp/v1/dbdata/select',
                         data: post_data,
                         type: 'json',
                         success: function (res_request_data) {
@@ -246,11 +272,11 @@
                 });
 
                 datagrid.api.preCreateColumn('remark').setColumnInfo({}).setHeaderText('备注').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('access_role_codes').setColumnInfo({}).setHeaderText('access_role_codes').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
-                datagrid.api.preCreateColumn('read_roles').setColumnInfo({}).setHeaderText('read_roles').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
-                datagrid.api.preCreateColumn('update_roles').setColumnInfo({}).setHeaderText('update_roles').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
-                datagrid.api.preCreateColumn('add_roles').setColumnInfo({}).setHeaderText('add_roles').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
-                datagrid.api.preCreateColumn('all_roles').setColumnInfo({}).setHeaderText('all_roles').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('access_insert_role_codes').setColumnInfo({}).setHeaderText('access_insert_role_codes').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
+
+                datagrid.api.preCreateColumn('default_opts').setColumnInfo({}).setHeaderText('默认选项').setSortable(false).setHeaderFilterInputConfig({valueItems: []});
 
                 datagrid.api.preCreateColumn('create_time').setColumnInfo({}).setHeaderText('创建时间').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
@@ -283,10 +309,14 @@
                         editTableConfig_Form.apiHandle.ele.input.tableName.value = row_data.table_name;
                         editTableConfig_Form.apiHandle.ele.input.title.value = row_data.title;
                         editTableConfig_Form.apiHandle.ele.input.remark.value = row_data.remark;
-
+                        try {
+                            defaultOptsDataStructDiv.setInfoData(JSON.parse(row_data.default_opts)).reload();
+                        } catch (e) {
+                            defaultOptsDataStructDiv.setInfoData({}).reload();
+                        }
 
                         let tmp_obj = {};
-                        ['read_roles', 'update_roles', 'add_roles', 'all_roles'].forEach((column_name) => {
+                        ['access_role_codes', 'access_insert_role_codes'].forEach((column_name) => {
                             if (row_data[column_name] === null) {
                                 tmp_obj[column_name] = [];
                             } else {

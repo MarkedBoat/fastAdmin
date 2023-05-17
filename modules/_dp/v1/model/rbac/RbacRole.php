@@ -19,5 +19,5 @@ class RbacRole extends RbacRoleDao
 {
 
 
-    const superAdmin = 'super_admin';
+    const superAdmin = '_super_admin';
 }

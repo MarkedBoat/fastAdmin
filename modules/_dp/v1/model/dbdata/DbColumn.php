@@ -37,9 +37,9 @@ class DbColumn extends DbColumnDao
             'index_key'          => $this->index_key,
             'default_val'        => $this->default_val,
             'remark'             => $this->remark,
-            'read_roles'         => $this->getJsondecodedValue($this->read_roles, 'array'),
-            'update_roles'       => $this->getJsondecodedValue($this->update_roles, 'array'),
-            'all_roles'          => $this->getJsondecodedValue($this->all_roles, 'array'),
+            'accessSelectRoles'  => $this->getJsondecodedValue($this->access_select_role_codes, 'array'),
+            'accessUpdateRoles'  => $this->getJsondecodedValue($this->access_update_role_codes, 'array'),
+            'columnDefault'      => $this->getJsondecodedValue($this->default_opts, 'object'),
             'query_input_type'   => $this->query_input_type,
             'has_query_datalist' => $this->has_query_datalist,
             'is_query_multi'     => $this->is_query_multi,
@@ -51,19 +51,14 @@ class DbColumn extends DbColumnDao
     }
 
 
-    public function checkReadAccess(Admin $user)
+    public function checkSelectAccess(Admin $user)
     {
-        return $this->checkAccess($user->role_codes, 'read_roles');
+        return $this->checkAccess($user->role_codes, 'access_select_role_codes');
     }
 
     public function checkUpdateAccess(Admin $user)
     {
-        return $this->checkAccess($user->role_codes, 'update_roles');
-    }
-
-    public function checkAllAccess(Admin $user)
-    {
-        return $this->checkAccess($user->role_codes, 'all_roles', false);
+        return $this->checkAccess($user->role_codes, 'access_update_role_codes');
     }
 
 

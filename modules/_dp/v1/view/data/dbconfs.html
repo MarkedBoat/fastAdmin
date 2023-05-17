@@ -137,7 +137,7 @@
                 editDbConf_Form.apiHandle.addGroupPreCreate().setLabelText('描述').setIndexKey('remark').create('textarea');
 
 
-                let roleVerticalTable = window.serverData.dataLib.bgDataApi.createVerticalTable(window.serverData.dataLib.role.codeItems, [{val: 'read_roles', text: '读 '}, {val: 'all_roles', text: '所有权限'}]);
+                let roleVerticalTable = window.serverData.dataLib.bgDataApi.createVerticalTable(window.serverData.dataLib.role.codeItems, [{val: 'access_role_codes', text: '授权 '}]);
                 let role_groupDiv = hammerYii2Bootstarp1.createFormInputGroupDiv({});
                 role_groupDiv.apiHandle.setText('权限控制').apiHandle.addInputEle(roleVerticalTable);
                 editDbConf_Form.addNode(role_groupDiv);
@@ -235,9 +235,8 @@
 
                 datagrid.api.preCreateColumn('remark').setColumnInfo({}).setHeaderText('备注').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
-                datagrid.api.preCreateColumn('read_roles').setColumnInfo({}).setHeaderText('read_roles').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('access_role_codes').setColumnInfo({}).setHeaderText('access_role_codes').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
-                datagrid.api.preCreateColumn('all_roles').setColumnInfo({}).setHeaderText('all_roles').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
                 datagrid.api.preCreateColumn('create_time').setColumnInfo({}).setHeaderText('创建时间').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
@@ -268,7 +267,7 @@
                         editDbConf_Form.apiHandle.ele.input.confCharset.apiHandle.setInitVal(row_data.conf_charset);
 
                         let tmp_obj = {};
-                        ['read_roles', 'all_roles'].forEach((column_name) => {
+                        ['access_role_codes'].forEach((column_name) => {
                             if (row_data[column_name] === null) {
                                 tmp_obj[column_name] = [];
                             } else {
@@ -406,8 +405,7 @@
                         changed_attrs.conf_charset = editDbConf_Form.apiHandle.ele.input.confCharset.apiHandle.getVal();
                     }
                     let tmp_res = roleVerticalTable.getData();
-                    changed_attrs.read_roles = JSON.stringify(tmp_res.read_roles);
-                    changed_attrs.all_roles = JSON.stringify(tmp_res.all_roles);
+                    changed_attrs.access_role_codes = JSON.stringify(tmp_res.access_role_codes);
                     console.log(window.serverData.dataLib.bgDataApi, changed_attrs, tmp_res);
                     Object.values(changed_attrs).forEach((val) => {
                         if (val.trim().length === 0) {

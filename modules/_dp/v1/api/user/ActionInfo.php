@@ -11,7 +11,7 @@ use modules\_dp\v1\api\AdminBaseAction;
 
 class ActionInfo extends AdminBaseAction
 {
-
+    protected $isAllUserAccess = true;
 
     public function run()
     {

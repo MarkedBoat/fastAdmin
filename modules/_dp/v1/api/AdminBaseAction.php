@@ -20,6 +20,7 @@ abstract class AdminBaseAction extends ActionBase
      * @var Admin
      */
     protected $user;
+    protected $isAllUserAccess = false;
 
 
     public function init()
@@ -75,15 +76,15 @@ abstract class AdminBaseAction extends ActionBase
         if (!in_array(RbacRole::superAdmin, $this->user->role_codes, true))
         {
             $action_codes = $action->getRoleCodes();
-            if (count(array_intersect($this->user->role_codes, $action_codes)) === 0)
+            if ($this->isAllUserAccess === false && count(array_intersect($this->user->role_codes, $action_codes)) === 0)
             {
-                throw new AdvError(AdvError::rbac_deny, "您没有对应权限：user:{$this->user->id}  action:{$action->id} action_role_codes:[" . join(',', $action_codes) . ']');
+                throw new AdvError(AdvError::rbac_deny, "您没有访问对应权限：user:{$this->user->id}  action:{$action->id} action_role_codes:[" . join(',', $action_codes) . '] user_role_codes:[' . join(',', $this->user->role_codes) . ']');
             }
             Sys::app()->addLog(['user_codes' => $this->user->role_codes, 'action_codes' => $action_codes,], "action_access_ok intersect");
         }
         else
         {
-            Sys::app()->addLog(['user_codes' => $this->user->role_codes], "action_access_ok super_admin");
+            Sys::app()->addLog(['user_codes' => $this->user->role_codes], "action_access_ok _super_admin");
         }
 
     }
@@ -102,7 +103,7 @@ abstract class AdminBaseAction extends ActionBase
     public function handleAdvError(AdvError $e)
     {
 
-        if (substr($e->getDetailCode(),0,10)==='user_error' && $this->isOutputHtml())
+        if (substr($e->getDetailCode(), 0, 10) === 'user_error' && $this->isOutputHtml())
         {
 
             //  $url=Sys::app()->params['url'];

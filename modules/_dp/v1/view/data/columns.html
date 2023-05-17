@@ -107,9 +107,8 @@
                     role_tr_header.insertCell().textContent = '增/删';
                     let role_table_body = role_table.createTBody();
 
-                    role_table.col_read_role_checkboxs = [];
-                    role_table.col_opt_role_checkboxs = [];
-                    role_table.col_add_role_checkboxs = [];
+                    role_table.col_select_role_checkbosx = [];
+                    role_table.col_update_role_checkboxs = [];
 
                     window.serverData.dataLib.role.list.forEach(function (roleInfo) {
                         let body_tr = role_table_body.insertRow();
@@ -119,42 +118,31 @@
                         body_tr.add_td = body_tr.insertCell();
                         body_tr.role_td.textContent = roleInfo.role_name;
                         body_tr.read_role_checkbox = new Emt('input', 'type="checkbox"', '', {value: roleInfo.role_code});
-                        body_tr.read_opt_checkbox = new Emt('input', 'type="checkbox"', '', {value: roleInfo.role_code});
-                        body_tr.read_add_checkbox = new Emt('input', 'type="checkbox"', '', {value: roleInfo.role_code});
-                        role_table.col_read_role_checkboxs.push(body_tr.read_role_checkbox);
-                        role_table.col_opt_role_checkboxs.push(body_tr.read_opt_checkbox);
-                        role_table.col_add_role_checkboxs.push(body_tr.read_add_checkbox);
+                        body_tr.update_role_checkbox = new Emt('input', 'type="checkbox"', '', {value: roleInfo.role_code});
+                        role_table.col_select_role_checkbosx.push(body_tr.read_role_checkbox);
+                        role_table.col_update_role_checkboxs.push(body_tr.update_role_checkbox);
                         body_tr.read_td.append(new Emt('label', '', '#').addNodes([body_tr.read_role_checkbox, new Emt('span', '', '#')]));
-                        body_tr.opts_td.append(new Emt('label', '', '#').addNodes([body_tr.read_opt_checkbox, new Emt('span', '', '#')]));
-                        body_tr.add_td.append(new Emt('label', '', '#').addNodes([body_tr.read_add_checkbox, new Emt('span', '', '#')]));
+                        body_tr.opts_td.append(new Emt('label', '', '#').addNodes([body_tr.update_role_checkbox, new Emt('span', '', '#')]));
 
                     });
                     role_table.loadColumnsRoles = (dataRow) => {
-                        role_table.col_read_role_checkboxs.forEach((checkbox) => {
-                            checkbox.checked = dataRow.read_roles.indexOf(checkbox.value) > -1;
+                        role_table.col_select_role_checkbosx.forEach((checkbox) => {
+                            checkbox.checked = dataRow.access_select_role_codes.indexOf(checkbox.value) > -1;
                         });
-                        role_table.col_opt_role_checkboxs.forEach((checkbox) => {
-                            checkbox.checked = dataRow.update_roles.indexOf(checkbox.value) > -1;
-                        });
-                        role_table.col_add_role_checkboxs.forEach((checkbox) => {
-                            checkbox.checked = dataRow.all_roles.indexOf(checkbox.value) > -1;
+                        role_table.col_update_role_checkboxs.forEach((checkbox) => {
+                            checkbox.checked = dataRow.access_update_role_codes.indexOf(checkbox.value) > -1;
                         });
                     };
                     role_table.getRoleCodes = () => {
-                        let res = {read: [], opt: [], add: []};
-                        role_table.col_read_role_checkboxs.forEach((checkbox) => {
+                        let res = {select: [],  update: []};
+                        role_table.col_select_role_checkbosx.forEach((checkbox) => {
                             if (checkbox.checked) {
-                                res.read.push(checkbox.value);
+                                res.select.push(checkbox.value);
                             }
                         });
-                        role_table.col_opt_role_checkboxs.forEach((checkbox) => {
+                        role_table.col_update_role_checkboxs.forEach((checkbox) => {
                             if (checkbox.checked) {
                                 res.opt.push(checkbox.value);
-                            }
-                        });
-                        role_table.col_add_role_checkboxs.forEach((checkbox) => {
-                            if (checkbox.checked) {
-                                res.add.push(checkbox.value);
                             }
                         });
                         return res;
@@ -338,9 +326,8 @@
                                 in_datatype: form_edit.apiHandle.ele.input.in_datatype.apiHandle.getVal(),
                                 val_items: form_edit.apiHandle.ele.input.val_items.apiHandle.getVal(),
                                 remark: form_edit.apiHandle.ele.input.remark.apiHandle.getVal(),
-                                read_roles: JSON.stringify(rolecodes_map.read),
-                                update_roles: JSON.stringify(rolecodes_map.opt),
-                                all_roles: JSON.stringify(rolecodes_map.add),
+                                access_select_role_codes: JSON.stringify(rolecodes_map.select),
+                                access_update_role_codes: JSON.stringify(rolecodes_map.update),
                                 query_input_type: form_edit.apiHandle.ele.input.query_input_type.apiHandle.getVal(),
                                 has_query_datalist: form_edit.apiHandle.ele.input.has_query_datalist.apiHandle.getVal(),
                                 is_query_multi: form_edit.apiHandle.ele.input.is_query_multi.apiHandle.getVal(),
@@ -607,10 +594,9 @@
 
                 datagrid.api.preCreateColumn('remark').setColumnInfo({}).setHeaderText('备注').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
-                datagrid.api.preCreateColumn('read_roles').setColumnInfo({}).setHeaderText('read_roles').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
-                datagrid.api.preCreateColumn('update_roles').setColumnInfo({}).setHeaderText('update_roles').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('access_select_role_codes').setColumnInfo({}).setHeaderText('access_select_role_codes').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
+                datagrid.api.preCreateColumn('access_update_role_codes').setColumnInfo({}).setHeaderText('access_update_role_codes').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
-                datagrid.api.preCreateColumn('all_roles').setColumnInfo({}).setHeaderText('all_roles').setSortable(true).setHeaderFilterInputConfig({valueItems: []});
 
                 datagrid.api.preCreateColumn('query_input_type').setColumnInfo({}).setHeaderText('页面查询类型').setSortable(false).setHeaderFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
                     cell.addNodes([
@@ -650,7 +636,7 @@
                         column_isQueryMulti_input.apiHandle.setInitVal(row_data.is_query_multi);
 
                         let tmp_obj = {};
-                        ['read_roles', 'update_roles', 'all_roles'].forEach((column_name) => {
+                        ['access_select_role_codes', 'access_update_role_codes'].forEach((column_name) => {
                             if (row_data[column_name] === null) {
                                 tmp_obj[column_name] = [];
                             } else {

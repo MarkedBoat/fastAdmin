@@ -594,44 +594,34 @@ class DbTable extends DbTableDao
     public function getOpenInfo()
     {
         return [
-            'title'       => $this->title,
-            'dbconf_name' => $this->dbconf_name,
-            'table_name'  => $this->table_name,
-            'remark'      => $this->remark,
-            'pk_key'      => $this->pk_key,
+            'title'             => $this->title,
+            'dbconf_name'       => $this->dbconf_name,
+            'table_name'        => $this->table_name,
+            'remark'            => $this->remark,
+            'pk_key'            => $this->pk_key,
             //'orm_class'   => $this->orm_class,
             //'is_ok'       => $this->is_ok,
-            'read_roles'  => $this->getJsondecodedValue($this->read_roles, 'array'),
-            'all_roles'   => $this->getJsondecodedValue($this->all_roles, 'array'),
-            'default'     => $this->getJsondecodedValue($this->default_opts, 'array'),
-            'create_time' => $this->create_time,
+            'accessRoles'       => $this->getJsondecodedValue($this->access_role_codes, 'array'),
+            'accessInsertRoles' => $this->getJsondecodedValue($this->access_insert_role_codes, 'array'),
+            'tableDefault'      => $this->getJsondecodedValue($this->default_opts, 'array'),
+            'create_time'       => $this->create_time,
         ];
     }
 
 
-    public function checkReadAccess(Admin $user)
+    public function checkAccess(Admin $user)
     {
-        return $this->checkAccess($user->role_codes, 'read_roles', false);
+        return $this->__checkAccess($user->role_codes, 'access_role_codes', false);
     }
 
-    public function checkUpdateAccess(Admin $user)
+    public function checkInsertAccess(Admin $user)
     {
-        return $this->checkAccess($user->role_codes, 'update_roles', false);
-    }
-
-
-    public function checkAddRowAccess(Admin $user)
-    {
-        return $this->checkAccess($user->role_codes, 'add_roles', false);
-    }
-
-    public function checkAllAccess(Admin $user)
-    {
-        return $this->checkAccess($user->role_codes, 'all_roles', false);
+        return $this->__checkAccess($user->role_codes, 'access_insert_role_codes', false);
     }
 
 
-    public function checkAccess($user_roles, $access_field, $empty_as_access = true)
+
+    private function __checkAccess($user_roles, $access_field, $empty_as_access = true)
     {
         if (is_null($this->$access_field))
         {

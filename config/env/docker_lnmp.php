@@ -55,7 +55,7 @@ return merge_conf_with_cover(include __ROOT_DIR__ . '/config/env/common_param.ph
                     '$dbdata_dbconf_tableName'   => 'bg_db_dbconf',
                     '$dbdata_table_tableName'    => 'bg_db_table',
                     '$dbdata_column_tableName'   => 'bg_db_column',
-
+                    '$dbdata_struct_tableName'   => 'bg_db_struct',
                 ],
             ]
         ],
@@ -89,6 +89,7 @@ return merge_conf_with_cover(include __ROOT_DIR__ . '/config/env/common_param.ph
         'dp/dbdata/tables'    => '_dp/v1/dbdata/render_tables',
         'dp/dbdata/columns'   => '_dp/v1/dbdata/render_columns',
         'dp/dbdata/tableRows' => '_dp/v1/dbdata/render_tableRows',
+        'dp/dbdata/rbac'      => '_dp/v1/dbdata/render_rbac',
 
     ],
 ]);

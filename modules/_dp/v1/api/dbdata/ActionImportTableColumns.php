@@ -20,10 +20,10 @@ class ActionImportTableColumns extends AdminBaseAction
     {
         $this->dispatcher->setOutType(Api::outTypeText);
         \models\Api::$hasOutput = true;
-        $is_super               = in_array('super_admin', $this->user->role_codes, true);
+        $is_super               = in_array('_super_admin', $this->user->role_codes, true);
         if (!$is_super)
         {
-            die('super_admin only ');
+            die('_super_admin only ');
         }
         // $db                     = $this->inputDataBox->getStringNotNull('db');
         //  $db = $this->inputDataBox->getStringNotNull('dbconf_name');

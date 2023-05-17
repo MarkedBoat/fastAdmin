@@ -30,15 +30,15 @@ class ActionAdd extends AdminBaseAction
         $update_attr = $this->inputDataBox->tryGetArray('update_attr');
 
 
-        $is_super      = in_array('super_admin', $this->user->role_codes, true);
+        $is_super      = in_array('_super_admin', $this->user->role_codes, true);
         $db_conf_model = DbDbConf::model()->findOneByWhere(['db_code' => $db_code, 'is_ok' => Opt::YES]);
-        if ($is_super === false && $db_conf_model->checkAllAccess($this->user) === false )
+        if ($is_super === false && $db_conf_model->checkAccess($this->user) === false)
         {
             return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权访问Db:[{$db_code}]", false);
         }
         $table_name       = DbTable::replaceFakeTableName($table_name);
         $table_conf_model = DbTable::model()->findOneByWhere(['dbconf_name' => $db_code, 'table_name' => $table_name, 'is_ok' => Opt::YES]);
-        if ($is_super === false && $table_conf_model->checkAllAccess($this->user) === false && $table_conf_model->checkAddRowAccess($this->user) === false)
+        if ($is_super === false && $table_conf_model->checkInsertAccess($this->user) === false)
         {
             return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权访问表:[{$db_code}.{$table_name}]", false);
         }
@@ -54,7 +54,7 @@ class ActionAdd extends AdminBaseAction
         $sets         = [];
         $update       = [];
         $pk           = '';
-        if ($is_super || array_intersect($user_roles, $table_model->read_roles))
+        if ($is_super || array_intersect($user_roles, $table_model->access_insert_role_codes))
         {
             $column_models = $db_table->getBizTableColumns();
             Sys::app()->addLog($column_models);
@@ -79,7 +79,7 @@ class ActionAdd extends AdminBaseAction
 
                 if (isset($attr[$column_model->column_name]))
                 {
-                    if ($is_super || array_intersect($user_roles, $column_model->all_roles) || (array_intersect($user_roles, $column_model->update_roles) && in_array($attr[$column_model->column_name], $column_model->val_items)))
+                    if ($is_super || (array_intersect($user_roles, $column_model->access_update_role_codes) && in_array($attr[$column_model->column_name], $column_model->val_items)))
                     {
                         $sets[":{$column_model->column_name}"] = "`{$column_model->column_name}`=:{$column_model->column_name}";
                         $bind[":{$column_model->column_name}"] = $attr[$column_model->column_name];
@@ -91,7 +91,7 @@ class ActionAdd extends AdminBaseAction
                 }
                 if (isset($update_attr[$column_model->column_name]))
                 {
-                    if ($is_super || array_intersect($user_roles, $column_model->all_roles) || (array_intersect($user_roles, $column_model->update_roles) && in_array($attr[$column_model->column_name], $column_model->val_items)))
+                    if ($is_super || (array_intersect($user_roles, $column_model->access_update_role_codes) && in_array($attr[$column_model->column_name], $column_model->val_items)))
                     {
                         $update[":update_{$column_model->column_name}"] = "`{$column_model->column_name}`=:update_{$column_model->column_name}";
                         $bind[":update_{$column_model->column_name}"]   = $update_attr[$column_model->column_name];

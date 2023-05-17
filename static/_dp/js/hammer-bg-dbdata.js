@@ -9,6 +9,7 @@ let hammerBgDataApi = function () {
             dbdata_dbconf_tableName: '$dbdata_dbconf_tableName',
             dbdata_column_tableName: '$dbdata_column_tableName',
             dbdata_table_tableName: '$dbdata_table_tableName',
+            dbdata_struct_tableName: '$dbdata_struct_tableName',
             mainTable_tableName: false,
             mainTable_dbConfCode: false,
 
@@ -85,10 +86,17 @@ let hammerBgDataApi = function () {
         return vertical_table;
     };
 
-
+    /**
+     *  请求某个预定义表，并将结果rows 指定到某个变量Path上
+     * @param dbconfCode
+     * @param tableName
+     * @param resultAsKey 用来接收查询结果的   window.serverData.dataLib[resultAsKey].list
+     * @param fun
+     * @returns {Promise<{config: {rbac_admin_tableName: string, dbdata_column_tableName: string, dbdata_dbconf_tableName: string, rbac_role_tableName: string, utk: boolean, dbdata_table_tableName: string, dbdata_struct_tableName: string, mainTable_dbConfCode: boolean, dbconf_name: string, mainTable_tableName: boolean}}>}
+     */
     apiHandle.getTableAllDataRows = (dbconfCode, tableName, resultAsKey, fun) => {
         return kl.ajax({
-            url: '/_dp/v1/dbdata/select' ,
+            url: '/_dp/v1/dbdata/select',
             data: {dbconf_name: dbconfCode, table_name: tableName, page_index: 1, page_size: 1000},
             type: 'json',
             async: true,
@@ -123,8 +131,8 @@ let hammerBgDataApi = function () {
 
     apiHandle.initRoles = (fun) => {
         return kl.ajax({
-            url: '/_dp/v1/dbdata/select' ,
-            data: {dbconf_name: apiHandle.config.dbconf_name, table_name: apiHandle.config.rbac_role_tableName, page_index: 1, page_size: 1000},
+            url: '/_dp/v1/dbdata/select',
+            data: {dbconf_name: apiHandle.config.dbconf_name, table_name: apiHandle.config.rbac_role_tableName, page_index: 1, page_size: 1000, sort: {role_code: 'asc'}},
             type: 'json',
             async: true,
         }).then(res => {
@@ -180,13 +188,13 @@ let hammerBgDataApi = function () {
 
     apiHandle.initTableInfo = async (dbconf_code, table_name, dataLibIndex, fun) => {
         return kl.ajax({
-            url: '/_dp/v1/dbdata/info' ,
+            url: '/_dp/v1/dbdata/info',
             data: {dbconf_name: dbconf_code || apiHandle.config.dbconf_name, table_name: table_name},
             type: 'json',
             async: true,
         }).then(res => {
             if (kl.isUndefined(res, 'result.data.columns') || kl.isUndefined(res, 'result.data.table')) {
-                alert('新增menu失败:' + (kl.isUndefined(res, 'result.msg') ? '未知' : res.result.msg));
+                alert('初始化 表信息 失败:' + (kl.isUndefined(res, 'result.msg') ? '未知' : res.result.msg));
             } else {
                 window.serverData.dataLib[dataLibIndex] = window.serverData.dataLib[dataLibIndex] || {};
                 window.serverData.dataLib[dataLibIndex].tableInfo = res.result.data.table;
@@ -211,7 +219,7 @@ let hammerBgDataApi = function () {
 
                 });
                 if (typeof fun === "function") {
-                    fun();
+                    fun(res.result.data);
                 }
 
             }

@@ -41,10 +41,10 @@ class ActionImportDbconfTables extends AdminBaseAction
         }
 
 
-        $is_super = in_array('super_admin', $this->user->role_codes, true);
+        $is_super = in_array('_super_admin', $this->user->role_codes, true);
         if (!$is_super)
         {
-            die('super_admin only ');
+            die('_super_admin only ');
         }
 
         $db_code    = $this->inputDataBox->getStringNotNull('dbconf_code');
@@ -79,7 +79,7 @@ class ActionImportDbconfTables extends AdminBaseAction
             $bind[":tn_{$i}"]    = $row['TABLE_NAME'];
             $bind[":title_{$i}"] = $row['TABLE_COMMENT'];
             $recover_sql         = $is_recover ? ",title=:title_{$i},remark=:title_{$i}" : '';
-            $sqls[]              = "insert ignore into {$tn} set dbconf_name=:db_{$i},table_name=:tn_{$i},title=:title_{$i},remark=:title_{$i},default_opts='{}',read_roles='[]',update_roles='[]',add_roles='[]',all_roles='[]' on duplicate key update is_ok=1{$recover_sql}";
+            $sqls[]              = "insert ignore into {$tn} set dbconf_name=:db_{$i},table_name=:tn_{$i},title=:title_{$i},remark=:title_{$i},default_opts='{\"struct\":[],\"struct_code\":\"dbdataTableDefaultOpts\"}' on duplicate key update is_ok=1{$recover_sql}";
         }
         $res = DbTable::model()->getDbConnect()->setText(join(';', $sqls))->bindArray($bind)->execute();
         var_dump($sqls, $bind);
@@ -112,7 +112,7 @@ class ActionImportDbconfTables extends AdminBaseAction
                 $bind[":index_key_{$i}"]       = $row['Key'];
                 $bind[":default_val_{$i}"]     = $row['Default'];
                 $recover_sql                   = $is_recover ? ",title=:title_{$i},remark=:title_{$i}" : '';
-                $sqls[]                        = "insert ignore into {$tn_col} set dbconf_name=:dbconf_name,table_name=:tn,column_name=:column_name_{$i},title=:title_{$i},remark=:title_{$i},out_datatype=:out_datatype_{$i},db_datatype=:db_datatype_{$i},db_datatype_len=:db_datatype_len_{$i},index_key=:index_key_{$i},default_val=:default_val_{$i},val_items='[]',default_opts='{}',read_roles='[]',update_roles='[]',add_roles='[]',all_roles='[]' on duplicate key update db_datatype=:db_datatype_{$i},db_datatype_len=:db_datatype_len_{$i},index_key=:index_key_{$i},default_val=:default_val_{$i},is_ok=1{$recover_sql}";
+                $sqls[]                        = "insert ignore into {$tn_col} set dbconf_name=:dbconf_name,table_name=:tn,column_name=:column_name_{$i},title=:title_{$i},remark=:title_{$i},out_datatype=:out_datatype_{$i},db_datatype=:db_datatype_{$i},db_datatype_len=:db_datatype_len_{$i},index_key=:index_key_{$i},default_val=:default_val_{$i},val_items='[]',default_opts='{}' on duplicate key update db_datatype=:db_datatype_{$i},db_datatype_len=:db_datatype_len_{$i},index_key=:index_key_{$i},default_val=:default_val_{$i},is_ok=1{$recover_sql}";
                 if (isset($ks[$row['Field']]))
                     unset($ks[$row['Field']]);
                 if ($pk === '' && $row['Key'] === 'PRI')
@@ -135,18 +135,16 @@ class ActionImportDbconfTables extends AdminBaseAction
 
             echo "\ntry_insert:{$try_insert_cnt}\nupdate:{$update_cnt}\n\n";
         }
+        $tn_db = DbDbConf::$tableName;
 
         $update_sqls = [
-            "update {$tn_table} set default_opts='{}' where default_opts is null",
-            "update {$tn_table} set read_roles='[]' where read_roles is null",
-            "update {$tn_table} set update_roles='[]' where update_roles is null",
-            "update {$tn_table} set add_roles='[]' where add_roles is null",
-            "update {$tn_table} set all_roles='[]' where all_roles is null",
+            "update {$tn_db} set access_role_codes='[]' where access_role_codes is null",
+            "update {$tn_table} set default_opts='{\"struct\":[],\"struct_code\":\"dbdataTableDefaultOpts\"}' where default_opts is null",
+            "update {$tn_table} set access_role_codes='[]' where access_role_codes is null",
+            "update {$tn_table} set access_insert_role_codes='[]' where access_insert_role_codes is null",
             "update {$tn_col} set default_opts='{}' where default_opts is null",
-            "update {$tn_col} set read_roles='[]' where read_roles is null",
-            "update {$tn_col} set update_roles='[]' where update_roles is null",
-            "update {$tn_col} set add_roles='[]' where add_roles is null",
-            "update {$tn_col} set all_roles='[]' where all_roles is null",
+            "update {$tn_col} set access_select_role_codes='[]' where access_select_role_codes is null",
+            "update {$tn_col} set access_update_role_codes='[]' where access_update_role_codes is null",
             "update {$tn_col} set val_items='[]' where val_items is null",
             "update {$tn_col} set val_items_link='{}' where val_items_link is null",
         ];
