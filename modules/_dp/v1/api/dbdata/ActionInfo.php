@@ -4,6 +4,7 @@ namespace modules\_dp\v1\api\dbdata;
 
 use Cassandra\Column;
 use models\Api;
+use models\common\error\AdvError;
 use models\common\opt\Opt;
 use models\common\sys\Sys;
 use modules\_dp\v1\api\AdminBaseAction;
@@ -30,40 +31,67 @@ class ActionInfo extends AdminBaseAction
         $table_name = DbTable::replaceFakeTableName($table_name);
 
 
-
-        $db_code = $this->inputDataBox->getStringNotNull('dbconf_name');
-
-        $conf_model  = DbDbConf::model()->findOneByWhere(['db_code' => $db_code]);
+        $db_code    = $this->inputDataBox->getStringNotNull('dbconf_name');
+        $is_super   = in_array('_super_admin', $this->user->role_codes, true);
+        $conf_model = DbDbConf::model()->findOneByWhere(['db_code' => $db_code]);
+        if ($is_super === false && $conf_model->checkAccess($this->user) === false)
+        {
+            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权访问Db:[{$db_code}]", false);
+        }
         $dbconf_name = $db_code;
 
+        $table_model = DbTable::model()->setTable($dbconf_name, $table_name);
+        if ($is_super === false && $table_model->checkAccess($this->user) === false)
+        {
+            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权访问表:[{$db_code}.{$table_name}]", false);
+        }
 
-        $info                         = DbTable::model()->setTable($dbconf_name, $table_name)->getInfo();
-        $is_super                     = in_array('_super_admin', $this->user->role_codes, true);
-        $info['table']['is_readable'] = $is_super || count($info['table']['accessRoles']) === 0 || array_intersect($this->user->role_codes, $info['table']['accessRoles']);
-        $info['table']['is_addable']  = $is_super || count($info['table']['accessInsertRoles']) === 0 || array_intersect($this->user->role_codes, $info['table']['accessInsertRoles']);
+        $is_table_add_able = true;
+        if ($is_super === false && $table_model->checkInsertAccess($this->user) === false)
+        {
+            $is_table_add_able = false;
+        }
+
+
+        $biz_table_model     = $table_model->getBizTableInfo();
+        $biz_column_models   = $table_model->getBizTableColumns();
+        $biz_relation_models = $table_model->getBizTableRelations();
+
 
         $colinfos = [];
-        if ($info['table']['is_readable'])
-        {
-            foreach ($info['columns'] as $i => $col_info)
-            {
-                $col_info['is_readable']  = $is_super || count($col_info['accessSelectRoles']) === 0 || count(array_intersect($this->user->role_codes, $col_info['accessSelectRoles'])) > 0;
-                $col_info['is_readable2'] = [
-                    array_intersect($this->user->role_codes, $col_info['accessSelectRoles'])
-                ];
-                $col_info['is_optable']   = $is_super || count($col_info['accessUpdateRoles']) === 0 || count(array_intersect($this->user->role_codes, $col_info['accessUpdateRoles'])) > 0;
-                $col_info['is_addable']   = $is_super || count($col_info['accessUpdateRoles']) === 0 || count(array_intersect($this->user->role_codes, $col_info['accessUpdateRoles'])) > 0;
-                if ($col_info['is_readable'])
-                {
-                    $colinfos[] = $col_info;
-                }
 
+        if ($is_super === false)
+        {
+            foreach ($biz_column_models as $column_model)
+            {
+                if ($column_model->checkSelectAccess($this->user))
+                {
+                    $col_info           = $column_model->getOpenInfo();
+                    $col_info['__read'] = true;
+                    $colinfos[]         = $col_info;
+                }
+            }
+        }
+        else
+        {
+            foreach ($biz_column_models as $column_model)
+            {
+                $colinfos[] = $column_model->getOpenInfo();
             }
         }
 
-        $info['columns'] = $colinfos;
-        return $info;
+        $relat_infos = [];
+        foreach ($biz_relation_models as $biz_relation_model)
+        {
+            $relat_infos[] = $biz_relation_model->getAllInfo();
+        }
 
+        return [
+            'table'     => $biz_table_model->getOpenInfo(),
+            'columns'   => $colinfos,
+            'relations' => $relat_infos,
+            'user'      => $this->user->getAllInfo()
+        ];
     }
 
 

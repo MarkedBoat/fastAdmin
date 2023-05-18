@@ -53,27 +53,27 @@ class DbColumn extends DbColumnDao
 
     public function checkSelectAccess(Admin $user)
     {
-        return $this->checkAccess($user->role_codes, 'access_select_role_codes');
+        return $this->__checkRoleAccess($user->role_codes, 'access_select_role_codes');
     }
 
     public function checkUpdateAccess(Admin $user)
     {
-        return $this->checkAccess($user->role_codes, 'access_update_role_codes');
+        return $this->__checkRoleAccess($user->role_codes, 'access_update_role_codes');
     }
 
 
-    public function checkAccess($user_roles, $access_field, $empty_as_access = true)
+    private function __checkRoleAccess($user_roles, $access_field)
     {
         if (is_null($this->$access_field))
         {
             Sys::app()->addLog("col_conf_check_access_{$access_field} is null");
-            return $empty_as_access ? true : false;
+            return false;
         }
         $access_roles = $this->getJsondecodedValue($this->$access_field, 'array');
         if (count($access_roles) === 0)
         {
             Sys::app()->addLog([$access_roles, $this->$access_field], "col_conf_check_access_{$access_field} empty array");
-            return $empty_as_access ? true : false;
+            return false;
         }
         $intersect_roles = array_intersect($user_roles, $access_roles);
         if (count($intersect_roles) === 0)

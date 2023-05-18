@@ -228,6 +228,10 @@
                 cell.textContent = rowIndexCount.toString();
             });
 
+            if (window.serverData.dataLib.mainTable.__column.items.length === 0) {
+                alert('没有任何可选字段');
+                // return false;
+            }
             //循环添加 列
             window.serverData.dataLib.mainTable.__column.items.forEach((columnConfigInfo) => {
                 let inputKey = columnConfigInfo.column_name + 'Input';
@@ -442,7 +446,10 @@
             datagrid.api.run();
             if (!kl.isUndefined(serverData.dataLib.mainTable.tableInfo, 'tableDefault.sort.field') && !kl.isUndefined(serverData.dataLib.mainTable.tableInfo, 'tableDefault.sort.type')) {
                 console.log(datagrid.column.handle.map);
-                datagrid.column.handle.map[serverData.dataLib.mainTable.tableInfo.tableDefault.sort.field].sortButton.setSort(serverData.dataLib.mainTable.tableInfo.tableDefault.sort.type);
+                if (datagrid.column.handle.map[serverData.dataLib.mainTable.tableInfo.tableDefault.sort.field]) {
+                    datagrid.column.handle.map[serverData.dataLib.mainTable.tableInfo.tableDefault.sort.field].sortButton.setSort(serverData.dataLib.mainTable.tableInfo.tableDefault.sort.type);
+                }
+
             }
             datagrid.api.requestData('init');
 

@@ -91,7 +91,7 @@ let hammerBgDataApi = function () {
      * @param dbconfCode
      * @param tableName
      * @param resultAsKey 用来接收查询结果的   window.serverData.dataLib[resultAsKey].list
-     * @param fun
+     * @param fun(res.result.data.dataRows)
      * @returns {Promise<{config: {rbac_admin_tableName: string, dbdata_column_tableName: string, dbdata_dbconf_tableName: string, rbac_role_tableName: string, utk: boolean, dbdata_table_tableName: string, dbdata_struct_tableName: string, mainTable_dbConfCode: boolean, dbconf_name: string, mainTable_tableName: boolean}}>}
      */
     apiHandle.getTableAllDataRows = (dbconfCode, tableName, resultAsKey, fun) => {
@@ -107,7 +107,40 @@ let hammerBgDataApi = function () {
                 window.serverData.dataLib[resultAsKey] = {items: [], list: [], map: {}};
                 window.serverData.dataLib[resultAsKey].list = res.result.data.dataRows;
                 if (typeof fun === "function") {
-                    fun();
+                    fun(res.result.data.dataRows);
+                }
+            }
+            return apiHandle;
+        });
+    };
+    /**
+     *
+     * @param opt.dbconfCode
+     * @param opt.tableName
+     * @param opt.pageIndex
+     * @param opt.pageSize
+     * @param opt.sort {field:desctype}
+     * @param opt.callback
+     * @returns {Promise<{config: {rbac_admin_tableName: string, dbdata_column_tableName: string, dbdata_dbconf_tableName: string, rbac_role_tableName: string, utk: boolean, dbdata_table_tableName: string, dbdata_struct_tableName: string, mainTable_dbConfCode: boolean, dbconf_name: string, mainTable_tableName: boolean}}>}
+     */
+    apiHandle.getTableDataRows = (opt) => {
+        return kl.ajax({
+            url: '/_dp/v1/dbdata/select',
+            data: {
+                dbconf_name: opt.dbconfCode,
+                table_name: opt.tableName,
+                page_index: opt.pageIndex || 1,
+                page_size: opt.pageSize || 1000,
+                sort: opt.sort || {}
+            },
+            type: 'json',
+            async: true,
+        }).then(res => {
+            if (kl.isUndefined(res, 'result.data.dataRows') || typeof res.result.data.dataRows.forEach !== "function") {
+                alert('init role 失败:' + (kl.isUndefined(res, 'result.msg') ? '未知' : res.result.msg));
+            } else {
+                if (typeof opt.callback === "function") {
+                    opt.callback(res.result.data.dataRows);
                 }
             }
             return apiHandle;

@@ -58,22 +58,21 @@ class DbDbConf extends DbDbConfDao
     }
 
 
-
-    public function checkAccess($user_roles, $empty_as_access = true)
+    public function checkAccess(Admin $user)
     {
-        $access_field='access_role_codes';
+        $user_roles   = $user->role_codes;
+        $access_field = 'access_role_codes';
         if (is_null($this->$access_field))
         {
             Sys::app()->addLog("dbconf_check_access_{$access_field} is null");
-            return $empty_as_access ? true : false;
+            return false;
         }
         $access_roles = $this->getJsondecodedValue($this->$access_field, 'array');
         if (count($access_roles) === 0)
         {
             Sys::app()->addLog([$access_roles, $this->$access_field], "dbconf_check_access_{$access_field} empty array");
-            return $empty_as_access ? true : false;
+            return false;
         }
-
         $intersect_roles = array_intersect($user_roles, $access_roles);
         if (count($intersect_roles) === 0)
         {

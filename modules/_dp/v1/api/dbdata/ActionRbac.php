@@ -118,8 +118,6 @@ class ActionRbac extends AdminBaseAction
             }
 
             return $column_sqls;
-
-            die;
         }
 
 

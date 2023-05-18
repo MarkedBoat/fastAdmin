@@ -256,7 +256,7 @@
                     if (res_menu.status) {
                         if (res_menu.status === 200) {
                             let btn = kl.id('menu_toggle_btn');
-                            btn.textContent = '导航';
+                           // btn.textContent = '导航';
                             let menu_root_div = rander_tree(res_menu.data);
                             //  document.body.insertBefore(menu_root_div, document.body.firstElementChild);
                             kl.id('menu_div').append(menu_root_div);
@@ -291,6 +291,10 @@
                     if (admin_info_res.status === 200) {
                         window.utk = utk;
                         window.adminInfo = admin_info_res.data;
+                        console.log(window.adminInfo);
+                        kl.id('menu_toggle_btn').append(new Emt('div').addNodes([
+                            new Emt('label', '', window.adminInfo.real_name)
+                        ]));
                         getMenus()
                     } else {
                         if (admin_info_res.code.indexOf('user_error_token') === 0) {

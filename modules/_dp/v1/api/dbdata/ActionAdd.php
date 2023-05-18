@@ -40,7 +40,7 @@ class ActionAdd extends AdminBaseAction
         $table_conf_model = DbTable::model()->findOneByWhere(['dbconf_name' => $db_code, 'table_name' => $table_name, 'is_ok' => Opt::YES]);
         if ($is_super === false && $table_conf_model->checkInsertAccess($this->user) === false)
         {
-            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权访问表:[{$db_code}.{$table_name}]", false);
+            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权对表新增:[{$db_code}.{$table_name}]", false);
         }
 
         $dbconf_name  = $db_code;
@@ -79,27 +79,25 @@ class ActionAdd extends AdminBaseAction
 
                 if (isset($attr[$column_model->column_name]))
                 {
-                    if ($is_super || (array_intersect($user_roles, $column_model->access_update_role_codes) && in_array($attr[$column_model->column_name], $column_model->val_items)))
+                    if ($is_super === false && $column_model->checkUpdateAccess($this->user) === false)
                     {
-                        $sets[":{$column_model->column_name}"] = "`{$column_model->column_name}`=:{$column_model->column_name}";
-                        $bind[":{$column_model->column_name}"] = $attr[$column_model->column_name];
+                        $errors[] = "无权操作:{$column_model->column_name}";
+                        continue;
                     }
-                    else
-                    {
-                        $errors[] = "无权操作字段:{$column_model->column_name}";
-                    }
+
+                    $sets[":{$column_model->column_name}"] = "`{$column_model->column_name}`=:{$column_model->column_name}";
+                    $bind[":{$column_model->column_name}"] = $attr[$column_model->column_name];
+
                 }
                 if (isset($update_attr[$column_model->column_name]))
                 {
-                    if ($is_super || (array_intersect($user_roles, $column_model->access_update_role_codes) && in_array($attr[$column_model->column_name], $column_model->val_items)))
+                    if ($is_super === false && $column_model->checkUpdateAccess($this->user) === false)
                     {
-                        $update[":update_{$column_model->column_name}"] = "`{$column_model->column_name}`=:update_{$column_model->column_name}";
-                        $bind[":update_{$column_model->column_name}"]   = $update_attr[$column_model->column_name];
+                        $errors[] = "无权操作:{$column_model->column_name}";
+                        continue;
                     }
-                    else
-                    {
-                        $errors[] = "无权操作字段:{$column_model->column_name}";
-                    }
+                    $update[":update_{$column_model->column_name}"] = "`{$column_model->column_name}`=:update_{$column_model->column_name}";
+                    $bind[":update_{$column_model->column_name}"]   = $update_attr[$column_model->column_name];
                 }
 
             }
@@ -115,7 +113,7 @@ class ActionAdd extends AdminBaseAction
         }
         if (count($errors))
         {
-            return $this->dispatcher->createInterruption(AdvError::db_save_error['detail'], AdvError::db_save_error['msg'], $errors);
+            return $this->dispatcher->createInterruption(AdvError::db_save_error['detail'], AdvError::db_save_error['msg'] . ':[' . join(',', $errors) . ']', $errors);
         }
         else
         {

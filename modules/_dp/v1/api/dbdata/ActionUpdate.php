@@ -74,13 +74,14 @@ class ActionUpdate extends AdminBaseAction
                     }
 
                 }
-                else
-                {
-                    $column_model->checkUpdateAccess($this->user);
-                }
+
                 if (isset($attr[$column_model->column_name]))
                 {
-
+                    if ($is_super === false && $column_model->checkUpdateAccess($this->user) === false)
+                    {
+                        $errors[] = "无权操作:{$column_model->column_name}";
+                        continue;
+                    }
                     $val_check = true;
                     if (count($column_model->val_items))
                     {
@@ -120,6 +121,7 @@ class ActionUpdate extends AdminBaseAction
         {
             $errors[] = "无修改值";
         }
+
         if (count($errors))
         {
             return $this->dispatcher->createInterruption(AdvError::db_save_error['detail'], AdvError::db_save_error['msg'] . ':[' . join(',', $errors) . ']', $errors);

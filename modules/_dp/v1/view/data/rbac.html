@@ -43,7 +43,7 @@
                     <pre>
                     权限管理为白名单机制，以 all_roles 模拟黑名单（即all_roles 授权时，都可以看，去掉all_roles时就是白名单）,
                     dbconf->table->columns 上级的白名单，只是为了更短的拒绝路径,
-                    如果需要【table】授权给所有人，指定__user__即可
+                    <h3>如果需要快速授权给所有人，table 和 colums 都指定__user__即可</h3>
                     如果将字段授权全部开放  选定【role_code】，对应【权限】全部勾选,
 
                     辅助理解：
@@ -66,300 +66,392 @@
 </div>
 <script>
     domLoaded(function () {
-            let utk = '';
 
-            bg_init(function () {
-                utk = window.utk;
+            let raw_root = kl.id('content_div');
+            let root = new Emt('div').setPros({className: 'row'});
+            raw_root.append(root);
 
-                window.serverData.dataLib = {
-                    admin: {items: [], list: [], map: {}},
-                    role: {items: [], list: [], map: {}},
-                    mainTable: {},
-                    dbdataTablesTable: {},
-                    struct: {items: [], list: [], map: {}},
-                    dbConf: {items: [], list: [], map: {}},
-                    tableConf: {items: [], list: [], map: {}},
-                };
-                window.serverData.dataLib.bgDataApi = hammerBgDataApi();
-                window.serverData.dataLib.bgDataApi.setUserToken(utk);
-
-
-                (async function () {
+            window.serverData.dataLib = {
+                admin: {items: [], list: [], map: {}},
+                role: {items: [], list: [], map: {}},
+                mainTable: {},
+                dbdataTablesTable: {},
+                struct: {items: [], list: [], map: {}},
+                dbConf: {items: [], list: [], map: {}},
+                tableConf: {items: [], list: [], map: {}},
+            };
+            window.serverData.dataLib.bgDataApi = hammerBgDataApi();
 
 
-                    await window.serverData.dataLib.bgDataApi.init_DbTableConf_ConfigInfo(function () {
-                        console.log('data-table 配置初始化 1');
-                    });
-                    console.log('data-table 配置初始化');
+            let renderRbacContent = () => {
+            };
 
-                    await window.serverData.dataLib.bgDataApi.initRoles(() => {
-                        console.log('角色初始化 1');
-                    });
-                    console.log('角色初始化');
-
-                    await window.serverData.dataLib.bgDataApi.getTableAllDataRows(window.serverData.dataLib.bgDataApi.config.dbconf_name, window.serverData.dataLib.bgDataApi.config.dbdata_struct_tableName, 'dbdataStructTable', function () {
-                        serverData.dataLib.dbdataStructTable.list.forEach((data_row) => {
-                            try {
-                                console.log('查询数据结构 ok');
-                                window.serverData.dataLib.struct.map[data_row.struct_code] = JSON.parse(data_row.struct_json);
-                            } catch (e) {
-
-                            }
-                        });
-                    });
-
-                    await window.serverData.dataLib.bgDataApi.getTableAllDataRows(window.serverData.dataLib.bgDataApi.config.dbconf_name, window.serverData.dataLib.bgDataApi.config.dbdata_dbconf_tableName, 'dbConf', function () {
-                        console.log('查询database config ok');
-                        serverData.dataLib.dbConf.list.forEach((data_row) => {
-                            data_row.tables = {list: [], map: []};
-                            serverData.dataLib.dbConf.map[data_row.db_code] = data_row;
-                        });
-                    });
-
-                    await window.serverData.dataLib.bgDataApi.getTableAllDataRows(window.serverData.dataLib.bgDataApi.config.dbconf_name, window.serverData.dataLib.bgDataApi.config.dbdata_table_tableName, 'table', function () {
-                        console.log('查询table ok');
-                        serverData.dataLib.table.list.forEach((table_data_row) => {
-                            if (serverData.dataLib.dbConf.map[table_data_row.dbconf_name]) {
-                                serverData.dataLib.dbConf.map[table_data_row.dbconf_name].tables.list.push(table_data_row);
-                                serverData.dataLib.dbConf.map[table_data_row.dbconf_name].tables.map[table_data_row.table_name] = table_data_row;
-                                window.serverData.dataLib.dbConf.items.push({val: table_data_row.db_code, text: table_data_row.title});
-                            }
-                        });
-                    });
-                    console.log('查询table  结束');
+            let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
 
 
-                    await content();
-                })();
+            let searchRoleInput = hammerYii2Bootstarp1.createWithDroplistTextInput({});
+            let searchDatabaseInput = hammerYii2Bootstarp1.createWithDroplistTextInput({});
+            let searchTableInput = hammerYii2Bootstarp1.createWithDroplistTextInput({});
+            let dbconfRbacDiv = new Emt('div');
+            let tableRbacDiv = new Emt('div');
+            let columnsRbacDiv = new Emt('div');
+            let docTable = new Emt('table', 'class="table table-bordered table-striped table-hover" ');
+            let dbconfRbacTable = new Emt('table', 'class="table table-bordered table-striped table-hover" ');
+            let tableRbacTable = new Emt('table', 'class="table table-bordered table-striped table-hover" ');
+            let columnsRbacTable = new Emt('table', 'class="table table-bordered table-striped table-hover" ');
 
-            });
-            let content = function () {
+            let dbconfRbacSubmitBtn = new Emt('button', 'type="button"', '保存配置授权');
+            let tableRbacSubmitBtn = new Emt('button', 'type="button"', '保存表授权');
+            let columnsRbacSubmitBtn = new Emt('button', 'type="button"', '保存字段授权');
 
-                let raw_root = kl.id('content_div');
-                let root = new Emt('div').setPros({className: 'row'});
-                raw_root.append(root);
+            let toggleColumnSelectBtn = new Emt('button', 'type="button"', '反选', {op: 'accessSelectRoles', allSelect: false});
+            let toggleColumnUpdateBtn = new Emt('button', 'type="button"', '反选', {op: 'accessUpdateRoles', allSelect: false});
+
+            root.addNodes([
+                new Emt('div').addNodes([
+                    new Emt('label', '', '操作对应授权说明'),
+                    docTable
+                ]),
+                new Emt('div').addNodes([
+                    new Emt('label', '', '指定数据库'),
+                    searchDatabaseInput,
+                    dbconfRbacDiv.addNodes([
+                        dbconfRbacTable
+                    ]),
+                    dbconfRbacSubmitBtn
+                ]),
+                new Emt('div').addNodes([
+                    new Emt('label', '', '选择表'),
+                    searchTableInput,
+                    tableRbacDiv.addNodes([
+                        tableRbacTable
+                    ]),
+                    tableRbacSubmitBtn
+
+                ]),
+
+                new Emt('div').addNodes([
+                    new Emt('label', '', '角色'),
+                    searchRoleInput,
+                    new Emt('label', '', '字段授权：'),
+
+                ]),
+                new Emt('div').addNodes([
+                    columnsRbacDiv.addNodes([
+                        columnsRbacTable
+                    ]),
+                    columnsRbacSubmitBtn,
+                ])
+            ]);
 
 
-                let rowIndexCount = 0;
-                let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
+            (() => {
 
 
-                let searchRoleInput = hammerYii2Bootstarp1.createWithDroplistTextInput({});
-                let searchDatabaseInput = hammerYii2Bootstarp1.createWithDroplistTextInput({});
-                let searchTableInput = hammerYii2Bootstarp1.createWithDroplistTextInput({});
-                let dbconfRbacDiv = new Emt('div');
-                let tableRbacDiv = new Emt('div');
-                let columnsRbacDiv = new Emt('div');
-                let dbconfRbacTable = new Emt('table', 'class="table table-bordered table-striped table-hover" ');
-                let tableRbacTable = new Emt('table', 'class="table table-bordered table-striped table-hover" ');
-                let columnsRbacTable = new Emt('table', 'class="table table-bordered table-striped table-hover" ');
-
-                let dbconfRbacSubmitBtn = new Emt('button', 'type="button"', '保存配置授权');
-                let tableRbacSubmitBtn = new Emt('button', 'type="button"', '保存表授权');
-                let columnsRbacSubmitBtn = new Emt('button', 'type="button"', '保存字段授权');
+                ([
+                    ['操作', '库', '表', '字段'],
+                    ['读', '前置授权', '前置授权', '读'],
+                    ['改', '前置授权', '前置授权', '写'],
+                    ['增', '前置授权', '增', '写'],
+                ]).forEach((texts) => {
+                    let tmp_tr = docTable.insertRow();
+                    texts.forEach((text) => {
+                        tmp_tr.insertCell().textContent = text;
+                    })
+                });
 
 
                 let dbconfRbacTableHeaderRow = dbconfRbacTable.insertRow();
                 dbconfRbacTableHeaderRow.insertCell().textContent = 'role code';
                 dbconfRbacTableHeaderRow.insertCell().textContent = 'title';
-                dbconfRbacTableHeaderRow.insertCell().textContent = '读权限';
+                dbconfRbacTableHeaderRow.insertCell().textContent = '前置权限';
                 dbconfRbacTableHeaderRow.insertCell().textContent = '';
-                dbconfRbacTable.dataTrs = [];
-                dbconfRbacTable.clearDataRows = () => {
-                    dbconfRbacTable.dataTrs.forEach((dataTr, dataTrI) => {
-                        dataTr.remove();
-                        delete dbconfRbacTable.dataTrs[dataTrI];
-                    });
-                };
-                dbconfRbacTable.createDataRow = (dbconfInfo, roleInfo) => {
-                    let dbconfRbacTableDataRow = dbconfRbacTable.insertRow();
-                    dbconfRbacTableDataRow.map = {};
-                    dbconfRbacTableDataRow.checkboxMap = {};
-                    dbconfRbacTableDataRow.dataInfo = {role: roleInfo};
-                    (['roleCode', 'roleName', 'access_role_codes']).forEach((header_text) => {
-                        dbconfRbacTableDataRow.map[header_text] = dbconfRbacTableDataRow.insertCell();
-                    });
-                    dbconfRbacTable.dataTrs.push(dbconfRbacTableDataRow);
-                    dbconfRbacTableDataRow.map.roleCode.textContent = roleInfo.role_code;
-                    dbconfRbacTableDataRow.map.roleName.textContent = roleInfo.role_name;
 
-                    (['access_role_codes']).forEach((op) => {
-                        let checkbox = new Emt('input', 'type="checkbox"');
-                        if (dbconfInfo[op].indexOf(roleInfo.role_code) === -1) {
-                            checkbox.checked = false;
-                        } else {
-                            checkbox.checked = true;
-                        }
-                        dbconfRbacTableDataRow.checkboxMap[op] = checkbox;
-                        dbconfRbacTableDataRow.map[op].append(
-                            new Emt('label', 'class="checkbox_label"').addNode(
-                                checkbox,
-                                //new Emt('span', '', '#')
-                            )
-                        );
 
-                    });
-                };
-
-                tableRbacTable.dataTrs = [];
                 let tableRbacTableHeaderRow = tableRbacTable.insertRow();
                 tableRbacTableHeaderRow.insertCell().textContent = 'db code+table name';
                 tableRbacTableHeaderRow.insertCell().textContent = 'title';
-                tableRbacTableHeaderRow.insertCell().textContent = '读/改 前置授权';
-                tableRbacTableHeaderRow.insertCell().textContent = '增 前置授权';
+                tableRbacTableHeaderRow.insertCell().textContent = '前置授权';
+                tableRbacTableHeaderRow.insertCell().textContent = '增';
                 tableRbacTableHeaderRow.insertCell().textContent = '字段授权';
 
 
-                tableRbacTable.clearDataRows = () => {
-                    tableRbacTable.dataTrs.forEach((dataTr, dataTrI) => {
-                        dataTr.remove();
-                        delete tableRbacTable.dataTrs[dataTrI];
-                    });
-                };
-                tableRbacTable.createDataRow = (tableInfo, roleInfo) => {
-                    let tableRbacTableDataRow = tableRbacTable.insertRow();
-                    tableRbacTableDataRow.map = {};
-                    tableRbacTableDataRow.checkboxMap = {};
-                    tableRbacTableDataRow.dataInfo = {role: roleInfo};
-
-                    (['roleCode', 'roleName', 'accessRoles', 'accessInsertRoles', 'columsRbac']).forEach((header_text) => {
-                        tableRbacTableDataRow.map[header_text] = tableRbacTableDataRow.insertCell();
-                    });
-                    tableRbacTable.dataTrs.push(tableRbacTableDataRow);
-                    tableRbacTableDataRow.map.roleCode.textContent = roleInfo.role_code;
-                    tableRbacTableDataRow.map.roleName.textContent = roleInfo.role_name;
-                    let columnsRbacBtn = new Emt('button', 'type="button"', '字段授权');
-                    tableRbacTableDataRow.map.columsRbac.append(columnsRbacBtn);
-
-                    (['accessRoles', 'accessInsertRoles']).forEach((op) => {
-                        let checkbox = new Emt('input', 'type="checkbox"');
-                        if (tableInfo[op].indexOf(roleInfo.role_code) === -1) {
-                            checkbox.checked = false;
-                        } else {
-                            checkbox.checked = true;
-                        }
-                        tableRbacTableDataRow.checkboxMap[op] = checkbox;
-                        tableRbacTableDataRow.map[op].append(
-                            new Emt('label', 'class="checkbox_label"').addNode(
-                                checkbox,
-                                //new Emt('span', '', '#')
-                            )
-                        );
-
-                    });
-                    columnsRbacBtn.addEventListener('click', function () {
-                        searchRoleInput.value = roleInfo.role_code;
-                        flushColumsRbac('表-role 切换');
-                    });
-                };
-
-
-                columnsRbacTable.dataTrs = [];
                 let columnsRbacTableHeaderRow = columnsRbacTable.insertRow();
                 columnsRbacTableHeaderRow.insertCell().textContent = 'column';
                 columnsRbacTableHeaderRow.insertCell().textContent = 'title';
                 columnsRbacTableHeaderRow.insertCell().textContent = '读';
-                columnsRbacTableHeaderRow.insertCell().textContent = '改';
-
-                let toggleColumnSelectBtn = new Emt('button', 'type="button"', '反选', {op: 'accessSelectRoles', allSelect: false});
-                let toggleColumnUpdateBtn = new Emt('button', 'type="button"', '反选', {op: 'accessUpdateRoles', allSelect: false});
-
+                columnsRbacTableHeaderRow.insertCell().textContent = '写';
 
                 let columnsRbacTableToggleSelectRow = columnsRbacTable.insertRow();
                 columnsRbacTableToggleSelectRow.insertCell().textContent = '#';
                 columnsRbacTableToggleSelectRow.insertCell().textContent = '#';
                 columnsRbacTableToggleSelectRow.insertCell().append(toggleColumnSelectBtn);
                 columnsRbacTableToggleSelectRow.insertCell().append(toggleColumnUpdateBtn);
+            })();
 
-
-                columnsRbacTable.clearDataRows = () => {
-                    columnsRbacTable.dataTrs.forEach((dataTr, dataTrI) => {
-                        dataTr.remove();
-                        delete columnsRbacTable.dataTrs[dataTrI];
-                    });
-                };
-                columnsRbacTable.createDataRow = (columnInfo) => {
-                    let columnsRbacTableDataRow = columnsRbacTable.insertRow();
-                    columnsRbacTableDataRow.map = {};
-                    columnsRbacTableDataRow.checkboxMap = {};
-                    columnsRbacTableDataRow.dataInfo = {column: columnInfo};
-                    (['title', 'remark', 'accessSelectRoles', 'accessUpdateRoles']).forEach((header_text) => {
-                        columnsRbacTableDataRow.map[header_text] = columnsRbacTableDataRow.insertCell();
-                    });
-                    columnsRbacTable.dataTrs.push(columnsRbacTableDataRow);
-                    columnsRbacTableDataRow.map.title.textContent = columnInfo.column_name;
-                    columnsRbacTableDataRow.map.remark.append(new Emt('em', '', columnInfo.title + '/' + columnInfo.remark));
-
-                    (['accessSelectRoles', 'accessUpdateRoles']).forEach((column_op) => {
-                        let checkbox = new Emt('input', 'type="checkbox"');
-                        if (columnInfo[column_op].indexOf(searchRoleInput.value) === -1) {
-                            checkbox.checked = false;
-                        } else {
-                            checkbox.checked = true;
-                        }
-                        columnsRbacTableDataRow.checkboxMap[column_op] = checkbox;
-                        columnsRbacTableDataRow.map[column_op].append(
-                            new Emt('label', 'class="checkbox_label"').addNode(
-                                checkbox,
-                                //new Emt('span', '', '#')
-                            )
-                        );
-
-                    });
-                };
-
-                let renderRbacContent = () => {
-                };
-                let flushColumsRbac = () => {
-                };
-
-                root.addNodes([
-
-                    new Emt('div').addNodes([
-                        new Emt('label', '', '指定数据库'),
-                        searchDatabaseInput,
-                        dbconfRbacDiv.addNodes([
-                            dbconfRbacTable
-                        ]),
-                        dbconfRbacSubmitBtn
-                    ]),
-                    new Emt('div').addNodes([
-                        new Emt('label', '', '选择表'),
-                        searchTableInput,
-                        tableRbacDiv.addNodes([
-                            tableRbacTable
-                        ]),
-                        tableRbacSubmitBtn
-
-                    ]),
-
-                    new Emt('div').addNodes([
-                        new Emt('label', '', '角色'),
-                        searchRoleInput,
-                        new Emt('label', '', '字段授权：'),
-
-                    ]),
-                    new Emt('div').addNodes([
-                        columnsRbacDiv.addNodes([
-                            columnsRbacTable
-                        ]),
-                        columnsRbacSubmitBtn,
-                    ])
-                ]);
-
-
-                let roleItems = [];
-                serverData.dataLib.role.list.forEach((roleInfo) => {
-                    roleItems.push({text: roleInfo.title, val: roleInfo.role_code});
+            dbconfRbacTable.dataTrs = [];
+            dbconfRbacTable.clearDataRows = () => {
+                dbconfRbacTable.dataTrs.forEach((dataTr, dataTrI) => {
+                    dataTr.remove();
+                    delete dbconfRbacTable.dataTrs[dataTrI];
                 });
-                searchRoleInput.apiHandle.setItems(roleItems);
+            };
 
-
-                let dbconfItems = [];
-                serverData.dataLib.dbConf.list.forEach((dbConf) => {
-                    dbconfItems.push({text: dbConf.title + '(' + dbConf.remark + ')', val: dbConf.db_code});
+            tableRbacTable.dataTrs = [];
+            tableRbacTable.clearDataRows = () => {
+                tableRbacTable.dataTrs.forEach((dataTr, dataTrI) => {
+                    dataTr.remove();
+                    delete tableRbacTable.dataTrs[dataTrI];
                 });
-                searchDatabaseInput.apiHandle.setItems(dbconfItems);
+            };
+            columnsRbacTable.dataTrs = [];
+            columnsRbacTable.clearDataRows = () => {
+                columnsRbacTable.dataTrs.forEach((dataTr, dataTrI) => {
+                    dataTr.remove();
+                    delete columnsRbacTable.dataTrs[dataTrI];
+                });
+            };
+
+
+            dbconfRbacTable.createDataRow = (dbconfInfo, roleInfo) => {
+                let dbconfRbacTableDataRow = dbconfRbacTable.insertRow();
+                dbconfRbacTableDataRow.map = {};
+                dbconfRbacTableDataRow.checkboxMap = {};
+                dbconfRbacTableDataRow.dataInfo = {role: roleInfo};
+                (['roleCode', 'roleName', 'access_role_codes']).forEach((header_text) => {
+                    dbconfRbacTableDataRow.map[header_text] = dbconfRbacTableDataRow.insertCell();
+                });
+                dbconfRbacTable.dataTrs.push(dbconfRbacTableDataRow);
+                dbconfRbacTableDataRow.map.roleCode.textContent = roleInfo.role_code;
+                dbconfRbacTableDataRow.map.roleName.textContent = roleInfo.role_name;
+
+                (['access_role_codes']).forEach((op) => {
+                    let checkbox = new Emt('input', 'type="checkbox"');
+                    if (JSON.parse(dbconfInfo[op]).indexOf(roleInfo.role_code) === -1) {
+                        checkbox.checked = false;
+                    } else {
+                        checkbox.checked = true;
+                    }
+                    dbconfRbacTableDataRow.checkboxMap[op] = checkbox;
+                    dbconfRbacTableDataRow.map[op].append(
+                        new Emt('label', 'class="checkbox_label"').addNode(
+                            checkbox,
+                            //new Emt('span', '', '#')
+                        )
+                    );
+
+                });
+            };
+
+
+            tableRbacTable.createDataRow = (tableInfo, roleInfo) => {
+                let tableRbacTableDataRow = tableRbacTable.insertRow();
+                tableRbacTableDataRow.map = {};
+                tableRbacTableDataRow.checkboxMap = {};
+                tableRbacTableDataRow.dataInfo = {role: roleInfo};
+
+                (['roleCode', 'roleName', 'accessRoles', 'accessInsertRoles', 'columsRbac']).forEach((header_text) => {
+                    tableRbacTableDataRow.map[header_text] = tableRbacTableDataRow.insertCell();
+                });
+                tableRbacTable.dataTrs.push(tableRbacTableDataRow);
+                tableRbacTableDataRow.map.roleCode.textContent = roleInfo.role_code;
+                tableRbacTableDataRow.map.roleName.textContent = roleInfo.role_name;
+                let columnsRbacBtn = new Emt('button', 'type="button"', '字段授权');
+                tableRbacTableDataRow.map.columsRbac.append(columnsRbacBtn);
+
+                (['accessRoles', 'accessInsertRoles']).forEach((op) => {
+                    let checkbox = new Emt('input', 'type="checkbox"');
+                    if (tableInfo[op].indexOf(roleInfo.role_code) === -1) {
+                        checkbox.checked = false;
+                    } else {
+                        checkbox.checked = true;
+                    }
+                    tableRbacTableDataRow.checkboxMap[op] = checkbox;
+                    tableRbacTableDataRow.map[op].append(
+                        new Emt('label', 'class="checkbox_label"').addNode(
+                            checkbox,
+                            //new Emt('span', '', '#')
+                        )
+                    );
+
+                });
+                columnsRbacBtn.addEventListener('click', function () {
+                    searchRoleInput.value = roleInfo.role_code;
+                    window.serverData.flushTableAndColumnRbac('表-role 切换');
+                });
+            };
+
+
+            columnsRbacTable.createDataRow = (columnInfo) => {
+                let columnsRbacTableDataRow = columnsRbacTable.insertRow();
+                columnsRbacTableDataRow.map = {};
+                columnsRbacTableDataRow.checkboxMap = {};
+                columnsRbacTableDataRow.dataInfo = {column: columnInfo};
+                (['title', 'remark', 'accessSelectRoles', 'accessUpdateRoles']).forEach((header_text) => {
+                    columnsRbacTableDataRow.map[header_text] = columnsRbacTableDataRow.insertCell();
+                });
+                columnsRbacTable.dataTrs.push(columnsRbacTableDataRow);
+                columnsRbacTableDataRow.map.title.textContent = columnInfo.column_name;
+                columnsRbacTableDataRow.map.remark.append(new Emt('em', '', columnInfo.title + '/' + columnInfo.remark));
+
+                (['accessSelectRoles', 'accessUpdateRoles']).forEach((column_op) => {
+                    let checkbox = new Emt('input', 'type="checkbox"');
+                    if (columnInfo[column_op].indexOf(searchRoleInput.value) === -1) {
+                        checkbox.checked = false;
+                    } else {
+                        checkbox.checked = true;
+                    }
+                    columnsRbacTableDataRow.checkboxMap[column_op] = checkbox;
+                    columnsRbacTableDataRow.map[column_op].append(
+                        new Emt('label', 'class="checkbox_label"').addNode(
+                            checkbox,
+                            //new Emt('span', '', '#')
+                        )
+                    );
+
+                });
+            };
+
+            window.serverData.flushRoleInfos = async function () {
+                await kl.ajax({
+                    url: '/_dp/v1/dbdata/select',
+                    data: {
+                        dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name,
+                        table_name: window.serverData.dataLib.bgDataApi.config.rbac_role_tableName,
+                        page_index: 1,
+                        page_size: 1000,
+                        sort: {role_code: 'asc'},
+                    },
+                    type: 'json',
+                    async: true,
+                }).then(res => {
+                    if (kl.isUndefined(res, 'result.data.dataRows') || typeof res.result.data.dataRows.forEach !== "function") {
+                        alert('init role 失败:' + (kl.isUndefined(res, 'result.msg') ? '未知' : res.result.msg));
+                    } else {
+                        console.log('查询 roles ok');
+                        window.serverData.dataLib.role = {items: [], list: res.result.data.dataRows, map: {}};
+                        res.result.data.dataRows.forEach((roleInfo) => {
+                            window.serverData.dataLib.role.items.push({text: roleInfo.role_name, val: roleInfo.role_code});
+                            window.serverData.dataLib.role.map[roleInfo.role_code] = roleInfo;
+                        });
+
+                        searchRoleInput.apiHandle.setItems(window.serverData.dataLib.role.items);
+                    }
+                });
+            };
+
+            window.serverData.flushDbconfAndTableInfos = async function () {
+
+                window.serverData.dataLib.dbConf = {items: [], list: [], map: {}};
+                //serverData.dataLib.dbConf.map[searchDatabaseInput.value]
+                await kl.ajax({
+                    url: '/_dp/v1/dbdata/select',
+                    data: {
+                        dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name,
+                        table_name: window.serverData.dataLib.bgDataApi.config.dbdata_dbconf_tableName,
+                        page_index: 1,
+                        page_size: 1000,
+                    },
+                    type: 'json',
+                    async: true,
+                }).then(res => {
+                    if (kl.isUndefined(res, 'result.data.dataRows') || typeof res.result.data.dataRows.forEach !== "function") {
+                        alert('init role 失败:' + (kl.isUndefined(res, 'result.msg') ? '未知' : res.result.msg));
+                    } else {
+                        console.log('查询 dbconfs ok');
+                        window.serverData.dataLib.dbConf.list = res.result.data.dataRows;
+                        res.result.data.dataRows.forEach((dbConf) => {
+                            dbConf.tables = {list: [], map: {}, items: []};
+                            window.serverData.dataLib.dbConf.items.push({text: dbConf.title + '(' + dbConf.remark + ')', val: dbConf.db_code});
+                            window.serverData.dataLib.dbConf.map[dbConf.db_code] = dbConf;
+                        });
+                        searchDatabaseInput.apiHandle.setItems(window.serverData.dataLib.dbConf.items);
+                    }
+                });
+
+                await kl.ajax({
+                    url: '/_dp/v1/dbdata/select',
+                    data: {
+                        dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name,
+                        table_name: window.serverData.dataLib.bgDataApi.config.dbdata_table_tableName,
+                        page_index: 1,
+                        page_size: 1000,
+                    },
+                    type: 'json',
+                    async: true,
+                }).then(res => {
+                    if (kl.isUndefined(res, 'result.data.dataRows') || typeof res.result.data.dataRows.forEach !== "function") {
+                        alert('init role 失败:' + (kl.isUndefined(res, 'result.msg') ? '未知' : res.result.msg));
+                    } else {
+                        console.log('查询 tables ok');
+                        res.result.data.dataRows.forEach((table_datarow) => {
+                            if (window.serverData.dataLib.dbConf.map[table_datarow.dbconf_name] === undefined) {
+                                console.log('未找到的数据库配置:', table_datarow.dbconf_name, table_datarow.table_name);
+                            } else {
+                                window.serverData.dataLib.dbConf.map[table_datarow.dbconf_name].tables.list.push(table_datarow);
+                            }
+
+                            //tableItems.push({val: table_datarow.table_name, text: table_datarow.title + '/' + table_datarow.remark});
+                        });
+                    }
+                });
+
+
+            };
+
+
+            window.serverData.flushTableAndColumnRbac = function (flag, flushTableRbac) {
+                window.serverData.dataLib.bgDataApi.initTableInfo(searchDatabaseInput.value, searchTableInput.value, 'tmp', function (data) {
+                    console.log(flag + ',查询当前表字段信息 ok : ' + searchDatabaseInput.value + '.' + searchTableInput.value + ' ', 'res:', data);
+                    if (flushTableRbac) {
+                        console.log('刷新 table rbac');
+                        tableRbacTable.clearDataRows();
+                        window.serverData.dataLib.role.list.forEach((roleInfo) => {
+                            tableRbacTable.createDataRow(data.table, roleInfo);
+                        });
+                    }
+                    columnsRbacTable.clearDataRows();
+                    data.columns.forEach((colItem, colItemIndex) => {
+                        columnsRbacTable.createDataRow(colItem);
+                    });
+                });
+            };
+
+            window.serverData.flushDbconfRbac = (input) => {
+                (async () => {
+                    let opt = input || {flush: true};
+
+                    if (opt.flush !== false) {
+                        console.log('flag1');
+                        await window.serverData.flushDbconfAndTableInfos();
+                        console.log('flag2');
+                    }
+                    await console.log('清理，重新渲染', serverData.dataLib.dbConf.map[searchDatabaseInput.value], searchDatabaseInput.value, serverData.dataLib.dbConf.map);
+                    console.log('flag3');
+                    await (() => {
+                        dbconfRbacTable.clearDataRows();
+                        window.serverData.dataLib.role.list.forEach((roleInfo) => {
+                            dbconfRbacTable.createDataRow(serverData.dataLib.dbConf.map[searchDatabaseInput.value], roleInfo);
+                        });
+                    })();
+
+
+                })();
+
+            };
+
+
+            window.serverData.initElements = function () {
+                (async function () {
+                    await window.serverData.flushRoleInfos();
+                    await window.serverData.flushDbconfAndTableInfos();
+                })();
+            };
+
+            window.serverData.content = function () {
+
+
+                let rowIndexCount = 0;
 
 
                 renderRbacContent = () => {
@@ -367,23 +459,6 @@
                         //  tableRbacDiv.firstElementChild.remove();
                         // tableRbacDiv.clearTable();
                     }
-                };
-
-                flushColumsRbac = (flag, flushTableRbac) => {
-                    window.serverData.dataLib.bgDataApi.initTableInfo(searchDatabaseInput.value, searchTableInput.value, 'tmp', function (data) {
-                        console.log(flag + ',查询当前表字段信息 ok : ' + searchDatabaseInput.value + '.' + searchTableInput.value + ' ', 'res:', data);
-                        if (flushTableRbac) {
-                            console.log('刷新 table rbac');
-                            tableRbacTable.clearDataRows();
-                            window.serverData.dataLib.role.list.forEach((roleInfo) => {
-                                tableRbacTable.createDataRow(data.table, roleInfo);
-                            });
-                        }
-                        columnsRbacTable.clearDataRows();
-                        data.columns.forEach((colItem, colItemIndex) => {
-                            columnsRbacTable.createDataRow(colItem);
-                        });
-                    });
                 };
 
 
@@ -399,23 +474,20 @@
                     });
                     searchTableInput.apiHandle.setItems(tableItems);
 
-                    dbconfRbacTable.clearDataRows();
-                    window.serverData.dataLib.role.list.forEach((roleInfo) => {
-                        dbconfRbacTable.createDataRow(serverData.dataLib.dbConf.map[searchDatabaseInput.value], roleInfo);
-                    });
+
+                    window.serverData.flushDbconfRbac({flush: false});
+
 
                 });
 
                 searchTableInput.addEventListener('change', function () {
-
-
-                    flushColumsRbac('table切换', true);
+                    window.serverData.flushTableAndColumnRbac('table切换', true);
                 });
 
 
                 searchRoleInput.addEventListener('change', function () {
                     //let tableInfo = serverData.dataLib.dbConf.map[searchDatabaseInput.value].tables.map[searchTableInput.value];
-                    flushColumsRbac('role切换');
+                    window.serverData.flushTableAndColumnRbac('role切换');
                 });
                 console.log([toggleColumnSelectBtn, toggleColumnUpdateBtn]);
                 let btns = [toggleColumnSelectBtn, toggleColumnUpdateBtn];//见鬼，只能用变量，下面语法 有时可以用，有时候不可以
@@ -446,6 +518,7 @@
                     }).then(res => {
                         console.log(res);
                         alert('修改库授权成功');
+                        window.serverData.flushDbconfRbac({flush: true});
                         return res;
                     });
 
@@ -474,6 +547,7 @@
                     }).then(res => {
                         console.log(res);
                         alert('修改表授权成功');
+                        window.serverData.flushTableAndColumnRbac('表重新授权', true);
                         return res;
                     });
 
@@ -502,6 +576,7 @@
                     }).then(res => {
                         console.log(res);
                         alert('修改字段授权成功');
+                        window.serverData.flushTableAndColumnRbac('字段重新授权', false);
                         return res;
                     });
 
@@ -512,30 +587,17 @@
                     renderRbacContent();
                 })();
 
-                return false;
+            };
+
+            (async function () {
 
 
-                btn_import_column.addEventListener('click', function () {
-                    kl.ajax({
-                        url: '/_dp/v1/dbdata/importTableColumns?dbconf_code=' + row_data.dbconf_name + '&table=' + row_data.table_name,
-                        method: 'GET',
-                        type: 'text',
-                        success: function (res_import_columns) {
-                            if (res_import_columns.indexOf('SUCCESS')) {
-                                alert('导入字段成功');
-                            } else {
-                                alert('导入字段 请求结果异常')
-                            }
-                        },
-                        error: function (res_import_columns) {
-                            console.log(res_import_columns);
-                            alert('导入字段 网络异常');
-                        }
-                    })
-                });
+                console.log('查询table  结束');
 
+                await window.serverData.initElements();
+                await window.serverData.content();
+            })();
 
-            }
         }
     );
 </script>

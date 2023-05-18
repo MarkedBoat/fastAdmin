@@ -19,7 +19,7 @@ class Admin extends AdminDao
 {
 
     public $roles      = [];
-    public $role_codes = [];
+    public $role_codes = ['__user__'];
 
     private $is_init_roles = false;
 
@@ -55,6 +55,15 @@ class Admin extends AdminDao
         return [
             'user_id'   => $this->id,
             'real_name' => $this->real_name,
+        ];
+    }
+
+    public function getAllInfo()
+    {
+        return [
+            'user_id'   => $this->id,
+            'real_name' => $this->real_name,
+            'roles'     => $this->role_codes,
         ];
     }
 }
