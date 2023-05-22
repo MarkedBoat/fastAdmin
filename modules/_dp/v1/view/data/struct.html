@@ -31,7 +31,6 @@
         <script src="/static/_dp/js/hammer/hammer-struct.js"></script>
 
 
-
         <div class="site-index">
 
             <div>
@@ -78,6 +77,9 @@
                     let data_out_textarea = new Emt('textarea');
                     let struct_div = new Emt('div');
                     let json_output_textarea = new Emt('textarea', 'readonly="readonly"');
+
+                    let source_input_textarea = new Emt('textarea');
+                    let source_struct_output_textarea = new Emt('textarea', 'readonly="readonly"');
                     let view_btn = new Emt('button', 'type="button"', '预览');
                     root_div.addNodes([
                         new Emt('div', 'class="json_div"').addNodes([
@@ -101,6 +103,17 @@
                             new Emt('h1', '', '数据json输出'),
                             data_out_textarea
                         ]),
+
+
+                        new Emt('div', 'class="json_div"').addNodes([
+                            new Emt('h1', '', '源数据:用以生成结构数据，就是正常的数据，不是结构体数据'),
+                            source_input_textarea
+                        ]),
+                        new Emt('div', 'class="json_div"').addNodes([
+                            new Emt('h1', '', '源数据的数据结构'),
+                            source_struct_output_textarea
+                        ]),
+
                     ]);
 
 
@@ -135,6 +148,95 @@
                         console.log(bi_struct_ele, tmp_struct_data);
                         json_output_textarea.value = JSON.stringify(tmp_struct_data);
 
+
+                    });
+
+                    source_input_textarea.addEventListener('change', () => {
+                        source_struct_output_textarea.value = '';
+                        let source_data = {};
+                        try {
+                            source_data = JSON.parse(source_input_textarea.value);
+                            source_input_textarea.value = JSON.stringify(source_data, null, 4);
+                        } catch (e) {
+                            alert('源数据 不是json');
+                        }
+
+
+                        let res = {
+                            struct_code: '_____',
+                            struct: []
+                        };
+
+                        let conv = (obj) => {
+                            let attrs = [];
+                            for (let k in obj) {
+                                let objAttrType = typeof obj[k];
+                                if (typeof obj[k].forEach === 'function') {
+                                    objAttrType = 'array';
+                                }
+                                let attrInfo = {
+                                    "key": k,
+                                    "must": true,
+                                    "title": k,
+                                    "comment": "",
+                                    "default": "_____",
+                                    "inputType": objAttrType
+                                };
+
+                                if (objAttrType === 'object') {
+                                    // attrInfo.attrs = conv(obj[k]);
+                                    let tmp = conv(obj[k]);
+                                    //attrInfo.xxx = "???";
+                                    attrInfo.attrs = tmp;
+                                    //console.log('???', {'??tmp:': tmp, 'obj:': obj, 'k:': k, 'obj[k]:': obj[k], 'attr type:': attrInfo.inputType});
+
+                                } else if (objAttrType === 'array') {
+                                    if (obj[k].length === 0) {
+                                        alert('模板数据不允许出现空数组，因为要确定数组元素是什么');
+                                        throw '模板数据不允许出现空数组，因为要确定数组元素是什么';
+                                    }
+                                    attrInfo.arrayElementConfig = {
+                                        "inputType": "string",
+                                        "min": 0,
+                                        "max": 0,
+                                        "title": k + "[]",
+                                    };
+                                    let sub_attrs = conv(obj[k]);
+                                    if (sub_attrs[0].inputType === 'object') {
+                                        console.log('???', {'??tmp:': sub_attrs, 'obj:': obj, 'k:': k, 'obj[k]:': obj[k], 'attr type:': attrInfo.inputType});
+                                        attrInfo.xxx='here';
+
+                                        attrInfo.arrayElementConfig.inputType = sub_attrs[0].inputType;
+                                        sub_attrs.forEach((attr, i) => {
+                                            sub_attrs[i].title = k + '[]' + attr.key;
+                                        });
+                                        attrInfo.arrayElementConfig.attrs = sub_attrs[0].attrs;
+                                    } else if (sub_attrs[0].inputType === 'array') {
+                                        attrInfo.arrayElementConfig.inputType = sub_attrs[0].inputType;
+                                        sub_attrs.forEach((attr, i) => {
+                                            sub_attrs[i].title = k + '[]' + attr.key;
+                                        });
+                                        attrInfo.arrayElementConfig.arrayElementConfig = {attr: sub_attrs[0]};
+                                    } else {
+                                        attrInfo.arrayElementConfig.attr = {
+                                            "must": true,
+                                            "title": "str[]",
+                                            "comment": "",
+                                            "default": "",
+                                            "inputType": "string",
+                                        };
+                                        attrInfo.arrayElementConfig.inputType = sub_attrs[0].inputType;
+                                        attrInfo.arrayElementConfig.attr = sub_attrs[0];
+                                        attrInfo.arrayElementConfig.attr.title = k + '[]';
+                                    }
+                                    console.log(attrInfo);
+                                }
+                                attrs.push(attrInfo);
+                            }
+                            return attrs;
+                        };
+                        res.struct = conv(source_data);
+                        source_struct_output_textarea.value = JSON.stringify(res, null, 4);
 
                     });
                     json_input_textarea.value = JSON.stringify(
@@ -389,7 +491,14 @@
                         }
                         , null, 4
                     );
-                    data_input_textarea.value = JSON.stringify({rate: 1}, null, 4);
+                    data_input_textarea.value = JSON.stringify({
+                        // "rate": 1,
+                        // "rate2": {"a": {"b": "c"}},
+                        // "strs": ["s1"],
+                        // "nums": [1, 2],
+                        "objects": [{"k": "v", "k1": "v1"}],
+                        // "arrays": [[1]]
+                    }, null, 4);
 
                 });
 

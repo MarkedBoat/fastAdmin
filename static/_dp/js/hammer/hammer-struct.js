@@ -123,7 +123,7 @@ let attrNode = function (opt, init_val) {
             sub_attr_node_config.onChanged = opt.onChanged;
             // console.log('xxx:', sub_attr_node_config, init_val, init_val[sub_attr_node_config.key]);
             //   if (init_val !== undefined && init_val[opt.key] !== undefined && typeof init_val[opt.key] === 'function') {
-
+            console.log('attrNode:',sub_attr_node_config);
             let sub_attr_node = new attrNode(sub_attr_node_config, init_val === undefined ? undefined : (init_val[sub_attr_node_config.key] || undefined));
             attr_node.objectAttrsEle.addNode(sub_attr_node);
             attr_node.objectAttrNodes.push(sub_attr_node);
@@ -143,6 +143,10 @@ let attrNode = function (opt, init_val) {
         attr_node.classList.add('array_node');
         attr_node.arrayElementsEle = new Emt('div', 'path="array_elements" class="array_elements"');
         attr_node.addArrayElementBtn = new Emt('button', 'type="button"', '添加成员');
+        console.log(opt);
+        if(opt.arrayElementConfig===undefined){
+            throw '什么情况?';
+        }
         attr_node.addNodes([
             new Emt('div', 'class="array_content_div"').addNodes([
                 attr_node.arrayElementsEle,
@@ -165,12 +169,14 @@ let attrNode = function (opt, init_val) {
                 console.log('array array:', opt.arrayElementConfig);
                 opt.arrayElementConfig.onChanged = opt.onChanged;
                 opt.arrayElementConfig.var_path = attr_node.var_path + '[]';
+                console.log('attrNode:',opt);
                 let sub_attr_node = new attrNode(opt.arrayElementConfig, array_element_val);
                 attr_node.arrayElementsEle.addNode(sub_attr_node);
             } else {
                 ((sub_attr_node_config) => {
                     sub_attr_node_config.onChanged = opt.onChanged;
                     sub_attr_node_config.var_path = attr_node.var_path + '[]';
+                    console.log('attrNode:',sub_attr_node_config);
                     let sub_attr_node = new attrNode(sub_attr_node_config, array_element_val);
                     attr_node.arrayElementsEle.addNode(sub_attr_node);
                 })(opt.arrayElementConfig.attr);
@@ -226,6 +232,7 @@ let hammerStruct = function (struct_data, db_data, call_function) {
         if (struct_div.root_node && typeof struct_div.root_node.remove === "function") {
             struct_div.root_node.remove();
         }
+        console.log('attrNode root','root');
         struct_div.root_node = new attrNode({
             inputType: 'object',
             title: '根',
@@ -290,7 +297,7 @@ let hammerStruct = function (struct_data, db_data, call_function) {
         return struct_div;
     };
     struct_div.setInfoData = (infoData) => {
-        if (typeof infoData === 'object' && infoData.struct_code !== undefined) {
+        if (typeof infoData === 'object' ) {
             struct_div.lastSetting.infoData = infoData;
         } else {
             console.log(infoData);
