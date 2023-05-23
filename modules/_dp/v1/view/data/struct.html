@@ -65,9 +65,9 @@
                     window.serverData.vals_map = {};
 
 
-                    kl.id('h1').textContent = kl.id('h1').textContent + '/' + serverData.table.title + '/ ' + window.serverData.table_name;
-                    document.title = '【查】' + serverData.table.title + '/' + serverData.table.table_name;
-                    kl.id('subject_detail').textContent = serverData.table.remark;
+                    kl.id('h1').textContent = '数据结构';
+                    document.title = '数据结构';
+                    // kl.id('subject_detail').textContent = serverData.table.remark;
 
                     let root_div = new Emt('div');
                     kl.id('content_div').append(root_div);
@@ -81,42 +81,69 @@
                     let source_input_textarea = new Emt('textarea');
                     let source_struct_output_textarea = new Emt('textarea', 'readonly="readonly"');
                     let view_btn = new Emt('button', 'type="button"', '预览');
+
+                    let show_quick_generate_btn = new Emt('button', 'type="button"', '切换至快速生成功能');
+                    let show_view_test_btn = new Emt('button', 'type="button"', '切换至调试功能');
+                    let show_quick_generate_div = new Emt('div', 'class="hide"');
+                    let show_view_test_div = new Emt('div');
+
                     root_div.addNodes([
-                        new Emt('div', 'class="json_div"').addNodes([
-                            new Emt('h1', '', '结构json 输入'),
-                            json_input_textarea
-                        ]),
-                        new Emt('div', 'class="json_div"').addNodes([
-                            new Emt('h1', '', '数据json 输入'),
-                            data_input_textarea
-                        ]),
-                        new Emt('div', 'class="view_div"').addNodes([
-                            new Emt('h1', '', '结构展示'),
-                            new Emt('p').addNodes([view_btn]),
-                            struct_div
-                        ]),
-                        new Emt('div', 'class="json_div"').addNodes([
-                            new Emt('h1', '', '结构json输出'),
-                            json_output_textarea
-                        ]),
-                        new Emt('div', 'class="json_div"').addNodes([
-                            new Emt('h1', '', '数据json输出'),
-                            data_out_textarea
-                        ]),
+
+                        show_view_test_div.addNodes([
+                            new Emt('p').addNodes([
+                                show_quick_generate_btn
+                            ]),
+                            new Emt('div', 'class="json_div"').addNodes([
+                                new Emt('h1', '', '结构json 输入'),
+                                json_input_textarea
+                            ]),
+                            new Emt('div', 'class="json_div"').addNodes([
+                                new Emt('h1', '', '数据json 输入'),
+                                data_input_textarea
+                            ]),
+                            new Emt('div', 'class="view_div"').addNodes([
+                                new Emt('h1', '', '结构展示'),
+                                new Emt('p').addNodes([view_btn]),
+                                struct_div
+                            ]),
+                            new Emt('div', 'class="json_div"').addNodes([
+                                new Emt('h1', '', '结构json输出'),
+                                json_output_textarea
+                            ]),
+                            new Emt('div', 'class="json_div"').addNodes([
+                                new Emt('h1', '', '数据json输出'),
+                                data_out_textarea
+                            ]),
 
 
-                        new Emt('div', 'class="json_div"').addNodes([
-                            new Emt('h1', '', '源数据:用以生成结构数据，就是正常的数据，不是结构体数据'),
-                            source_input_textarea
                         ]),
-                        new Emt('div', 'class="json_div"').addNodes([
-                            new Emt('h1', '', '源数据的数据结构'),
-                            source_struct_output_textarea
+                        show_quick_generate_div.addNodes([
+                            new Emt('p').addNodes([
+                                show_view_test_btn
+                            ]),
+                            new Emt('div', 'class="json_div"').addNodes([
+                                new Emt('h1', '', '源数据:用以生成结构数据，就是正常的数据，不是结构体数据'),
+                                source_input_textarea
+                            ]),
+                            new Emt('div', 'class="json_div"').addNodes([
+                                new Emt('h1', '', '源数据的数据结构'),
+                                source_struct_output_textarea
+                            ]),
                         ]),
+
 
                     ]);
 
 
+                    show_quick_generate_btn.addEventListener('click', () => {
+                        show_view_test_div.classList.add('hide');
+                        show_quick_generate_div.classList.remove('hide');
+
+                    });
+                    show_view_test_btn.addEventListener('click', () => {
+                        show_view_test_div.classList.remove('hide');
+                        show_quick_generate_div.classList.add('hide');
+                    });
                     let bi_struct_ele = false;
                     view_btn.addEventListener('click', function () {
                         let tmp_struct_data = false;
@@ -204,7 +231,7 @@
                                     let sub_attrs = conv(obj[k]);
                                     if (sub_attrs[0].inputType === 'object') {
                                         console.log('???', {'??tmp:': sub_attrs, 'obj:': obj, 'k:': k, 'obj[k]:': obj[k], 'attr type:': attrInfo.inputType});
-                                        attrInfo.xxx='here';
+                                        attrInfo.xxx = 'here';
 
                                         attrInfo.arrayElementConfig.inputType = sub_attrs[0].inputType;
                                         sub_attrs.forEach((attr, i) => {
