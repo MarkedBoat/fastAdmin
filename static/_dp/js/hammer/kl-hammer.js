@@ -171,11 +171,16 @@ let KL = function () {
             }, false);
         }
 
+        request.addEventListener("timeout", function () {
+            console.log('出错了');
+            if (opts.error) opts.error(request.statusText, 'timeout');
+        }, false);
 
         request.addEventListener("error", function () {
             console.log('出错了');
             if (opts.error) opts.error(request.statusText, 'error');
         }, false);
+
         request.addEventListener("abort", function () {
             console.log('中断了');
             if (opts.error) opts.error(request.statusText, 'abort');
@@ -230,8 +235,7 @@ let KL = function () {
                 request.send(fromData);
             }
         }
-
-
+        return request;
     };
     self.getStack = function () {
         //    console.log.apply(function(){},arguments)
