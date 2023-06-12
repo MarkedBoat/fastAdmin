@@ -102,8 +102,9 @@ class Console
             echo "\nDEBUG INFO\n";
             if (Sys::app()->interruption()->isThrower())
             {
-                $str = "\n" . Sys::app()->interruption()->getDebugMsg() . "\n";
-                var_export(Sys::app()->interruption()->getDebugData());
+                $str=var_export(Sys::app()->interruption()->getDebugData(),true);
+                echo $str;
+                $str = "\n" .$str . "\n";
                 echo "\n";
             }
             file_put_contents(self::getErrorLogFile(), date('Y-m-d H:i:s', time()) . "\t" . self::$cmd . "\n{$str}{$str2}\n", FILE_APPEND);

@@ -12,6 +12,7 @@ namespace models\common;
 use models\common\param\DataBox;
 use models\common\param\Params;
 use models\common\sys\Sys;
+use models\ext\tool\Printer;
 
 //更新计划凭借代码方法 sh ~/kinglone.sh "/data/git-webroot/api-htdocs/CLI/" "origin/master"
 // 简易计划任务操作  sudo chmod +x /data/git-webroot/api-htdocs/CLI/itfc/hammer cmd:/data/git-webroot/api-htdocs/CLI/itfc/hammer bftv.user.service.renew starter --service=kids --planId=renewKidsMember --env=prod --deadLineTs=1550222461
@@ -22,7 +23,10 @@ class CmdBase
     protected     $inputDataBox = null;
     private       $__planId     = '';
     protected     $deadLineTs   = 0;
-
+    /**
+     * @var Printer
+     */
+    protected $printer;
 
     public function __construct($param = [])
     {
@@ -42,6 +46,7 @@ class CmdBase
     {
         // $this->params = new Params($param);
         // $this->__apiName = $this->args->tryGetString('method');
+        $this->printer = new Printer();
     }
 
 

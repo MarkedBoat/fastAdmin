@@ -7,6 +7,12 @@ function lastError()
     $d = error_get_last();
     if ($d)
     {
+        if (php_sapi_name() === 'cli')
+        {
+            var_dump($d);
+            return false;
+        }
+
         ob_end_clean();
         // if( \models\common\sys\Sys::app()->params['errorHttpCode']===400){
         @header('HTTP/1.1 400 Not Found');
@@ -131,7 +137,9 @@ function merge_conf_with_cover()
                 else if ($params[0][$k] === $v)
                 {
                     //var_dump([$params[0][$k],$v]);
-                }else{
+                }
+                else
+                {
                     $params[0][$k] = $v;
                 }
             }

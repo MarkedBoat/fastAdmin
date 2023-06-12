@@ -117,6 +117,23 @@ class Printer
     }
 
     /**
+     * 设置基础 tab 个数，不得小于0
+     * @param $num
+     * @return $this
+     * @throws
+     */
+    public function setBaseTabNumber($num)
+    {
+        $num = intval($num);
+        if ($num < 0)
+        {
+            throw new \Exception('说了，不得小于0');
+        }
+        $this->base_tab_cnt = $num;
+        return $this;
+    }
+
+    /**
      * tab 输出
      * @param $text
      * @param int $deep
@@ -156,7 +173,7 @@ class Printer
         {
             $this->flag_list[] = $flag;
         }
-        $this->_tab_deep = count($this->flag_list) + $this->base_tab_cnt;
+        $this->_tab_deep = count($this->flag_list) + $this->base_tab_cnt - 1;
         $this->tabEcho(($this->_php_mod === 'cli' ? '<<<<<<<' : htmlspecialchars('<<<<<<<')) . $text, $this->_tab_deep, $call);
         $this->_tab_deep = $this->_tab_deep + 1;
     }
@@ -164,21 +181,28 @@ class Printer
     public function endTabEcho($flag, $text, $call = false)
     {
         $new_flag_list = [];
+        $is_matched    = false;
         foreach ($this->flag_list as $tmp_i => $exist_flag)
         {
+
             if ($exist_flag === $flag)
             {
-                if ($tmp_i === 0)
-                {
-                    $new_flag_list[] = $exist_flag;
-                }
+                $is_matched = true;
                 break;
             }
-            $new_flag_list[] = $exist_flag;
+            $new_flag_list[] = $exist_flag;//和new tab 不一样，并没有-1的修正，所以没有把命中的key 塞进数组，因为end需要把 key 清掉
         }
-        $this->flag_list = $new_flag_list;
-        $this->_tab_deep = count($this->flag_list) + $this->base_tab_cnt;
-        $this->tabEcho(($this->_php_mod === 'cli' ? '>>>>>>>' : htmlspecialchars('>>>>>>>')) . $text, $this->_tab_deep, $call);
+        if ($is_matched)
+        {
+            $this->flag_list = $new_flag_list;
+            $this->_tab_deep = count($this->flag_list) + $this->base_tab_cnt;//和new tab 不一样，并没有上面-1的修正，所以没有把命中的key 塞进数组，因为end需要把 key 清掉
+            $this->tabEcho(($this->_php_mod === 'cli' ? '>>>>>>>' : htmlspecialchars('>>>>>>>')) . $text, $this->_tab_deep, $call);
+        }
+        else
+        {
+            $this->tabEcho(($this->_php_mod === 'cli' ? '>>>>>>>' : htmlspecialchars('>>>>>>>')) . $text, 0, $call);
+        }
+
     }
 
     public function getTabEchoDeep()
