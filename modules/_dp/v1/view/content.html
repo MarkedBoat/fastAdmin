@@ -42,7 +42,6 @@
         flex: 1;
         background-color: #222;
         border-color: #080808;
-        padding-left: 150px;
     }
 
     .body_div {
@@ -83,6 +82,7 @@
         float: left;
         /*border: 1px solid #FFF;*/
         margin-left: 0.5em;
+        margin-top: 0.5em;
     }
 
     .tab_btn_div .tab_top_btn {
@@ -102,7 +102,7 @@
 
     .tab_button_list .selected {
         color: #000;
-        background: #FFF;
+        -background: #FFF;
         border-bottom: 1px solid #FFF;
     }
 
@@ -113,15 +113,21 @@
 </style>
 <div class="root_div">
     <div class="header_div">
-        <div id="menu_toggle_btn" class="navbar-brand menu_toggle_btn">导航</div>
-        <div id="tab_button_list" class="navbar-brand page_title tab_button_list"></div>
+        <div>
+            <div id="menu_toggle_btn" class="menu_toggle_btn"><span>导航</span></div>
+
+        </div>
+        <div>
+            <div id="tab_button_list" class="tab_button_list"></div>
+
+        </div>
+
     </div>
     <div class="body_div">
         <div class="menu_div" id="menu_div"></div>
         <div class="content_div" id="content_div"></div>
     </div>
 </div>
-
 <script>
     window.ctrl = false;
     document.addEventListener('keydown', (e) => {
@@ -171,6 +177,10 @@
         let rander_tree = function (dataTree) {
 
             let menu_root_div = new Emt('div', 'class="_dp_menu_root_div"');
+            menu_root_div.headerDiv = new Emt('div', 'style="margin-bottom:3em"');
+            menu_root_div.addNodes([
+                menu_root_div.headerDiv
+            ]);
             menu_root_div.apiHandle = {
                 menu: {list: [], map: {}},
             };
@@ -247,38 +257,7 @@
 
 
         let getMenus = function () {
-            kl.ajax({
-                url: '/_dp/v1/rbac/menu',
-                data: {},
-                method: 'POST',
-                success: function (res_menu) {
-                    console.log(res_menu);
-                    if (res_menu.status) {
-                        if (res_menu.status === 200) {
-                            let btn = kl.id('menu_toggle_btn');
-                           // btn.textContent = '导航';
-                            let menu_root_div = rander_tree(res_menu.data);
-                            //  document.body.insertBefore(menu_root_div, document.body.firstElementChild);
-                            kl.id('menu_div').append(menu_root_div);
-                            //     menu_root_div.parentElement.classList.add('hide');
-                            btn.addEventListener('click', function () {
-                                menu_root_div.parentElement.classList.toggle('hide');
-                                //  kl.id('w0').parentElement.classList.toggle('body_content_div');
-                            });
-                            page_init_fun();
-                        } else {
-                            alert('失败:' + (res_menu.msg || '未知'))
-                        }
-                    } else {
-                        alert('数据异常')
-                    }
-                },
-                error: function (res_share) {
-                    console.log(res_share);
-                    alert('网络错误！');
-                },
-                type: 'json',
-            });
+
         };
 
         kl.ajax({
@@ -292,10 +271,60 @@
                         window.utk = utk;
                         window.adminInfo = admin_info_res.data;
                         console.log(window.adminInfo);
-                        kl.id('menu_toggle_btn').append(new Emt('div').addNodes([
-                            new Emt('label', '', window.adminInfo.real_name)
-                        ]));
-                        getMenus()
+
+
+                        kl.ajax({
+                            url: '/_dp/v1/rbac/menu',
+                            data: {},
+                            method: 'POST',
+                            success: function (res_menu) {
+                                console.log(res_menu);
+                                if (res_menu.status) {
+                                    if (res_menu.status === 200) {
+                                        let btn = kl.id('menu_toggle_btn');
+                                        // btn.textContent = '导航';
+                                        let menu_root_div = rander_tree(res_menu.data);
+                                        //  document.body.insertBefore(menu_root_div, document.body.firstElementChild);
+                                        kl.id('menu_div').append(menu_root_div);
+
+
+                                        menu_root_div.headerDiv.addNodes([
+                                            new Emt('DIV').setAttrsByStr('class="dropdown col-md-12"', '').addNodes([
+                                                new Emt('BUTTON', 'type="button" class="btn dropdown-toggle" id="dropdownMenu1" data-toggle="dropdown"', window.adminInfo.real_name).addNodes([
+                                                    new Emt('SPAN', 'class="caret"', '')
+                                                ]),
+                                                new Emt('UL', 'class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1"', '').addNodes([
+                                                    new Emt('LI', 'role="presentation"', '').addNodes([
+                                                        new Emt('A', 'role="menuitem" tabindex="-1" href="/dp/resetPsw"', '修改密码')
+                                                    ]),
+                                                    new Emt('LI', 'role="presentation" class="divider"', ''),
+                                                    new Emt('LI', 'role="presentation"', '').addNodes([
+                                                        new Emt('A', 'role="menuitem" tabindex="-1" href="/dp/login"', '退出')
+                                                    ])
+                                                ])
+                                            ])
+
+                                        ]);
+                                        //     menu_root_div.parentElement.classList.add('hide');
+                                        btn.addEventListener('click', function () {
+                                            menu_root_div.parentElement.classList.toggle('hide');
+                                            //  kl.id('w0').parentElement.classList.toggle('body_content_div');
+                                        });
+                                        page_init_fun();
+                                    } else {
+                                        alert('失败:' + (res_menu.msg || '未知'))
+                                    }
+                                } else {
+                                    alert('数据异常')
+                                }
+                            },
+                            error: function (res_share) {
+                                console.log(res_share);
+                                alert('网络错误！');
+                            },
+                            type: 'json',
+                        });
+
                     } else {
                         if (admin_info_res.code.indexOf('user_error_token') === 0) {
                             alert('未登录，跳转到登录');
@@ -318,8 +347,8 @@
 
     let createTabButton = function (input_val) {
         let btnDiv = new Emt('div', 'class="tab_btn_div"');
-        let windowBtn = new Emt('button', 'type="button" class="tab_top_btn"', input_val.text);
-        let closeBtn = new Emt('button', 'type="button" class="tab_top_btn"', 'X');
+        let windowBtn = new Emt('button', 'type="button" class="tab_top_btn"', input_val.text).setAttrs({title: input_val.src});
+        let closeBtn = new Emt('button', 'type="button" class="tab_top_btn close"', '×');
         btnDiv.dataInfo = input_val;
         btnDiv.ifr = false;
         btnDiv.menuBtn = false;
@@ -332,18 +361,24 @@
             btnDiv.menuBtn = menuBtn;
             return btnDiv;
         };
-        btnDiv.bindMenuBtn(input_val.menuBtn);
+        if (input_val.menuBtn !== false) {
+            btnDiv.bindMenuBtn(input_val.menuBtn);
+        }
 
         btnDiv.selected = () => {
             Object.values(kl.id('tab_button_list').childNodes).forEach((tabBtn) => {
                 if (tabBtn === btnDiv) {
                     btnDiv.classList.add('selected');
-                    btnDiv.menuBtn.classList.add('selected');
+                    if (btnDiv.menuBtn !== false) {
+                        btnDiv.menuBtn.classList.add('selected');
+                    }
                     btnDiv.ifr.classList.remove('hide');
                 } else {
                     tabBtn.classList.remove('selected');
                     tabBtn.ifr.classList.add('hide');
-                    tabBtn.menuBtn.classList.remove('selected');
+                    if (tabBtn.menuBtn !== false) {
+                        tabBtn.menuBtn.classList.remove('selected');
+                    }
                 }
             });
             return btnDiv;
@@ -352,7 +387,9 @@
             if (Object.values(kl.id('tab_button_list').childNodes).length > 1) {
                 Object.values(kl.id('tab_button_list').childNodes)[0].selected();
             }
-            btnDiv.menuBtn.classList.remove('selected');
+            if (btnDiv.menuBtn !== false) {
+                btnDiv.menuBtn.classList.remove('selected');
+            }
             btnDiv.ifr.remove();
             btnDiv.remove();
         };
@@ -364,8 +401,13 @@
             }
         });
         closeBtn.addEventListener('click', () => {
+            if (btnDiv.menuBtn === false) {
+                alert('不要关闭');
+                return false;
+            }
             btnDiv.close();
         });
+
         return btnDiv.addNodes([
             windowBtn, closeBtn
         ]);
@@ -395,6 +437,7 @@
 
         btn.selected();
     };
+    createTabWindow({src: "/_dp/v1/index/doc.html", text: "说明", menuBtn: false});
 
 </script>
 <script>
@@ -416,6 +459,23 @@
         width: 100%;
         min-height: auto;
         height: auto;
+    }
+
+    .header_div {
+        height: 3em;
+    }
+
+    .header_div > div:nth-child(1) {
+        width: 150px;
+        background-color: #000;
+        color: #FFF;
+        font-size: 1.5em;
+        line-height: 2em;
+    }
+
+    .header_div > div:nth-child(2) {
+        flex-grow: 1;
+        background-color: #222;
     }
 </style>
 </body>

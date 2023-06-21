@@ -199,6 +199,11 @@ let KL = function () {
         request.open((opts.method || "POST"), opts.url, true);
         if (opts.isAjax !== false) request.setRequestHeader("X-Requested-With", "XMLHttpRequest");
         //request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        if (opts.headers && typeof opts.headers.forEach === 'function') {
+            opts.headers.forEach((header_ar) => {
+                request.setRequestHeader(header_ar[0], header_ar[1]);
+            });
+        }
         if (opts.async === true) {
             return new Promise(function (resolve, reject) {
                 if (opts.form) {

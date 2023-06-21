@@ -23,11 +23,23 @@ $fast_bg_cfg = [
     ]
 ];
 
+$tmp = [
+    'connectionString' => 'mysql:host=127.0.0.1;port=3306;dbname=tmp',
+    'username'         => 'root',
+    'password'         => 'Password@Mysql8',
+    'charset'          => 'utf8',
+    'readOnly'         => true,
+    'attributes'       => [
+        \PDO::ATTR_TIMEOUT => 1
+    ]
+];
+
 
 return array_merge_recursive(include __ROOT_DIR__ . '/config/env/common_param.php', [
     'db'    => [
         '_sys_' => $fast_bg_cfg,
         'dp'    => $dev_cfg,
+        'tmp'   => $tmp
     ],
     'redis' => [
         'default' => ['host' => 'redis_server', 'port' => 6379, 'password' => '', 'db' => 0],
@@ -73,8 +85,8 @@ return array_merge_recursive(include __ROOT_DIR__ . '/config/env/common_param.ph
 
         'console' => [
             'phpPath'        => '/usr/local/bin/php',
-            'hammerPath'     => '/var/www/html/bee-invasion-back-end/hammer.php',
-            'logDir'         => '/var/www/html/bee-invasion-back-end/log/cmd',
+            'hammerPath'     => '/data/codes/fastadmin/hammer.php',
+            'logDir'         => '/data/codes/fastadmin/log/cmd',
             'webFileDir'     => '/data/upload/cli_out',
             'root_cmd_queue' => 'root_cmd_queue',
             'tasks'          => [

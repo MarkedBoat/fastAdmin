@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DP-后台首页</title>
+    <link href="/static/_dp/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/_dp/css/site.css" rel="stylesheet">
+    <link href="/static/_dp/css/bg.css" rel="stylesheet">
+
+    <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
+    <script src="/static/_dp/js/string/string.js"></script>
+    <script src="/static/_dp/js/bg.js"></script>
+
+    <script src="/static/_dp/js/jquery.js"></script>
+    <script src="/static/_dp/js/bootstrap.js"></script>
+
+</head>
+<body>
+<div class="wrap">
+
+    <div class="container">
+        <div class="site-index">
+
+            <div class="body-content" id="content_div">
+                <pre>
+                    菜单导航，见左上角【导航】
+
+                    正式环境：
+
+
+
+                </pre>
+                查看功能数据异常，可<a target="_blank" href="/_dp/v1/dbdata/importDbconfTables?dbconf_code=_sys_">点击</a>，注意：需要开启session
+                <p>
+                    <a href="/_dp/v1/dbdata/datagridEg.html?table_name=bg_admin"> datagrid 例子</a>
+                </p>
+
+            </div>
+
+        </div>
+
+        <style>
+
+        </style>
+    </div>
+</div>
+
+<script>
+    domLoaded(function () {
+            let utk = '';
+            bg_init(function () {
+                utk = window.utk;
+            });
+        }
+    );
+</script>
+
+</body>
+</html>
