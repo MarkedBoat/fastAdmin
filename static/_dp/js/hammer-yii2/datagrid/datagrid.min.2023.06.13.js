@@ -33,22 +33,10 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
                     index: 1,
                     size: 20,
                 },
-                sort: {id: 'desc'}
+                sort: {}
             },
-            inputParam: {
-                attr: {},
-                page: {
-                    index: 1,
-                    size: 20,
-                },
-                sort: {id: 'desc'}
-            },
-            column: {
-                keys: [],
-                renderFunMap: {},
-                handle: {map: {}, list: [], unInitList: []},
-                sortButton: {map: {}, list: []}
-            },
+
+
             dataTrs: []
         };
         for (var k in dataGrid.__doc) {
@@ -56,6 +44,7 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
                 dataGrid[k] = input_opt[k];
             }
         }
+
 
         let config = {
             container: false,
@@ -93,22 +82,12 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
             },
             paramPreset: {//在初始化之前设置，以这些信息进行初始化
                 attr: {//过滤器
-                    data: {},
-                    fun: (param, dataGrid) => {
-                    },
                 },
                 page: {//分页
-                    data: {
-                        page_index: 1,
-                        page_size: 20,
-                    },
-                    fun: (param, dataGrid) => {
-                    },
+                    index: 1,
+                    size: 20,
                 },
                 sort: {//排序
-                    data: {},
-                    fun: (param, dataGrid) => {
-                    },
                 }
             },
             columns: [
@@ -120,7 +99,7 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
                     filter: {//过滤器/筛选器
                         inputs: [
                             true,//第一个代表 header row 里面的，以 true或false 表示要不要生成
-                            //xxxx// 要具体的 html element了，必须要实现 getVal/setVal/setOnchange 方法
+                            //xxxx// 要具体的 html element了，必须要实现 getVal/setVal/setOnChange 方法,如果是select或者其他多选类型，必须得实现setItems
                         ],
                         config: {
                             valueItems: [],//[ {text:xx,value:xx} ]  ，空代表随便填 input text， 如果不为空代表从里面选择 select ，长度超过 20 datalist
@@ -194,62 +173,53 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
             if (input_param.paramPreset.attr === undefined) {
                 console.warn(" config.paramPreset.attr 没有设置");
             } else {
-                if (typeof input_param.paramPreset.attr.data === "object") {
-                    config.paramPreset.attr.data = input_param.paramPreset.attr.data;
+                if (typeof input_param.paramPreset.attr === "object") {
+                    config.paramPreset.attr = input_param.paramPreset.attr;
+                    dataGrid.param.attr = config.paramPreset.attr;
                 } else {
-                    console.warn(" config.paramPreset.attr.data 没有设置");
-                }
-                if (typeof input_param.paramPreset.attr.fun === "function") {
-                    config.paramPreset.attr.fun = input_param.paramPreset.attr.fun;
-                } else {
-                    console.warn(" config.paramPreset.attr.fun 没有设置");
+                    console.warn(" config.paramPreset.attr 没有设置");
                 }
             }
 
             if (input_param.paramPreset.sort === undefined) {
                 console.warn(" config.paramPreset.sort 没有设置");
             } else {
-                if (typeof input_param.paramPreset.sort.data === "object") {
-                    config.paramPreset.sort.data = input_param.paramPreset.sort.data;
+                if (typeof input_param.paramPreset.sort === "object") {
+                    config.paramPreset.sort = input_param.paramPreset.sort;
+                    dataGrid.param.sort = config.paramPreset.sort;
                 } else {
-                    console.warn(" config.paramPreset.sort.data 没有设置");
-                }
-                if (typeof input_param.paramPreset.sort.fun === "function") {
-                    config.paramPreset.sort.fun = input_param.paramPreset.sort.fun;
-                } else {
-                    console.warn(" config.paramPreset.sort.fun 没有设置");
+                    console.warn(" config.paramPreset.sort 没有设置");
                 }
             }
 
             if (input_param.paramPreset.page === undefined) {
                 console.warn(" config.paramPreset.page 没有设置");
             } else {
-                if (typeof input_param.paramPreset.page.data === "object") {
-                    config.paramPreset.page.data = input_param.paramPreset.page.data;
+                if (typeof input_param.paramPreset.page === "object") {
+                    config.paramPreset.page = input_param.paramPreset.page;
 
-                    if (typeof input_param.paramPreset.page.data.page_index === "number" && input_param.paramPreset.page.data.page_index > 0) {
-                        config.paramPreset.page.data.page_index = input_param.paramPreset.page.data.page_index;
+                    if (typeof input_param.paramPreset.page.index === "number" && input_param.paramPreset.page.index > 0) {
+                        config.paramPreset.page.index = input_param.paramPreset.page.index;
+                        dataGrid.param.page.index = input_param.paramPreset.page.index;
                     } else {
-                        config.paramPreset.page.data.page_index = 1;
-                        console.warn(" config.paramPreset.page.data.page_index 没有设置");
+                        config.paramPreset.page.index = 1;
+                        dataGrid.param.page.index = config.paramPreset.page.index;
+                        console.warn(" config.paramPreset.page.index 没有设置");
                     }
-                    if (typeof input_param.paramPreset.page.data.page_size === "number" && input_param.paramPreset.page.data.page_size > 0) {
-                        config.paramPreset.page.data.page_size = input_param.paramPreset.page.data.page_size;
+                    if (typeof input_param.paramPreset.page.size === "number" && input_param.paramPreset.page.size > 0) {
+                        config.paramPreset.page.size = input_param.paramPreset.page.size;
                     } else {
-                        config.paramPreset.page.data.page_size = 3;
-                        console.warn(" config.paramPreset.page.data.page_size 没有设置");
+                        config.paramPreset.page.size = 20;
+                        dataGrid.param.page.size = config.paramPreset.page.size;
+                        console.warn(" config.paramPreset.page.size 没有设置");
                     }
                 } else {
                     console.warn(" config.paramPreset.page.data 没有设置");
                 }
-                if (typeof input_param.paramPreset.page.fun === "function") {
-                    config.paramPreset.page.fun = input_param.paramPreset.page.fun;
-                } else {
-                    console.warn(" config.paramPreset.page.fun 没有设置");
-                }
             }
-
+            console.log(config.paramPreset, dataGrid.param);
         }
+
 
         if (input_param.columns !== undefined && typeof input_param.columns.forEach === "function" && input_param.columns.length > 0) {
             config.columns = input_param.columns;
@@ -339,6 +309,9 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
             //'table-layout: fixed; ' +
             'word-break:break-all;' +
             'word-wrap:break-word;' +
+            'border-collapse: collapse;' +
+            'table-layout: fixed;' +
+            'width:100%;' +
             '"'
         );
         dataGrid.ele.THead = dataGrid.ele.Table.createTHead();
@@ -347,11 +320,14 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
         dataGrid.ele.TCaption = dataGrid.ele.Table.createCaption();
 
 
-        dataGrid.ele.submitBtn = new Emt('button').setPros({className: 'btn btn-default', textContent: '=>'});
+        dataGrid.ele.requestBtn = new Emt('button').setPros({className: 'btn btn-info', textContent: '查询'});
+        dataGrid.ele.toggleTableWidthBtn = new Emt('button').setPros({className: 'btn btn-info', textContent: 'table铺开'});
 
-        dataGrid.ele.pagination = new Emt('DIV', '', '');
+        dataGrid.ele.topDiv = new Emt('DIV', 'class="datagrid-top-div" id="datagrid-top-div"', '');
+        dataGrid.ele.pagination = new Emt('DIV', 'class="datagrid-pagination-div" id="datagrid-pagination-div"', '');
         dataGrid.ele.pagination.gotoStart = new Emt('span', 'href="#" style="cursor: pointer"', '«', {goto: 1});
         dataGrid.ele.pagination.gotoEnd = new Emt('span', 'href="#" style="cursor: pointer"', '»', {goto: 'end'});
+        dataGrid.ele.pagination.infoDataSpan = new Emt('span', 'class="input-group-addon"', '');
         dataGrid.ele.pagination.pageBtns = [];
         for (let i = 1; i < 6; i++) {
             let a = new Emt('span', 'href="#" style="cursor: pointer"', i.toString(), {goto: i});
@@ -376,13 +352,13 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
             };
         }
 
-        dataGrid.ele.pagination.pageSizeInput = new Emt('input', 'type="number" class="form-control "  style=" display: inline;  "', '', {value: config.paramPreset.page.data.page_size});
-        dataGrid.ele.pagination.pageIndexInput = new Emt('input', 'type="number" class="form-control "  style=" display: inline;   "', '', {value: config.paramPreset.page.data.page_index});
-        dataGrid.ele.pagination.pageJumpBtn = new Emt('button', 'type="button" class="btn btn-default"', '跳转至');
+        dataGrid.ele.pagination.pageSizeInput = new Emt('input', 'type="number" class="form-control "  style=" display: inline;width:4em ; "', '', {value: config.paramPreset.page.size});
+        dataGrid.ele.pagination.pageIndexInput = new Emt('input', 'type="number" class="form-control "  style=" display: inline; width:5em;  "', '', {value: config.paramPreset.page.index});
+        dataGrid.ele.pagination.pageJumpBtn = new Emt('button', 'type="button" class="btn btn-info"', '跳转至');
 
         dataGrid.ele.pagination.pageBtns.concat([dataGrid.ele.pagination.gotoStart, dataGrid.ele.pagination.gotoEnd]).forEach((pageGotoBtn) => {
             pageGotoBtn.addEventListener('click', function () {
-                this.setStyleActive();
+                // pageGotoBtn.setStyleActive();
                 dataGrid.ele.pagination.pageIndexInput.value = this.goto;
                 dataGrid.api.jumpPageTo();
             });
@@ -393,7 +369,7 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
 
 
         dataGrid.ele.pagination.addNodes([
-            new Emt('div', 'class="col-xs-6"').addNodes([
+            new Emt('div', 'class="col-xs-3"').addNodes([
                 new Emt('UL', 'class="pagination"', '').addNodes([
                     new Emt('LI', '', '').addNodes([dataGrid.ele.pagination.gotoStart]),
                     new Emt('LI', '', '').addNodes([dataGrid.ele.pagination.pageBtns[0]]),
@@ -405,22 +381,24 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
                     new Emt('LI', '', '').addNodes([])
                 ]),
             ]),
-            new Emt('div', 'class="col-xs-3"').addNodes([
-                new Emt('div', 'class="input-group" style="margin:20px 0;"').addNodes([
-                    new Emt('span', 'class="input-group-addon"', '每页行数'),
-                    dataGrid.ele.pagination.pageSizeInput
-                ])
-            ]),
-            new Emt('div', 'class="col-xs-2"').addNodes([
-                new Emt('div', 'class="input-group" style="margin:20px 0;"').addNodes([
-                    dataGrid.ele.pagination.pageIndexInput,
+            new Emt('div', 'class="col-sm-9"').addNodes([
+
+                new Emt('div', 'class="input-group" style="margin:20px 0;float:left;width:19em;"').addNodes([
+                    dataGrid.ele.pagination.infoDataSpan,
+                    dataGrid.ele.pagination.pageSizeInput,
+                    new Emt('span', 'class="input-group-addon"', '行/页'),
+                ]),
+                new Emt('div', 'class="input-group" style="margin:20px 0;float:left;width:10em;margin-left:1em;"').addNodes([
                     new Emt('span', 'class="input-group-btn"').addNodes([
                         dataGrid.ele.pagination.pageJumpBtn
-                    ])
-                ])
+                    ]),
+                    dataGrid.ele.pagination.pageIndexInput,
+                    new Emt('span', 'class="input-group-addon"', '页'),
+                ]),
             ]),
-        ]);
+            //new Emt('div', 'class="col-sm-2"').addNodes([]),
 
+        ]);
         dataGrid.addTr = function (tableTpart) {
             let new_tr = tableTpart.insertRow();
             new_tr.apiHandle = {
@@ -456,10 +434,6 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
         dataGrid.footTr = dataGrid.addTr(dataGrid.ele.TFoot);
 
 
-        dataGrid.topTr.addTd('goto_submit').addNodes([
-            dataGrid.ele.submitBtn,
-        ]);
-
         dataGrid.footTr.addTd('page').addNodes([]);
 
 
@@ -480,14 +454,16 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
          * 执行/展示  datagrid
          */
         dataGrid.api.init = () => {
-            dataGrid.column.handle.unInitList.forEach((columnHandle) => {
-                columnHandle.initColumn();
-            })
+
 
             config.container.appendChild(
                 new Emt('div', 'class="table-responsive" ').addNodes([
+                    dataGrid.ele.topDiv.addNodes([
+                        dataGrid.ele.toggleTableWidthBtn,
+                        dataGrid.ele.requestBtn,
+                    ]),
                     dataGrid.ele.Table,
-                    dataGrid.ele.pagination
+                    dataGrid.ele.pagination,
                 ])
             );
             return dataGrid;
@@ -499,15 +475,10 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
          */
         dataGrid.api.getRequestParam = () => {
             let requestParam = {
-                sort: {},
+                sort: dataGrid.param.sort,
                 page: {size: dataGrid.ele.pagination.pageSizeInput.value, index: dataGrid.ele.pagination.pageIndexInput.value},
-                filter: {}
+                filter: dataGrid.param.attr
             };
-            dataGrid.column.keys.forEach(function (column_key) {
-                let tmp_val = dataGrid.column.handle.map[column_key].getFilterInputValue();
-                if (tmp_val === undefined || tmp_val === '#') return false;
-                requestParam.filter[column_key] = tmp_val;
-            });
 
 
             console.log('datagrid.getRequestParam', requestParam);
@@ -526,255 +497,20 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
             dataGrid.api.requestData('filter');
         }
 
-        dataGrid.ele.submitBtn.addEventListener('click', function () {
+        dataGrid.ele.requestBtn.addEventListener('click', function () {
             dataGrid.api.requestData('goto');
         })
-
-
-        /**
-         * filterInputElement/filter_ele 必须是本类创建的，不然有些东西怕是监听不到，但是有些列的filter是没必要的，填string 也可以是的
-         * -- filterInputPlacehoderString 占位符
-         * title/label 就是 column中文名
-         * column_name/column_key 行数据的 列 字段, 用来存放操作按钮的列，也得起个名字
-         * isSortable/is_sortable true:可怕徐
-         * cellRenderFunction/data_cell_function(td_cell,row_data) 针对数据行的，操作行还有其他东西进行填充，但是数据行就得调相应得方法了，必须接受 单元格(cell) 和 行数据(row_data)作为参数
-         */
-        dataGrid.api.preCreateColumn = function (columnKey) {
-            let columnHandle = {
-                columnKey: columnKey,
-                isSortable: false,
-                headerText: false,
-                columnInfo: false,
-                freeFilterInput: false,//独立自定义的 过滤输入, free 优先级 高于 fixed, free存在的情况下 fixed 为 readonly
-                headerFilterInput: false,//固定的 过滤输入
-                headerFilterInputConfig: {
-                    inputType: 'text',
-                    valueItems: [],
-                },
-                renderFun: () => {
-                    alert('renderFunction 未初始化:' + columnKey);
-                },
-                hasRenderFunction: false,
-                sortButton: false,
-            };
-            columnHandle.setHeaderText = (text) => {
-                columnHandle.headerText = text;
-                return columnHandle;
-            };
-            columnHandle.setSortable = (isSortable) => {
-                columnHandle.isSortable = isSortable;
-                return columnHandle;
-            };
-            columnHandle.setColumnInfo = (columnInfo) => {
-                columnHandle.columnInfo = columnInfo;
-                return columnHandle;
-            };
-
-            columnHandle.bindFreeFilterInput = (freeFilterInput) => {
-                columnHandle.freeFilterInput = freeFilterInput;
-                return columnHandle;
-            };
-            columnHandle.setHeaderFilterInputConfig = (headerFilterInputConfig) => {
-                // columnHandle.headerFilterInput.inputType = headerFilterInputConfig.inputType || 'text';
-                if (headerFilterInputConfig.valueItems.length === 0) {
-                    columnHandle.headerFilterInput = new Emt('input', 'type="text"');
-                } else {
-                    columnHandle.headerFilterInput = new Emt('select');
-                    columnHandle.headerFilterInput.add(new Option('不选', '#'));
-                    headerFilterInputConfig.valueItems.forEach((item) => {
-                        columnHandle.headerFilterInput.add(new Option(item.text, item.val));
-                    })
-                }
-                columnHandle.headerFilterInput.valueItems = headerFilterInputConfig.valueItems || [];
-
-                return columnHandle;
-            };
-
-
-            columnHandle.setRenderFunction = (fun) => {
-                columnHandle.renderFun = fun;
-                columnHandle.hasRenderFunction = true;
-                return columnHandle;
-            };
-
-            columnHandle.getFilterInputValue = () => {
-                // console.log(columnHandle, columnHandle.freeFilterInput, columnHandle.headerFilterInput);
-                if (columnHandle.freeFilterInput === false) {
-                    if (columnHandle.headerFilterInput === false) {
-                        return undefined;
-                    } else {
-                        return columnHandle.headerFilterInput.value;
-                    }
-                } else {
-                    return columnHandle.freeFilterInput.apiHandle.getVal();
-                }
-            };
-
-            columnHandle.initColumn = () => {
-                if (columnHandle.isInited === undefined) {
-                    columnHandle.isInited = true;
-                } else {
-                    throw  '已经初始化了';
-                }
-                if (dataGrid.column.keys.indexOf(columnHandle.columnKey) !== -1) {
-                    throw  'columnKey 已经初始化了:' + columnHandle.columnKey;
-                }
-
-                //排序按钮
-                if (columnHandle.isSortable === true) {
-                    columnHandle.sortButton = dataGrid.createSortButton(columnHandle.headerText, columnHandle.columnKey);
-                    dataGrid.column.sortButton.list.push(columnHandle.sortButton);
-                    dataGrid.column.sortButton.map[columnHandle.columnKey] = columnHandle.sortButton;
-                } else {
-                    columnHandle.sortButton = new Emt('span', 'class="btn-default btn-xs"', columnHandle.headerText);
-                }
-                if (columnHandle.columnInfo && columnHandle.columnInfo.remark) {
-                    columnHandle.sortButton.setAttribute("title", columnHandle.columnInfo.remark);
-                }
-
-                let resize_box = new Emt('button', 'style="' +
-                    'float:right;' +
-                    'min-height:100%;' +
-                    'min-width:1px;' +
-                    'cursor: e-resize;' +
-                    'padding:1em 0px;' +
-                    'margin-right:0px;' +
-                    'cursor:col-resize;' +
-                    '"', '', {isWidthResizeBtn: true});
-                let titleTd = dataGrid.titleTr.addTd(columnHandle.columnKey);
-                titleTd.addNodes([
-                    new Emt('div', 'style="' +
-                        // 'float:left;' +
-                        'overflow-x:auto;' +
-                        'display: flex;' +
-                        'width:100%;' +
-                        'height:2.5em;' +
-                        '"').addNodes([
-                        new Emt('div', 'style="overflow:hidden;"').addNodes([
-                            columnHandle.sortButton
-                        ]),
-                        new Emt('div', 'style="flex:1;"').addNodes([
-                            resize_box
-                        ]),
-
-
-                    ])
-                ]);
-
-
-                if (columnHandle.headerFilterInput === false) {
-                    dataGrid.filterTr.addTd(columnHandle.columnKey).textContent = columnHandle.filterInputPlacehoderString || '';
-                } else {
-                    columnHandle.headerFilterInput.classList.add('col-md-12');
-                    columnHandle.headerFilterInput.setStyle({width: '100%', minHeight: '1em'});
-                    dataGrid.filterTr.addTd(columnHandle.columnKey).addNodes([columnHandle.headerFilterInput]);
-                    columnHandle.headerFilterInput.addEventListener('change', function () {
-                        if (columnHandle.freeFilterInput !== false) {
-                            columnHandle.freeFilterInput.apiHandle.setChangedVal(columnHandle.headerFilterInput.value);
-                        }
-                        dataGrid.api.requestData('filter');
-                    })
-                }
-                if (columnHandle.freeFilterInput !== false) {
-                    columnHandle.freeFilterInput.addEventListener('change', function () {
-                        console.log('columnHandle.freeFilterInput');
-                        if (columnHandle.headerFilterInput !== false) {
-                            columnHandle.headerFilterInput.value = columnHandle.freeFilterInput.apiHandle.getVal();
-                        }
-                        dataGrid.api.requestData('filter');
-                    });
-                }
-
-
-                //渲染cell/单元格 方法
-
-                if (columnHandle.hasRenderFunction) {
-                    dataGrid.column.renderFunMap[columnHandle.columnKey] = columnHandle.renderFun;
-                } else {
-                    dataGrid.column.renderFunMap[columnHandle.columnKey] = false;
-                }
-
-
-                //预置搜索条件
-                if (dataGrid.initSearchCondtion && dataGrid.initSearchCondtion.attrs && dataGrid.initSearchCondtion.attrs[columnHandle.columnKey] !== undefined && dataGrid.initSearchCondtion.attrs[columnHandle.columnKey].length > 0) {
-                    if (columnHandle.freeFilterInput !== false) {
-                        columnHandle.freeFilterInput.setVal(dataGrid.initSearchCondtion.attrs[columnHandle.columnKey]);
-                    }
-                    if (columnHandle.headerFilterInput !== false) {
-                        columnHandle.headerFilterInput.value = dataGrid.initSearchCondtion.attrs[columnHandle.columnKey];
-                    }
-                }
-
-
-                dataGrid.column.handle.list.push(columnHandle);
-                dataGrid.column.handle.map[columnHandle.columnKey] = columnHandle;
-                dataGrid.column.keys.push(columnHandle.columnKey);
-
-
-                return columnHandle;
-
+        dataGrid.ele.toggleTableWidthBtn.addEventListener('click', function () {
+            if (dataGrid.ele.toggleTableWidthBtn.textContent === 'table铺开') {
+                dataGrid.ele.Table.style.width = 'auto';
+                dataGrid.ele.toggleTableWidthBtn.textContent = 'table收拢';
+            } else {
+                dataGrid.ele.Table.style.width = '100%';
+                dataGrid.ele.toggleTableWidthBtn.textContent = 'table铺开';
             }
-            dataGrid.column.handle.unInitList.push(columnHandle);
-            return columnHandle;
-        };
-
-        dataGrid.createSortButton = (buttonText, columnDataKey) => {
-            let sortButton = new Emt('BUTTON', 'type="button" class="btn-default btn-xs hide_btn_sort" style="white-space: nowrap"', buttonText);
-            sortButton.addNodes([
-                new Emt('SPAN', 'class="glyphicon glyphicon-arrow-up btn_sort_asc"', ''),
-                new Emt('SPAN', 'class="glyphicon glyphicon-arrow-down btn_sort_desc"', '')
-            ]);
-            sortButton.columnKey = columnDataKey;
-            sortButton.sortType = false;
-
-            sortButton.setSort = function (type) {
-                if (type === 'asc') {
-                    sortButton.sortType = 'asc';
-                    sortButton.classList.remove('hide_btn_sort_asc');
-                    sortButton.classList.add('hide_btn_sort_desc');
-                    sortButton.classList.remove('hide_btn_sort');
-
-                    sortKey_hideInput.value = sortButton.columnKey;
-                    sortType_hideInput.value = sortButton.sortType;
-                } else if (type === 'desc') {
-                    sortButton.sortType = 'desc';
-                    sortButton.classList.add('hide_btn_sort_asc');
-                    sortButton.classList.remove('hide_btn_sort_desc');
-                    sortButton.classList.remove('hide_btn_sort');
-
-                    sortKey_hideInput.value = sortButton.columnKey;
-                    sortType_hideInput.value = sortButton.sortType;
-                } else {
-                    sortButton.sortType = false;
-                    sortButton.classList.remove('hide_btn_sort_asc');
-                    sortButton.classList.remove('hide_btn_sort_desc');
-                    sortButton.classList.add('hide_btn_sort');
-
-                    sortKey_hideInput.value = sortButton.columnKey;
-                    sortType_hideInput.value = sortButton.sortType;
-                }
-            }
+        });
 
 
-            sortButton.addEventListener('click', function () {
-                dataGrid.column.sortButton.list.forEach(function (tmp_btn) {
-                    if (tmp_btn.columnKey !== sortButton.columnKey) {
-                        tmp_btn.setSort(false);
-                    }
-                });
-                if (sortButton.sortType === 'asc') {
-                    sortButton.setSort('desc');
-                } else {
-                    sortButton.setSort('asc');
-                }
-                sortKey_hideInput.value = sortButton.columnKey;
-                sortType_hideInput.value = sortButton.sortType;
-                dataGrid.resortFun(this);
-            });
-
-
-            return sortButton;
-        }
         dataGrid.addDataRow = function (rowData) {
             let dataTr = dataGrid.addTr(dataGrid.ele.TBody);
             dataGrid.dataTrs.push(dataTr);
@@ -807,7 +543,7 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
         }
         dataGrid.flushPager = function (pageTotal, pageIndex) {
             dataGrid.ele.pagination.gotoEnd.goto = pageTotal;
-            console.log(pageTotal, pageIndex);
+            // console.log(pageTotal, pageIndex);
             for (let tmp_i = 0; tmp_i < 5; tmp_i++) {
                 dataGrid.ele.pagination.pageBtns[tmp_i].setStyleDisable();
             }
@@ -818,7 +554,7 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
                     pageNums.push(tmpNum);
                 }
             });
-            console.log(pageIndex, tmpPageNums, pageNums);
+            // console.log(pageIndex, tmpPageNums, pageNums);
             pageNums.forEach((pageNum, pageNumIndex) => {
                 dataGrid.ele.pagination.pageBtns[pageNumIndex].goto = pageNum;
                 dataGrid.ele.pagination.pageBtns[pageNumIndex].textContent = pageNum.toString();
@@ -838,8 +574,8 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
             data.dataRows.forEach(function (row_data) {
                 dataGrid.addDataRow(row_data);
             });
-            dataGrid.topTr.apiHandle.td.map.goto_submit.setAttribute('colspan', dataGrid.column.keys.length);
-            dataGrid.footTr.apiHandle.td.map.page.setAttribute('colspan', dataGrid.column.keys.length);
+            // dataGrid.topTr.apiHandle.td.map.goto_submit.setAttribute('colspan', dataGrid.column.keys.length);
+            //  dataGrid.footTr.apiHandle.td.map.page.setAttribute('colspan', dataGrid.column.keys.length);
             dataGrid.flushPager(data.pageTotal, data.pageIndex);
         }
 
@@ -856,14 +592,19 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
                     let diff = e.x - start_x;
                     // let expect = diff + min_width;
                     let expect = diff + td_width;
-                    console.log({dffi: diff, min_width: min_width, td_width: td_width, expect: expect});
+                    //console.log({dffi: diff, min_width: min_width, td_width: td_width, expect: expect});
                     //  resize_box.parentElement.parentElement.style.width = expect + 'px';
 
+                    let new_width_str = '100%';
                     if (expect < min_width) {
-                        resize_box.parentElement.parentElement.style.width = min_width + 'px';
+                        new_width_str = min_width + 'px';
                     } else {
-                        resize_box.parentElement.parentElement.style.width = expect + 'px';
+                        new_width_str = expect + 'px';
                     }
+                    resize_box.parentElement.parentElement.style.width = new_width_str;
+                    resize_box.headerCell.resizeDivs.forEach((resizeDiv) => {
+                        resizeDiv.style.width = new_width_str;
+                    });
 
                     // resize_box.parentElement.style.width = ((diff > 0 ? diff : 0) + td_width) + 'px';
                 };
@@ -879,15 +620,16 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
             console.log('event_type', event_type);
 
             let page_data = dataGrid.api.getRequestParam();
-            console.log('\nsetRequestDataRowsFunction:<<<\n', 'event_type', event_type, 'post_data', page_data, '\n>> setRequestDataRowsFunction\n');
-            if (event_type === 'filter') {
-                console.log('这个不做理会，不然请求太频繁了');
-                return false;
-            }
+            // console.log('\nsetRequestDataRowsFunction:<<<\n', 'event_type', event_type, 'post_data', page_data, '\n>> setRequestDataRowsFunction\n');
+            //  if (event_type === 'filter') {
+            //      console.log('这个不做理会，不然请求太频繁了');
+            //      return false;
+            //  }
             let post_data = {
                 page_index: page_data.page.index,
                 page_size: page_data.page.size,
                 attr: page_data.filter,
+                sort: page_data.sort
             };
             for (let key in config.dataSource.param.append) {
                 post_data[key] = config.dataSource.param.append[key];
@@ -897,72 +639,190 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
             }
             // post_data.attr.table_name = window.serverData.table_name;
 
-            if (!page_data.sort.key || !page_data.sort.type) {
-                console.log('没有排序');
-            } else {
-                // post_data.sort = page_data.sort;
-                post_data.sort = {};
-                post_data.sort[page_data.sort.key] = page_data.sort.type;
-            }
 
             for (let attr_key in post_data.attr) {
-                console.log(attr_key);
+                // console.log(attr_key);
                 if (post_data.attr[attr_key][0] === ':') {
                     post_data.attr[attr_key] = 'like:%' + post_data.attr[attr_key].substring(1) + '%';
                 }
             }
+            if (config.dataSource.beforeRequest(event_type, dataGrid) === true) {
+                kl.ajax({
+                    url: config.dataSource.url,
+                    data: post_data,
+                    type: 'json',
+                    success: function (res_request_data) {
+                        //console.log('请求成功，调用config.dataSource.resultAdapter() 获取指定格式');
+                        let resData = config.dataSource.resultAdapter(res_request_data);
+                        if (resData && typeof resData.pageIndex === "number" && typeof resData.rowsTotal === "number" && resData.dataRows && typeof resData.dataRows.forEach === 'function') {
+                            dataGrid.ele.pagination.infoDataSpan.textContent = '当前页码' + resData.pageIndex + '/' + resData.pageTotal + '.        .' + ' 共' + resData.rowsTotal + '条';
+                            dataGrid.api.reloadDataRows(resData);
 
-
-            kl.ajax({
-                url: '/_dp/v1/dbdata/select',
-                data: post_data,
-                type: 'json',
-                success: function (res_request_data) {
-                    console.log('请求成功');
-                    if (res_request_data.status) {
-                        if (res_request_data.status === 200) {
-                            //handle_callback(res_request_data.data.dataRows);
-
-                            //     select_page_info_span.textContent = '当前页码' + res_request_data.data.pageIndex + '/' + res_request_data.data.pageTotal + '.        .';
-                            //   select_count_info_span.textContent = ' 共' + res_request_data.data.rowsTotal + '条';
-                            dataGrid.api.reloadDataRows(res_request_data.data);
-                        } else {
-                            alert('错误:' + (res_request_data.msg || '未知'))
+                            // console.log('请求成功，调用config.dataSource.afterRequest(request_res, dataGrid) ，在获取参数渲染之后，再处理其他事情');
+                            config.dataSource.afterRequest(res_request_data, dataGrid);
                         }
-                    } else {
-                        console.log(res_request_data.status);
-                        alert('请求结果异常')
+
+
+                    },
+                    error: function (res_request_data) {
+                        console.log('datagrid.api.setRequestDataRowsFunction 网络异常:' + res_request_data);
+                        alert('网络异常');
                     }
-                },
-                error: function (res_request_data) {
-                    console.log('datagrid.api.setRequestDataRowsFunction 网络异常:' + res_request_data);
-                    alert('网络异常');
-                }
-            });
+                });
+            }
+
+
         };
 
 
         config.columns.forEach((columnConfig, columnConfigIndex) => {
-            let descSortBtn = new Emt('button', 'type="button" role="menuitem" tabindex="-1" href="#"', '倒叙排列');
-            let ascSortBtn = new Emt('button', 'type="button" role="menuitem" tabindex="-1" href="#"', '倒叙排列');
-            let noSortBtn = new Emt('button', 'type="button" role="menuitem" tabindex="-1" href="#"', '倒叙排列');
-            let headerDiv = new Emt('DIV', 'class="dropdown"').addNodes([
-                new Emt('BUTTON', `type="button" class="btn btn-info dropdown-toggle" id="headertext_${columnConfig.handleKey}" data-toggle="dropdown"`, columnConfig.headerText).addNodes([
-                    new Emt('SPAN', 'class="caret"')
-                ]),
+            let headerTextCell = dataGrid.titleTr.addTd(columnConfig.handleKey);
+            let filterCell = dataGrid.filterTr.addTd(columnConfig.handleKey);
+            headerTextCell.resizeDivs = [];
+            let spans = columnConfig.sortable === true ? [
+                new Emt('SPAN', 'class=""', columnConfig.headerText),
+                new Emt('span', 'class="glyphicon glyphicon-sort-by-attributes-alt hidden"', '', {sortType: 'desc'}),
+                new Emt('span', 'class="glyphicon glyphicon-arrow-up hidden"', '', {sortType: 'asc'}),
+                //new Emt('span', 'class="glyphicon glyphicon glyphicon-remove"', '', {sortType: false}),
+                // new Emt('SPAN', 'class="caret"'),
+            ] : [new Emt('SPAN', 'class=""', columnConfig.headerText)];
+            let descSortBtn = new Emt('button', 'type="button" class="btn btn-xs btn-default glyphicon glyphicon-sort-by-attributes-alt" role="menuitem" tabindex="-1" href="#"', '降序排列', {sortType: 'desc'});
+            let ascSortBtn = new Emt('button', 'type="button" class="btn btn-xs btn-default glyphicon glyphicon-arrow-up" role="menuitem" tabindex="-1" href="#"', '升序排列', {sortType: 'asc'});
+            let noSortBtn = new Emt('button', 'type="button" class="btn btn-xs btn-default glyphicon glyphicon-remove" role="menuitem" tabindex="-1" href="#"', '不参与', {sortType: false});
+            let headerButtonDiv = new Emt('DIV', 'class="dropdown"').addNodes([
+                new Emt('BUTTON', `type="button" class="btn btn-md btn-default  dropdown-toggle" id="headertext_${columnConfig.handleKey}" data-toggle="dropdown"`, '').addNodes(spans),
                 new Emt('UL', `class="dropdown-menu" role="menu" aria-labelledby="headertext_${columnConfig.handleKey}"`).addNodes([
+                    new Emt('LI', 'class="divider"'),
                     new Emt('LI', 'role="presentation"').addNodes([descSortBtn]),
+                    new Emt('LI', 'class="divider"'),
                     new Emt('LI', 'role="presentation"').addNodes([noSortBtn]),
-                    new Emt('LI', 'role="presentation"').addNodes([ascSortBtn])
+                    new Emt('LI', 'class="divider"'),
+                    new Emt('LI', 'role="presentation"').addNodes([ascSortBtn]),
+                    new Emt('LI', 'class="divider"'),
                 ])
             ]);
-            let headerTextCell = dataGrid.titleTr.addTd(columnConfig.handleKey);
-            headerTextCell.addNodes([headerDiv]);
+            let headerDiv = new Emt('div', 'style="' +
+                // 'float:left;' +
+                'overflow:visible;' +
+                'display: flex;' +
+                'width:100%;' +
+                'height:2.5em;' +
+                '"');
+            headerTextCell.resizeBox = new Emt('button', 'style="' +
+                'float:right;' +
+                'min-height:100%;' +
+                'min-width:1px;' +
+                'cursor: e-resize;' +
+                'padding:1em 0px;' +
+                'margin-right:0px;' +
+                'cursor:col-resize;' +
+                '"', '', {isWidthResizeBtn: true, headerCell: headerTextCell});
+            headerTextCell.addNodes([headerDiv.addNodes([
+                headerButtonDiv,
+                new Emt('div', 'style="flex:1;"').addNodes([
+                    headerTextCell.resizeBox
+                ]),
+            ])]);
 
 
-            let filterInput = new Emt('input', 'type="text"');
-            let filterCell = dataGrid.filterTr.addTd(columnConfig.handleKey);
-            filterCell.addNodes([filterInput]);
+            ([descSortBtn, noSortBtn, ascSortBtn]).forEach((sortBtn) => {
+                sortBtn.addEventListener('click', () => {
+                    if (sortBtn.sortType === false) {
+                        delete dataGrid.param.sort[columnConfig.attrKey];
+                    } else {
+                        dataGrid.param.sort[columnConfig.attrKey] = sortBtn.sortType;
+                    }
+                    spans.forEach((span) => {
+                        if (span.sortType !== undefined) {
+                            if (span.sortType === sortBtn.sortType) {
+                                span.classList.remove('hidden');
+                            } else {
+                                span.classList.add('hidden');
+                            }
+                        }
+                    })
+                    dataGrid.api.requestData('sort');
+                })
+            })
+
+
+            //开始attr.filter
+            columnConfig.initedInputs = [];
+            if (columnConfig.filter.inputs !== false) {
+                //  console.log(columnConfig);
+                columnConfig.filter.inputs.forEach((columnInput, columnInputIndex) => {
+                    /// filterCell.addNodes([filterInput]);
+                    let filterInput = false;
+                    if (columnInputIndex === 0) {
+                        if (columnInput === false) {
+                            return false;
+                        }
+                        if (columnConfig.filter.config.valueItems.length === 0) {
+                            filterInput = new Emt('input', 'type="text"');
+                            filterInput.addEventListener('keyup', (e) => {
+                                //  console.log(e.keyCode, e.key);//8 'Backspace'    27:Escape
+                                if (e.keyCode === 27) {
+                                    filterInput.value = '#';
+                                    // filterInput.fireEvent('change');
+                                    //  filterInput.onchange();
+                                    filterInput.dispatchEvent(new CustomEvent('change'));
+                                }
+                            });
+                        } else {
+                            filterInput = new Emt('select', '');
+                        }
+                        filterInput.setVal = (val) => {
+                            filterInput.value = val;
+                        }
+                        filterInput.getVal = () => {
+                            return filterInput.value;
+                        }
+                        filterInput.setOnChange = (fun) => {
+                            filterInput.addEventListener('change', () => {
+                                //console.log('xxxx');
+                                fun(filterInput);
+                            });
+                        }
+                        filterInput.setItems = (items) => {
+                            items.forEach((item) => {
+                                //   console.log(item);
+                                filterInput.add(new Option(item.text, item.val));
+                            })
+                        }
+                        // console.log(columnConfig.filter.config.valueItems.length, filterInput);
+                        filterInput.setAttrsByStr('style="max-width:90%;min-width:1em;"');
+                        filterCell.addNodes([
+                            new Emt('div', 'style="overflow:hidden;"').addNodes([filterInput])
+                        ]);
+                        headerTextCell.resizeDivs.push(filterCell.firstElementChild);
+                    } else {
+                        filterInput = columnInput;
+                    }
+                    if (columnConfig.filter.config.valueItems.length > 0 && typeof filterInput.setItems === 'function') {
+                        filterInput.setItems(([{text: '不选', val: '#'}]).concat(columnConfig.filter.config.valueItems));
+                    }
+                    columnConfig.initedInputs.push(filterInput);
+                });
+            }
+
+            columnConfig.initedInputs.forEach((initedInput) => {
+                initedInput.setOnChange(() => {
+                    let val = initedInput.getVal();
+                    console.log(initedInput, val);
+
+                    if (val === '#') {
+                        delete dataGrid.param.attr[columnConfig.attrKey];
+                    } else {
+                        dataGrid.param.attr[columnConfig.attrKey] = val;
+                    }
+                    columnConfig.initedInputs.forEach((initedInput2) => {
+                        if (initedInput !== initedInput2) {
+                            initedInput2.setVal(val);
+                        }
+                    });
+                    // console.log(dataGrid.param);
+                });
+            });
 
         });
 

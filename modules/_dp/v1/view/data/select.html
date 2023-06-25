@@ -15,10 +15,12 @@
     <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
     <script src="/static/_dp/js/string/string.js"></script>
     <script src="/static/_dp/js/hammer-yii2/bootstrap.min.2022.10.07.0.js"></script>
-    <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2023.04.21.js"></script>
+    <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2023.06.13.js?t=<?php echo rand(1,100000);?>"></script>
     <script src="/static/_dp/js/bg.js"></script>
     <script src="/static/_dp/js/hammer/hammer-struct.js"></script>
     <script src="/static/_dp/js/hammer-bg-dbdata.js"></script>
+    <script src="/static/_dp/js/hammer/hammer-object-check.js?t=<?php echo rand(1,100000);?>"></script>
+
 
 <body>
 
@@ -111,12 +113,16 @@
             raw_root.append(root);
 
 
-            let add_row_btn = new Emt('button', '', '新增');
+            let add_row_btn = new Emt('button', 'class="btn btn-md btn-info"', '新增');
             let operation_div = new Emt('div');
             let select_page_info_span = new Emt('span');
             let select_count_info_span = new Emt('span');
-            let show_search_modal_btn = new Emt('button', '', '展示搜索条件');
-            let search_btn = new Emt('button', '', '=>搜索');
+            let show_search_modal_btn = new Emt('button', 'class="btn btn-md btn-info"', '展示搜索条件');
+            let search_btn = new Emt('button', 'class="btn btn-md btn-info"', '=>搜索');
+
+            let link_to_datagridtopdiv_anchor = new Emt('a', 'class="btn btn-md btn-info" ', '到顶', {href: '#datagrid-top-div'});
+            let link_to_datagridpaginationdiv_anchor = new Emt('a', 'class="btn btn-md btn-info"', '到底', {href: '#datagrid-pagination-div'});
+
 
             let info_div = new Emt('div');
             let datagrid_div = new Emt('div');
@@ -124,9 +130,7 @@
 
 
             root.addNodes([
-                operation_div.addNodes([
-                    add_row_btn
-                ]),
+                operation_div.addNodes([]),
                 info_div.addNodes([
                     select_page_info_span,
                     select_count_info_span
@@ -134,7 +138,9 @@
                 datagrid_div,
                 fixed_tools_div.addNodes([
                     search_btn,
-                    show_search_modal_btn
+                    show_search_modal_btn,
+                    link_to_datagridtopdiv_anchor,
+                    link_to_datagridpaginationdiv_anchor
                 ])
             ]);
 
@@ -156,86 +162,148 @@
             insertRowModal.apiHandle.ele.body.addNodes([insertRowForm]);
 
 
-            let datagrid = hammerBootstarpDatagrid({});
-            console.log('datagrid', datagrid);
-            datagrid.api.setDstDivElement(datagrid_div);
-            datagrid.api.setRequestDataRowsFunction(function (event_type, dataGrid) {
-
-                let page_data = dataGrid.api.getRequestParam();
-                console.log('\nsetRequestDataRowsFunction:<<<\n', 'event_type', event_type, 'post_data', page_data, '\n>> setRequestDataRowsFunction\n');
-                if (event_type === 'filter') {
-                    console.log('这个不做理会，不然请求太频繁了');
-                    return false;
-                }
-                let post_data = {
-                    //page: page_data.page,
-                    page_index: page_data.page.index,
-                    page_size: page_data.page.size,
-                    attr: page_data.filter,
-                    dbconf_name: window.serverData.dataLib.mainTable.tableInfo.dbconf_name,
-                    table_name: window.serverData.dataLib.mainTable.tableInfo.table_name,
-                };
-                // post_data.attr.table_name = window.serverData.table_name;
-
-                if (!page_data.sort.key || !page_data.sort.type) {
-                    console.log('没有排序');
-                } else {
-                    // post_data.sort = page_data.sort;
-                    post_data.sort = {};
-                    post_data.sort[page_data.sort.key] = page_data.sort.type;
-                }
-
-                for (let attr_key in post_data.attr) {
-                    console.log(attr_key);
-                    if (post_data.attr[attr_key][0] === ':') {
-                        post_data.attr[attr_key] = 'like:%' + post_data.attr[attr_key].substring(1) + '%';
-                    }
-                }
-
-
-                kl.ajax({
+            let config = {
+                container: datagrid_div,
+                components: {//部件，datagrid 默认的部件
+                    totalInformation: true,//是否展示 数据多少行 多少页信息，自定义的话，可以在request.after定义
+                    pageInfomation: true,//分页操作
+                    requestInformation: true,//请求信息，条件 排序 分期
+                },
+                dataSource: {//请求设置
                     url: '/_dp/v1/dbdata/select',
-                    data: post_data,
-                    type: 'json',
-                    success: function (res_request_data) {
-                        console.log('请求成功');
-                        if (res_request_data.status) {
-                            if (res_request_data.status === 200) {
+                    //接受 post 请求的
+                    //发送请求 {page_index: x, page_size: y,attr:{},sort:{field:type}} ，然后会追加上 data.append,并且将其当前post_data 输入给 data.fun 再次加工
+                    // 返回数据必须满足 {"data":{"rowsTotal":11,"pageTotal":1,"pageIndex":1,"pageSize":1000,"dataRows":[]},
+                    beforeRequest: (event_type, dataGrid) => {
+                        console.log(event_type, dataGrid);
+                        let page_data = dataGrid.api.getRequestParam();
+                        //   console.log('\nsetRequestDataRowsFunction:<<<\n', 'event_type', event_type, 'post_data', page_data, '\n>> setRequestDataRowsFunction\n');
+                        if (event_type === 'filter') {
+                            console.log('这个不做理会，不然请求太频繁了');
+                            return false;
+                        }
+                        return true;//在xhr 请求之前  做些什么，如果要请求，返回true，不想继续请求 直接false 比如不想请求的太频繁，过掉某些事件
+                    },
+                    param: {
+                        append: {
+                            //附加额外的请求参数
+                            dbconf_name: window.serverData.dataLib.mainTable.tableInfo.dbconf_name,
+                            table_name: window.serverData.dataLib.mainTable.tableInfo.table_name,
+                        },
+                        fun: (post_data) => {
+                            return post_data;//处理请求参数，如果有必要的话
+                        },
+                    },
+                    resultAdapter: (request_res) => {//结果转化器
+                        rowIndexCount = 0;
+                        //将返回数据整理成 要求的格式 {"data":{"rowsTotal":11,"pageTotal":1,"pageIndex":1,"pageSize":1000,"dataRows":[]},
+                        if (request_res.status) {
+                            if (request_res.status === 200) {
+                                return request_res.data;
                                 //handle_callback(res_request_data.data.dataRows);
-                                rowIndexCount = 0;
-                                select_page_info_span.textContent = '当前页码' + res_request_data.data.pageIndex + '/' + res_request_data.data.pageTotal + '.        .';
-                                select_count_info_span.textContent = ' 共' + res_request_data.data.rowsTotal + '条';
-                                dataGrid.api.reloadDataRows(res_request_data.data);
+
+                                //     select_page_info_span.textContent = '当前页码' + res_request_data.data.pageIndex + '/' + res_request_data.data.pageTotal + '.        .';
+                                //   select_count_info_span.textContent = ' 共' + res_request_data.data.rowsTotal + '条';
+
+
                             } else {
-                                alert('错误:' + (res_request_data.msg || '未知'))
+                                alert('错误:' + (request_res.msg || '未知'))
                             }
                         } else {
-                            console.log(res_request_data.status);
+                            console.log(request_res.status);
                             alert('请求结果异常')
                         }
+                        return request_res;
                     },
-                    error: function (res_request_data) {
-                        console.log('datagrid.api.setRequestDataRowsFunction 网络异常:' + res_request_data);
-                        alert('网络异常');
+                    afterRequest: (request_res, dataGrid) => {
+
+                    },
+                    requestButtons: [
+                        true,//发请求事件的按钮，第一个代表是否自动生成
+                    ],
+                },
+                paramPreset: {//在初始化之前设置，以这些信息进行初始化
+                    attr: serverData.presetAttr || {//过滤器
+                        // id: 1,
+                    },
+                    page: serverData.presetPage || {//分页
+                        index: 1,
+                        size: 20,
+                    },
+                    sort: serverData.presetSort || {//排序
+                        //id: 'desc'
                     }
-                });
+                },
+
+                columns: [
+                    {
+                        handleKey: '_rowIndexCount',
+                        attrKey: false,
+                        headerText: 'i',
+                        sortable: false,
+                        filter: {
+                            inputs: [
+                                false
+                            ],
+                            config: {
+                                valueItems: []
+                            }
+                        },
+                        info: {},
+                        fun: (cell, row_data) => {
+                            rowIndexCount++;
+                            cell.textContent = rowIndexCount.toString();
+                        },
+                    },
+                    {
+                        handleKey: 'id',
+                        attrKey: 'id',
+                        headerText: 'ID',
+                        sortable: true,
+                        filter: {//过滤器
+                            inputs: [
+                                true,//第一个代表 header row 里面的，以 true或false 表示要不要生成
+                                //xxxx// 要具体的 html element了，必须要实现 getVal/setVal/setOnChange 方法
+                            ],
+                            config: {
+                                valueItems: [],//[ {text:xx,value:xx} ]  ，空代表随便填 input text， 如果不为空代表从里面选择 select ，长度超过 20 datalist
+                            }
+                        },
+                        info: {},
+                        fun: false,
+                    },
+                ],
+            };
+            delete config.columns[1];//只是演示数据
 
 
-            });
-
-            datagrid.api.preCreateColumn('_rowIndexCount').setColumnInfo({}).setHeaderText('i').setSortable(false).setHeaderFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
-                rowIndexCount++;
-                cell.textContent = rowIndexCount.toString();
-            });
-
-            if (window.serverData.dataLib.mainTable.__column.items.length === 0) {
-                alert('没有任何可选字段');
-                // return false;
-            }
             //循环添加 列
             window.serverData.dataLib.mainTable.__column.items.forEach((columnConfigInfo) => {
+
                 let inputKey = columnConfigInfo.column_name + 'Input';
                 let columnTitle = columnConfigInfo.title || columnConfigInfo.column_name;
+
+                let columnConfig = {
+                    handleKey: columnConfigInfo.column_name,
+                    attrKey: columnConfigInfo.column_name,
+                    headerText: columnTitle,
+                    sortable: false,
+                    filter: {
+                        type: 'text',
+                        inputs: [
+                            true
+                        ],
+                        config: {
+                            valueItems: columnConfigInfo.valItems
+                        }
+                    },
+                    info: columnConfigInfo,
+                    fun: (cell, row_data) => {
+                        rowIndexCount++;
+                        cell.textContent = rowIndexCount.toString();
+                    },
+                };
+
                 let inputType = 'text';
                 if (columnConfigInfo.db_datatype === 'json') {
                     inputType = 'textarea';
@@ -248,7 +316,7 @@
                         };
                         //console.log(updateRowForm,insertRowForm,updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv,insertRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv,updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv);
                         updateRowForm.addNodes([updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv]);
-                        updateRowForm.addNodes([insertRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv]);
+                        insertRowForm.addNodes([insertRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv]);
                     }
 
                 }
@@ -276,26 +344,27 @@
                     }
                 }
 
-                let tmp_column_handle = datagrid.api.preCreateColumn(columnConfigInfo.column_name).setColumnInfo(columnConfigInfo).setHeaderText(columnTitle).setSortable(true).setHeaderFilterInputConfig({valueItems: columnConfigInfo.valItems}).bindFreeFilterInput(searchForm.apiHandle.ele.input[inputKey]);
-                //  console.log('columnConfigInfo.valueMap',columnConfigInfo.valueMap,columnConfigInfo.valueMap.length > 0);
-
+                columnConfig.sortable = true;
+                columnConfig.filter.inputs.push(searchForm.apiHandle.ele.input[inputKey]);
+                columnConfig.filter.config = {valueItems: columnConfigInfo.valItems};
                 if (columnConfigInfo.valItems.length > 0) {
-                    tmp_column_handle.setRenderFunction((data_cell, rowData) => {
+                    columnConfig.fun = (data_cell, rowData) => {
                         data_cell.textContent = columnConfigInfo.valItemMap[rowData[columnConfigInfo.column_name]] || rowData[columnConfigInfo.column_name];
-                    })
+                    };
                 } else {
-
-                    tmp_column_handle.setRenderFunction((data_cell, rowData) => {
-                        if (columnConfigInfo.out_datatype === "img_uri") {
+                    if (columnConfigInfo.out_datatype === "img_uri") {
+                        columnConfig.fun = (data_cell, rowData) => {
                             data_cell.append(new Emt('img', 'class="cell_img"').setPros({src: rowData[columnConfigInfo.column_name]}));
-                        } else {
+                        };
+                    } else {
+                        columnConfig.fun = (data_cell, rowData) => {
                             let tmp_path = '__explain.' + columnConfigInfo.column_name + '.info';
                             data_cell.textContent = rowData[columnConfigInfo.column_name] + (kl.isUndefined(rowData, tmp_path) ? '' : ('(' + rowData.__explain[columnConfigInfo.column_name].label) + ')');
-                        }
-
-                    })
+                        };
+                    }
                 }
 
+                config.columns.push(columnConfig);
 
             });
 
@@ -304,53 +373,97 @@
                 let inputKey = '__relat__' + relationInfo.relation_res_key;
                 searchForm.apiHandle.addGroupPreCreate().setLabelText(relationInfo.relation_res_title).setItems(relationInfo.val_items).setIndexKey(inputKey).create(relationInfo.query_input_type);
 
-                datagrid.api.preCreateColumn(inputKey).setColumnInfo({}).setHeaderText(relationInfo.relation_res_title).setSortable(false).setHeaderFilterInputConfig({valueItems: []}).bindFreeFilterInput(searchForm.apiHandle.ele.input[inputKey]).setRenderFunction((cell, row_data) => {
-                    cell.textContent = row_data.__relat[relationInfo.relation_res_key].map((obj) => {
-                        return obj._label;
-                    }).join('/');
-                });
+                let columnConfig = {
+                    handleKey: inputKey,
+                    attrKey: inputKey,
+                    headerText: relationInfo.relation_res_title,
+                    sortable: false,
+                    filter: {
+                        type: 'text',
+                        inputs: [
+                            false,
+                            searchForm.apiHandle.ele.input[inputKey]
+                        ],
+                        config: {
+                            valueItems: []
+                        }
+                    },
+                    info: relationInfo,
+                    fun: (cell, row_data) => {
+                        cell.textContent = row_data.__relat[relationInfo.relation_res_key].map((obj) => {
+                            return obj._label;
+                        }).join('/');
+                    },
+                };
+                config.columns.push(columnConfig);
 
             });
+
+
             searchForm.apiHandle.addGroupPreCreate().setLabelText('#').setIndexKey('submitBtn').setContentText('搜索').setType('button').create('button');
             updateRowForm.apiHandle.addGroupPreCreate().setLabelText('#').setIndexKey('submitBtn').setContentText('修改').setType('button').create('button');
             insertRowForm.apiHandle.addGroupPreCreate().setLabelText('#').setIndexKey('submitBtn').setContentText('保存').setType('button').create('button');
 
-
-            datagrid.api.preCreateColumn('op').setColumnInfo({}).setHeaderText('操作').setSortable(true).setHeaderFilterInputConfig({valueItems: []}).setRenderFunction((cell, row_data) => {
-                let edit_btn = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '修改'});
-                edit_btn.addEventListener('click', function () {
-                    console.log('修改', cell, row_data);
-                    updateRowModal.data_info = {cell: cell, row_data: row_data};
-                    window.serverData.dataLib.mainTable.__column.items.forEach((columnConfigInfo) => {
-                        let inputKey = columnConfigInfo.column_name + 'Input';
-                        if (updateRowForm.apiHandle.ele.input[inputKey] === undefined) {
-                            return false;
-                        }
-                        updateRowForm.apiHandle.ele.input[inputKey].apiHandle.setInitVal(row_data[columnConfigInfo.column_name]);
-                        console.log('columnConfigInfo', columnConfigInfo, updateRowForm.apiHandle.ele.input[inputKey], row_data[columnConfigInfo.column_name]);
-                        if (columnConfigInfo.db_datatype === 'json' && row_data[columnConfigInfo.column_name] && columnConfigInfo.columnDefault !== undefined && columnConfigInfo.columnDefault.struct_code !== undefined) {
-                            let struct_code = columnConfigInfo.columnDefault.struct_code;
-                            let row_column_data = kl.jsonDecode(row_data[columnConfigInfo.column_name], {});
-                            if (row_column_data.struct_code !== undefined && window.serverData.dataLib.struct.map[struct_code] !== undefined) {
-                                if (updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv.apiHandle.ele.dataStruct === undefined) {
-                                    updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv.apiHandle.ele.dataStruct = new hammerStruct();
-                                    updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv.apiHandle.addInputEle(updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv.apiHandle.ele.dataStruct);
-                                }
-
-                                updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv.apiHandle.ele.dataStruct.setFullStructData(window.serverData.dataLib.struct.map[struct_code]).setInfoData(row_column_data).setCallFunction(function (val) {
-                                    updateRowForm.apiHandle.ele.input[inputKey].apiHandle.setChangedVal(JSON.stringify(val));
-                                }).reload();
+            config.columns.push({
+                handleKey: 'op',
+                attrKey: false,
+                headerText: '操作',
+                sortable: false,
+                filter: {
+                    type: 'text',
+                    inputs: [
+                        false,
+                    ],
+                    config: {
+                        valueItems: []
+                    }
+                },
+                info: {},
+                fun: (cell, row_data) => {
+                    let edit_btn = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '修改'});
+                    edit_btn.addEventListener('click', function () {
+                        console.log('修改', cell, row_data);
+                        updateRowModal.data_info = {cell: cell, row_data: row_data};
+                        window.serverData.dataLib.mainTable.__column.items.forEach((columnConfigInfo) => {
+                            let inputKey = columnConfigInfo.column_name + 'Input';
+                            if (updateRowForm.apiHandle.ele.input[inputKey] === undefined) {
+                                return false;
                             }
-                        }
+                            updateRowForm.apiHandle.ele.input[inputKey].apiHandle.setInitVal(row_data[columnConfigInfo.column_name]);
+                            console.log('columnConfigInfo', columnConfigInfo, updateRowForm.apiHandle.ele.input[inputKey], row_data[columnConfigInfo.column_name]);
+                            if (columnConfigInfo.db_datatype === 'json' && row_data[columnConfigInfo.column_name] && columnConfigInfo.columnDefault !== undefined && columnConfigInfo.columnDefault.struct_code !== undefined) {
+                                let struct_code = columnConfigInfo.columnDefault.struct_code;
+                                let row_column_data = kl.jsonDecode(row_data[columnConfigInfo.column_name], {});
+                                if (row_column_data.struct_code !== undefined && window.serverData.dataLib.struct.map[struct_code] !== undefined) {
+                                    if (updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv.apiHandle.ele.dataStruct === undefined) {
+                                        updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv.apiHandle.ele.dataStruct = new hammerStruct();
+                                        updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv.apiHandle.addInputEle(updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv.apiHandle.ele.dataStruct);
+                                    }
 
+                                    updateRowForm[columnConfigInfo.column_name + 'Struct'].groupDiv.apiHandle.ele.dataStruct.setFullStructData(window.serverData.dataLib.struct.map[struct_code]).setInfoData(row_column_data).setCallFunction(function (val) {
+                                        updateRowForm.apiHandle.ele.input[inputKey].apiHandle.setChangedVal(JSON.stringify(val));
+                                    }).reload();
+                                }
+                            }
+
+                        });
+
+                        updateRowModal.apiHandle.show();
                     });
-
-                    updateRowModal.apiHandle.show();
-                });
-
-
-                cell.addNodes([edit_btn]);
+                    cell.addNodes([edit_btn]);
+                },
             });
+
+            console.log(config);
+
+            let datagrid = hammerBootstarpAsyncDatagrid(config);
+            console.log('datagrid', datagrid);
+            //  return false;
+
+            if (window.serverData.dataLib.mainTable.__column.items.length === 0) {
+                alert('没有任何可选字段');
+                // return false;
+            }
 
 
             search_btn.addEventListener('click', function () {
@@ -443,7 +556,7 @@
 
             });
 
-            datagrid.api.run();
+            datagrid.api.init();
             if (!kl.isUndefined(serverData.dataLib.mainTable.tableInfo, 'tableDefault.sort.field') && !kl.isUndefined(serverData.dataLib.mainTable.tableInfo, 'tableDefault.sort.type')) {
                 console.log(datagrid.column.handle.map);
                 if (datagrid.column.handle.map[serverData.dataLib.mainTable.tableInfo.tableDefault.sort.field]) {
@@ -451,6 +564,7 @@
                 }
 
             }
+            datagrid.ele.topDiv.addNodes([add_row_btn]);
             datagrid.api.requestData('init');
 
 
@@ -481,6 +595,10 @@
         bottom: 0;
     }
 
+    .fixed_tools_div > .btn, .datagrid-top-div > .btn {
+        margin-left: 1em;
+    }
+
     .container {
 
     }
@@ -489,20 +607,12 @@
         max-width: 200px;
         max-height: 100px;
     }
+
 </style>
 <script></script>
 <script>
 
 </script>
-
-
-<footer class="footer">
-    <div class="container">
-        <p class="pull-left">&copy; My Company 2022</p>
-
-        <p class="pull-right">Powered by <a href="http://www.yiiframework.com/" rel="external">Yii Framework</a></p>
-    </div>
-</footer>
 
 </body>
 </html>

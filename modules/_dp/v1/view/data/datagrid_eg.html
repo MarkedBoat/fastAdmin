@@ -113,12 +113,16 @@
             raw_root.append(root);
 
 
-            let add_row_btn = new Emt('button', '', '新增');
+            let add_row_btn = new Emt('button', 'class="btn btn-md btn-info"', '新增');
             let operation_div = new Emt('div');
             let select_page_info_span = new Emt('span');
             let select_count_info_span = new Emt('span');
-            let show_search_modal_btn = new Emt('button', '', '展示搜索条件');
-            let search_btn = new Emt('button', '', '=>搜索');
+            let show_search_modal_btn = new Emt('button', 'class="btn btn-md btn-info"', '展示搜索条件');
+            let search_btn = new Emt('button', 'class="btn btn-md btn-info"', '=>搜索');
+
+            let link_to_datagridtopdiv_anchor = new Emt('a', 'class="btn btn-md btn-info" ', '到顶', {href: '#datagrid-top-div'});
+            let link_to_datagridpaginationdiv_anchor = new Emt('a', 'class="btn btn-md btn-info"', '到底', {href: '#datagrid-pagination-div'});
+
 
             let info_div = new Emt('div');
             let datagrid_div = new Emt('div');
@@ -126,9 +130,7 @@
 
 
             root.addNodes([
-                operation_div.addNodes([
-                    add_row_btn
-                ]),
+                operation_div.addNodes([]),
                 info_div.addNodes([
                     select_page_info_span,
                     select_count_info_span
@@ -136,7 +138,9 @@
                 datagrid_div,
                 fixed_tools_div.addNodes([
                     search_btn,
-                    show_search_modal_btn
+                    show_search_modal_btn,
+                    link_to_datagridtopdiv_anchor,
+                    link_to_datagridpaginationdiv_anchor
                 ])
             ]);
 
@@ -171,8 +175,9 @@
                     //发送请求 {page_index: x, page_size: y,attr:{},sort:{field:type}} ，然后会追加上 data.append,并且将其当前post_data 输入给 data.fun 再次加工
                     // 返回数据必须满足 {"data":{"rowsTotal":11,"pageTotal":1,"pageIndex":1,"pageSize":1000,"dataRows":[]},
                     beforeRequest: (event_type, dataGrid) => {
+                        console.log(event_type, dataGrid);
                         let page_data = dataGrid.api.getRequestParam();
-                        console.log('\nsetRequestDataRowsFunction:<<<\n', 'event_type', event_type, 'post_data', page_data, '\n>> setRequestDataRowsFunction\n');
+                        //   console.log('\nsetRequestDataRowsFunction:<<<\n', 'event_type', event_type, 'post_data', page_data, '\n>> setRequestDataRowsFunction\n');
                         if (event_type === 'filter') {
                             console.log('这个不做理会，不然请求太频繁了');
                             return false;
@@ -192,6 +197,22 @@
                     resultAdapter: (request_res) => {//结果转化器
                         rowIndexCount = 0;
                         //将返回数据整理成 要求的格式 {"data":{"rowsTotal":11,"pageTotal":1,"pageIndex":1,"pageSize":1000,"dataRows":[]},
+                        if (request_res.status) {
+                            if (request_res.status === 200) {
+                                return request_res.data;
+                                //handle_callback(res_request_data.data.dataRows);
+
+                                //     select_page_info_span.textContent = '当前页码' + res_request_data.data.pageIndex + '/' + res_request_data.data.pageTotal + '.        .';
+                                //   select_count_info_span.textContent = ' 共' + res_request_data.data.rowsTotal + '条';
+
+
+                            } else {
+                                alert('错误:' + (request_res.msg || '未知'))
+                            }
+                        } else {
+                            console.log(request_res.status);
+                            alert('请求结果异常')
+                        }
                         return request_res;
                     },
                     afterRequest: (request_res, dataGrid) => {
@@ -202,20 +223,15 @@
                     ],
                 },
                 paramPreset: {//在初始化之前设置，以这些信息进行初始化
-                    attr: {//过滤器
-                        data: {},
-                        fun: (param, dataGrid) => {
-                        },
+                    attr: serverData.presetAttr || {//过滤器
+                        // id: 1,
                     },
-                    page: {//分页
-                        data: {},
-                        fun: (param, dataGrid) => {
-                        },
+                    page: serverData.presetPage || {//分页
+                        index: 1,
+                        size: 5,
                     },
-                    sort: {//排序
-                        data: {},
-                        fun: (param, dataGrid) => {
-                        },
+                    sort: serverData.presetSort || {//排序
+                        id: 'desc'
                     }
                 },
 
@@ -247,7 +263,7 @@
                         filter: {//过滤器
                             inputs: [
                                 true,//第一个代表 header row 里面的，以 true或false 表示要不要生成
-                                //xxxx// 要具体的 html element了，必须要实现 getVal/setVal/setOnchange 方法
+                                //xxxx// 要具体的 html element了，必须要实现 getVal/setVal/setOnChange 方法
                             ],
                             config: {
                                 valueItems: [],//[ {text:xx,value:xx} ]  ，空代表随便填 input text， 如果不为空代表从里面选择 select ，长度超过 20 datalist
@@ -258,6 +274,7 @@
                     },
                 ],
             };
+            delete config.columns[1];//只是演示数据
 
 
             //循环添加 列
@@ -274,10 +291,10 @@
                     filter: {
                         type: 'text',
                         inputs: [
-                            false
+                            true
                         ],
                         config: {
-                            valueItems: []
+                            valueItems: columnConfigInfo.valItems
                         }
                     },
                     info: columnConfigInfo,
@@ -547,6 +564,7 @@
                 }
 
             }
+            datagrid.ele.topDiv.addNodes([add_row_btn]);
             datagrid.api.requestData('init');
 
 
@@ -577,6 +595,10 @@
         bottom: 0;
     }
 
+    .fixed_tools_div > .btn, .datagrid-top-div > .btn {
+        margin-left: 1em;
+    }
+
     .container {
 
     }
@@ -585,20 +607,12 @@
         max-width: 200px;
         max-height: 100px;
     }
+
 </style>
 <script></script>
 <script>
 
 </script>
-
-
-<footer class="footer">
-    <div class="container">
-        <p class="pull-left">&copy; My Company 2022</p>
-
-        <p class="pull-right">Powered by <a href="http://www.yiiframework.com/" rel="external">Yii Framework</a></p>
-    </div>
-</footer>
 
 </body>
 </html>

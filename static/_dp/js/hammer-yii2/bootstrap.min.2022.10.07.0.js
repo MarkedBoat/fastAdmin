@@ -233,42 +233,43 @@ let hammerYii2Bootstarp = function () {
             init: undefined
         };
 
-        inputEle.apiHandle.getVal = function () {
+        inputEle.apiHandle.getVal = inputEle.apiHandle.getVal || function () {
             return inputEle.value;
         }
-        inputEle.apiHandle.__setVal = function (val) {
+        inputEle.apiHandle.__setVal = inputEle.apiHandle.__setVal || function (val) {
             inputEle.value = val;
         }
 
-        inputEle.apiHandle.setInitVal = function (val) {
+
+        inputEle.apiHandle.setInitVal = inputEle.apiHandle.setInitVal || function (val) {
             inputEle.apiHandle.__setVal(val);
             inputEle.apiHandle.val.init = val;
             return inputEle;
         };
-        inputEle.apiHandle.getInitVal = function (val) {
+        inputEle.apiHandle.getInitVal = inputEle.apiHandle.getInitVal || function (val) {
             return inputEle.apiHandle.val.init;
         };
 
-        inputEle.apiHandle.rollBackInitVal = function () {
+        inputEle.apiHandle.rollBackInitVal = inputEle.apiHandle.rollBackInitVal || function () {
             inputEle.apiHandle.setInitVal(inputEle.apiHandle.val.init);
             return inputEle;
         };
 
 
-        inputEle.apiHandle.setChangedVal = function (val) {
+        inputEle.apiHandle.setChangedVal = inputEle.apiHandle.setChangedVal || function (val) {
             inputEle.apiHandle.__setVal(val);
             return inputEle;
         };
-        inputEle.apiHandle.acceptValChanged = function () {
+        inputEle.apiHandle.acceptValChanged = inputEle.apiHandle.acceptValChanged || function () {
             inputEle.apiHandle.val.init = inputEle.getVal();
             return inputEle;
         }
 
-        inputEle.apiHandle.isChange = function () {
+        inputEle.apiHandle.isChange = inputEle.apiHandle.isChange || function () {
             return !(inputEle.apiHandle.getInitVal() === inputEle.apiHandle.getVal());
         }
 
-        inputEle.apiHandle.__setRemoteItems = function (url, post_data) {
+        inputEle.apiHandle.__setRemoteItems = inputEle.apiHandle.__setRemoteItems || function (url, post_data) {
             console.log('xxxxxxxxx', url, post_data);
             let tmp_method = 'GET';
             if (post_data) {
@@ -297,12 +298,25 @@ let hammerYii2Bootstarp = function () {
             })
             return inputEle;
         }
-        inputEle.apiHandle.setClickCall = function (fun) {
+        inputEle.apiHandle.setClickCall = inputEle.apiHandle.setClickCall || function (fun) {
             inputEle.addEventListener('click', function () {
                 fun(this);
             });
         }
 
+        inputEle.setVal = inputEle.apiHandle.__setVal;
+        inputEle.getVal = inputEle.apiHandle.getVal;
+        inputEle.setOnChange = inputEle.apiHandle.setOnChange || ((fun) => {
+            //如果是复杂输入，有多个 input 触发，应该全都加上
+            inputEle.addEventListener('change', () => {
+                fun(inputEle);
+            });
+        });
+        inputEle.setItems = (items) => {
+            if (typeof inputEle.apiHandle.setItems === 'function') {
+                inputEle.apiHandle.setItems(items);
+            }
+        };
 
     };
     bootstrap_hanndle.createTextInput = function (input_param) {
@@ -555,7 +569,16 @@ let hammerYii2Bootstarp = function () {
     bootstrap_hanndle.createSearchTags = function (input_param) {
         let searchTags_div = new Emt('div', 'class="xxxx"');
 
-        searchTags_div.apiHandle = {ele: {root: searchTags_div}, vals: [], checkboxs: [], items: []};
+        searchTags_div.apiHandle = {
+            ele: {
+                root: searchTags_div
+            },
+            vals: [],
+            checkboxs: [],
+            items: [],
+            onChange: () => {
+            }
+        };
 
         searchTags_div.apiHandle.ele.toggleSearchBtn = bootstrap_hanndle.createButton({type: 'button', text: '🔍'});
         searchTags_div.apiHandle.ele.tagsDiv = new Emt('div');
@@ -577,6 +600,10 @@ let hammerYii2Bootstarp = function () {
         ]);
 
 
+        searchTags_div.apiHandle.setOnchange = (fun) => {
+            searchTags_div.apiHandle.onChange = fun;
+            //fun(searchTags_div);
+        };
         searchTags_div.apiHandle.trySelectItemVal = function (inputVal) {
             inputVal = inputVal.toString();
             if (inputVal.length > 0 && searchTags_div.apiHandle.vals.indexOf(inputVal) === -1) {
@@ -596,10 +623,11 @@ let hammerYii2Bootstarp = function () {
                                 item_checkbox.parentElement.remove();
                             }
                             searchTags_div.apiHandle.vals = searchTags_div.apiHandle.getVal();
-                            console.log('vals', searchTags_div.apiHandle.vals);
+                            //   console.log('vals', searchTags_div.apiHandle.vals);
+                            searchTags_div.apiHandle.onChange(searchTags_div);
                         });
                         searchTags_div.apiHandle.vals = searchTags_div.apiHandle.getVal();
-                        console.log('vals', searchTags_div.apiHandle.vals);
+                        //  console.log('vals', searchTags_div.apiHandle.vals);
 
                     }
                 });
@@ -633,7 +661,6 @@ let hammerYii2Bootstarp = function () {
             init: undefined
         };
         input_param.keepClass = true;
-        bootstrap_hanndle.__initInputEle(searchTags_div, input_param);
 
         searchTags_div.apiHandle.getVal = function () {
             let vals = [];
@@ -661,6 +688,9 @@ let hammerYii2Bootstarp = function () {
         searchTags_div.apiHandle.isChange = function () {
             return !(JSON.stringify(searchTags_div.apiHandle.getInitVal()) === JSON.stringify(searchTags_div.apiHandle.getVal()));
         }
+        bootstrap_hanndle.__initInputEle(searchTags_div, input_param);
+
+
         searchTags_div.apiHandle.setRemoteItems = searchTags_div.apiHandle.__setRemoteItems;
 
         searchTags_div.apiHandle.ele.toggleSearchBtn.addEventListener('click', function () {
