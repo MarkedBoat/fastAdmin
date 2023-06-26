@@ -210,7 +210,7 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
             console.warn(" config.paramPreset.page 没有设置");
         } else {
             if (typeof input_param.paramPreset.page === "object") {
-              //  config.paramPreset.page = input_param.paramPreset.page;
+                //  config.paramPreset.page = input_param.paramPreset.page;
 
                 if (typeof input_param.paramPreset.page.index === "number" && input_param.paramPreset.page.index > 0) {
                     config.paramPreset.page.index = input_param.paramPreset.page.index;
@@ -321,7 +321,7 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
             type: ['object'],
             objectAttrs: [
                 {attr: 'pageIndex', detail: '当前页码', check: {must: true, type: ['number'], min: 1}},//
-                {attr: 'pageTotal', detail: '总页数', check: {must: true, type: ['number',], min: 1}},//
+                {attr: 'pageTotal', detail: '总页数', check: {must: true, type: ['number',], min: 0}},//
                 {attr: 'pageSize', detail: '每页容量，多少行', check: {must: true, type: ['number',], min: 1, max: 100000}},//
                 {attr: 'rowsTotal', detai: '总行数', check: {must: true, type: ['number',], min: 0,}},//
                 {attr: 'dataRows', detai: '行数据', check: {must: true, type: ['array'], arrayElementConfig: {check: {type: 'object', objectAttrs: []}}}},
@@ -812,7 +812,10 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
                     }
                 })
                 dataGrid.api.requestData('sort');
-            })
+            });
+            if (dataGrid.param.sort[columnConfig.attrKey] !== undefined && dataGrid.param.sort[columnConfig.attrKey] === sortBtn.sortType) {
+                sortBtn.dispatchEvent(new CustomEvent('click'));
+            }
         })
 
 
