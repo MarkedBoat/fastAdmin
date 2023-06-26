@@ -24,7 +24,7 @@ class Api implements IDispatcher
      */
     private       $__action  = null;
     public static $hasOutput = false;//是否已经输出数据，如果已经输出，其它地方就不要再输出了
-    private       $_outType  = 'json';
+    private       $_outType  = 'text';
 
     private $actionStatus = '';
 
@@ -70,6 +70,10 @@ class Api implements IDispatcher
         array_unshift($arr, 'modules');
         $actionClassPath    = join('\\', $arr);
         $this->actionStatus = self::actoinStatusInit;
+        if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest')
+        {
+            $this->setOutType(self::outTypeJson);
+        }
         try
         {
             $this->initAction($actionClassPath);
@@ -80,9 +84,11 @@ class Api implements IDispatcher
         } catch (AdvError $advError)
         {
             $this->outAdvError($advError, 'init');
+            return false;
         } catch (\Exception $e)
         {
             $this->outBaseException($e, 'init');
+            return false;
         }
 
         $this->actionStatus = self::actoinStatusRunned;
@@ -191,7 +197,7 @@ class Api implements IDispatcher
                 }
                 else if ($this->_outType === self::outTypeText)
                 {
-                    @header('content-Type:text/html;charset=utf8');
+                    @header('content-Type:text/plain;charset=utf8');
                     if (Sys::app()->isDebug())
                     {
                         echo $echo;
@@ -227,8 +233,8 @@ class Api implements IDispatcher
 
         if ($this->_outType === self::outTypeText)
         {
-            @header('content-Type:text/html;charset=utf8');
-
+            @header('content-Type:text/plain;charset=utf8');
+            echo "\n outBaseException plain {$flag}\n";
             echo "\nCODE:\n";
             echo Sys::app()->interruption()->getCode();
             echo "\ngetMessage:\n";
@@ -300,8 +306,8 @@ class Api implements IDispatcher
 
         if (($this->actionStatus === self::actoinStatusRunned && $this->__action->isOutputText()) || $this->_outType === self::outTypeText)
         {
-            @header('content-Type:text/html;charset=utf8');
-
+            @header('content-Type:text/plain;charset=utf8');
+            echo "\n outAdvError plain\n";
             echo "\nCODE:\n";
             echo Sys::app()->interruption()->getCode();
             echo "\ngetMessage:\n";
