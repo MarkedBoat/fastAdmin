@@ -9,6 +9,7 @@
     let basicCheck = (beCheckedData, checkConfig, parentFlag) => {
         // console.log([beCheckedData, checkConfig]);
         let errors = [];
+        checkConfig.detail = checkConfig.detail || '';
         if (checkConfig.attr === 'root') {
             checkConfig.check.objectAttrs.forEach((subCheckConfig) => {
                 let sub_res = basicCheck(beCheckedData, subCheckConfig, 'root');
@@ -29,25 +30,38 @@
             }
             //console.log(checkConfig.attr, dataAttrType,checkConfig.check.type);
             if (checkConfig.check.must === true && dataAttrType === 'undefined') {
-                errors.push(`${parentFlag}.${checkConfig.attr} 未设置`);
+                errors.push(`${parentFlag}.${checkConfig.attr} [${checkConfig.detail}] 未设置`);
                 return errors;
             }
 
             if (checkConfig.check.type.indexOf(dataAttrType) === -1) {
-                errors.push(`数据 ${parentFlag}.${checkConfig.attr} 是 ${dataAttrType} 不在预期内`);
+                errors.push(`数据 ${parentFlag}.${checkConfig.attr} [${checkConfig.detail}] 是 ${dataAttrType} 不在预期内`);
                 //  console.log(errors);
                 return errors;
             }
+            if (dataAttrType === 'number') {
+                if (checkConfig.check.min !== undefined && beCheckedData[checkConfig.attr] < checkConfig.check.min) {
+                    errors.push(`数据 ${parentFlag}.${checkConfig.attr} [${checkConfig.detail}] 比最小值 [${checkConfig.check.min}] 小`);
+                }
+                if (checkConfig.check.max !== undefined && beCheckedData[checkConfig.attr] > checkConfig.check.max) {
+                    errors.push(`数据 ${parentFlag}.${checkConfig.attr} [${checkConfig.detail}] 比最大值 [${checkConfig.check.max}] 大`);
+                }
+                if (errors.length === 0) {
+                    return true
+                } else {
+                    return errors;
+                }
+            }
+
             if (dataAttrType === 'array') {
 
-                checkConfig.check.arrayElementConfig.check.type
                 beCheckedData[checkConfig.attr].forEach((attrArrayElement, attrArrayElementIndex) => {
                     let tmpDataType = typeof attrArrayElement;
                     if (tmpDataType === 'object' && typeof attrArrayElement.forEach === 'function') {
                         tmpDataType = 'array';
                     }
                     if (checkConfig.check.arrayElementConfig.check.type.indexOf(tmpDataType) === -1) {
-                        errors.push(`数组 ${parentFlag}.${checkConfig.attr}[${attrArrayElementIndex}] 是 ${tmpDataType} 不在预期内`);
+                        errors.push(`数组 ${parentFlag}.${checkConfig.attr}[${attrArrayElementIndex}]  [${checkConfig.detail}] 是 ${tmpDataType} 不在预期内`);
                     }
                     if (tmpDataType === 'object') {
                         // console.log(checkConfig.check);

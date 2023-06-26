@@ -204,8 +204,11 @@ let hammerYii2Bootstarp = function () {
 
         group_div.apiHandle.ele.inputLabel = new Emt('LABEL', 'class="col-sm-2 control-label"', init_config.text);
         group_div.apiHandle.ele.inputDiv = new Emt('DIV', 'class="col-sm-10"');
+        group_div.apiHandle.ele.helpBlock = new Emt('span', 'class="help-block"');
+
         group_div.apiHandle.addInputEle = function (inputEle) {
             group_div.apiHandle.ele.inputDiv.addNode(inputEle);
+            group_div.apiHandle.ele.inputDiv.addNode(group_div.apiHandle.ele.helpBlock);
             //console.log('xxxx', inputEle);
             if (inputEle.id) {
                 group_div.apiHandle.ele.inputLabel.setAttribute('for', inputEle.id);
@@ -216,9 +219,13 @@ let hammerYii2Bootstarp = function () {
             group_div.apiHandle.ele.inputLabel.textContent = text;
             return group_div;
         }
+        group_div.apiHandle.setDetail = (detail) => {
+            group_div.apiHandle.ele.helpBlock.textContent = detail;
+            return group_div;
+        }
         group_div.addNodes([
             group_div.apiHandle.ele.inputLabel,
-            group_div.apiHandle.ele.inputDiv
+            group_div.apiHandle.ele.inputDiv,
         ])
         return group_div;
     };
@@ -748,6 +755,12 @@ let hammerYii2Bootstarp = function () {
             tmp.param.labelText = labelText;
             return tmp;
         }
+
+        tmp.setHelpblockDetail = function (detail) {
+            tmp.param.detail = detail;
+            return tmp;
+        }
+
         tmp.setContentText = function (contentText) {
             tmp.param.contentText = contentText;
             tmp.param.text = contentText;
@@ -775,6 +788,11 @@ let hammerYii2Bootstarp = function () {
             tmp.param.items = items;
             return tmp;
         }
+        /**
+         * 实例化之后，必选先调用这个方法，供input element 创建之后，去调用onCreate
+         * @param fun
+         * @returns {{onCreate: boolean, param: {}}}
+         */
         tmp.setOnCreate = function (fun) {
             tmp.onCreate = fun;
             return tmp;
@@ -865,6 +883,9 @@ let hammerYii2Bootstarp = function () {
             }
             if (input_param.labelText) {
                 group_div.apiHandle.setText(input_param.labelText);
+            }
+            if (input_param.detail) {
+                group_div.apiHandle.setDetail(input_param.detail);
             }
             if (input_param.nameVar) {
                 input_ele.name = form_ele.initConfig.dataNameTpl.replace('$var', input_param.nameVar);

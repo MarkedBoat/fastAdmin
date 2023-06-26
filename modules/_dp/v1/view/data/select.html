@@ -113,15 +113,47 @@
             raw_root.append(root);
 
 
-            let add_row_btn = new Emt('button', 'class="btn btn-md btn-info"', '新增');
+            let add_row_btn = new Emt('button', 'class="btn btn-md btn-info"', '').addNodes([
+                new Emt('span', 'class=" glyphicon glyphicon-plus"'),
+                new Emt('span', '', '新增')
+            ]);
+            let toggle_table_with_btn = new Emt('button', 'class="btn btn-md btn-info"', '').addNodes([
+                new Emt('span', 'class="glyphicon glyphicon-transfer"'),
+                new Emt('span', '', '展开/折叠表格')
+            ]);
+            let dowload_raw_data_btn = new Emt('button', 'class="btn btn-md btn-info"',).addNodes([
+                new Emt('span', 'class="glyphicon glyphicon-download-alt"'),
+                new Emt('span', '', '下载原始数据')
+            ]);
+            let download_table_data_btn = new Emt('button', 'class="btn btn-md btn-info"', '').addNodes([
+                new Emt('span', 'class="glyphicon glyphicon-download-alt"'),
+                new Emt('span', '', '下载表格数据')
+            ]);
+
             let operation_div = new Emt('div');
             let select_page_info_span = new Emt('span');
             let select_count_info_span = new Emt('span');
-            let show_search_modal_btn = new Emt('button', 'class="btn btn-md btn-info"', '展示搜索条件');
-            let search_btn = new Emt('button', 'class="btn btn-md btn-info"', '=>搜索');
+            let show_search_modal_btn = new Emt('button', 'class="btn btn-md btn-info"', '').addNodes([
+                // new Emt('span','class="glyphicon glyphicon-new-window"'),
+                new Emt('span', 'class="glyphicon glyphicon-resize-full"'),
+                new Emt('span', '', '查询条件')
+            ]);
 
-            let link_to_datagridtopdiv_anchor = new Emt('a', 'class="btn btn-md btn-info" ', '到顶', {href: '#datagrid-top-div'});
-            let link_to_datagridpaginationdiv_anchor = new Emt('a', 'class="btn btn-md btn-info"', '到底', {href: '#datagrid-pagination-div'});
+            let search_btn = new Emt('button', 'class="btn btn-md btn-info"', '').addNodes([
+                //  new Emt('span','class="glyphicon glyphicon-play"'),
+                new Emt('span', 'class="glyphicon glyphicon-ok"'),
+                new Emt('span', '', '查询')
+            ]);
+
+
+            let link_to_datagridtopdiv_anchor = new Emt('a', 'class="btn btn-md btn-info" ', '', {href: '#datagrid-top-div'}).addNodes([
+                new Emt('span', 'class="glyphicon glyphicon-arrow-up"'),
+                new Emt('span', '', '到顶')
+            ]);
+            let link_to_datagridpaginationdiv_anchor = new Emt('a', 'class="btn btn-md btn-info"', '', {href: '#datagrid-pagination-div'}).addNodes([
+                new Emt('span', 'class="glyphicon glyphicon-arrow-down"'),
+                new Emt('span', '', '到底')
+            ]);
 
 
             let info_div = new Emt('div');
@@ -140,7 +172,11 @@
                     search_btn,
                     show_search_modal_btn,
                     link_to_datagridtopdiv_anchor,
-                    link_to_datagridpaginationdiv_anchor
+                    link_to_datagridpaginationdiv_anchor,
+                    add_row_btn,
+                    toggle_table_with_btn,
+                    dowload_raw_data_btn,
+                    download_table_data_btn,
                 ])
             ]);
 
@@ -174,6 +210,7 @@
                     //接受 post 请求的
                     //发送请求 {page_index: x, page_size: y,attr:{},sort:{field:type}} ，然后会追加上 data.append,并且将其当前post_data 输入给 data.fun 再次加工
                     // 返回数据必须满足 {"data":{"rowsTotal":11,"pageTotal":1,"pageIndex":1,"pageSize":1000,"dataRows":[]},
+                    downloadable: true,//可下载数据
                     beforeRequest: (event_type, dataGrid) => {
                         console.log(event_type, dataGrid);
                         let page_data = dataGrid.api.getRequestParam();
@@ -229,9 +266,10 @@
                     page: serverData.presetPage || {//分页
                         index: 1,
                         size: 20,
+                        sizes: [5, 10, 20, 50, 100],
                     },
                     sort: serverData.presetSort || {//排序
-                        //id: 'desc'
+                        id: 'desc'
                     }
                 },
 
@@ -328,7 +366,7 @@
                     inputType = 'select';
                 }
                 //  searchForm.apiHandle.addGroupPreCreate().setLabelText(columnTitle).setIndexKey(inputKey).create(inputType === 'select' ? inputType : 'text');
-                searchForm.apiHandle.addGroupPreCreate().setLabelText(columnTitle).setIndexKey(inputKey).create(columnConfigInfo.query_input_type);
+                searchForm.apiHandle.addGroupPreCreate().setLabelText(columnTitle).setHelpblockDetail(columnConfigInfo.remark === columnTitle ? '' : columnConfigInfo.remark).setIndexKey(inputKey).create(columnConfigInfo.query_input_type === 'text' ? inputType : columnConfigInfo.query_input_type);
 
                 if ((['update_time', 'create_time']).indexOf(columnConfigInfo.column_name) === -1) {
                     insertRowForm.apiHandle.addGroupPreCreate().setLabelText(columnTitle).setIndexKey(inputKey).create(inputType);
@@ -336,6 +374,7 @@
                     if (columnConfigInfo.valItems.length > 0) {
                         updateRowForm.apiHandle.ele.input[inputKey].apiHandle.setItems(columnConfigInfo.valItems);
                         insertRowForm.apiHandle.ele.input[inputKey].apiHandle.setItems(columnConfigInfo.valItems);
+                        // console.log(columnConfigInfo, searchForm.apiHandle.ele.input[inputKey]);
                         searchForm.apiHandle.ele.input[inputKey].apiHandle.setItems([{text: '不选', val: ''}].concat(columnConfigInfo.valItems));
                     }
                     if (columnConfigInfo.index_key === 'PRI') {
@@ -349,17 +388,27 @@
                 columnConfig.filter.config = {valueItems: columnConfigInfo.valItems};
                 if (columnConfigInfo.valItems.length > 0) {
                     columnConfig.fun = (data_cell, rowData) => {
-                        data_cell.textContent = columnConfigInfo.valItemMap[rowData[columnConfigInfo.column_name]] || rowData[columnConfigInfo.column_name];
+                        data_cell.addNodes([
+                            new Emt('p', 'class="cell_content"', columnConfigInfo.valItemMap[rowData[columnConfigInfo.column_name]] || rowData[columnConfigInfo.column_name])
+                        ]);
                     };
                 } else {
                     if (columnConfigInfo.out_datatype === "img_uri") {
                         columnConfig.fun = (data_cell, rowData) => {
-                            data_cell.append(new Emt('img', 'class="cell_img"').setPros({src: rowData[columnConfigInfo.column_name]}));
+                            //  data_cell.append();
+                            data_cell.addNodes([
+                                new Emt('p', 'class="cell_content"', '').addNodes([
+                                    new Emt('img', 'class="cell_img"').setPros({src: rowData[columnConfigInfo.column_name]})
+                                ])
+                            ]);
                         };
                     } else {
                         columnConfig.fun = (data_cell, rowData) => {
                             let tmp_path = '__explain.' + columnConfigInfo.column_name + '.info';
-                            data_cell.textContent = rowData[columnConfigInfo.column_name] + (kl.isUndefined(rowData, tmp_path) ? '' : ('(' + rowData.__explain[columnConfigInfo.column_name].label) + ')');
+                            //  data_cell.textContent = rowData[columnConfigInfo.column_name] + (kl.isUndefined(rowData, tmp_path) ? '' : ('(' + rowData.__explain[columnConfigInfo.column_name].label) + ')');
+                            data_cell.addNodes([
+                                new Emt('p', 'class="cell_content"', rowData[columnConfigInfo.column_name] + (kl.isUndefined(rowData, tmp_path) ? '' : ('(' + rowData.__explain[columnConfigInfo.column_name].label) + ')'))
+                            ]);
                         };
                     }
                 }
@@ -557,14 +606,18 @@
             });
 
             datagrid.api.init();
-            if (!kl.isUndefined(serverData.dataLib.mainTable.tableInfo, 'tableDefault.sort.field') && !kl.isUndefined(serverData.dataLib.mainTable.tableInfo, 'tableDefault.sort.type')) {
-                console.log(datagrid.column.handle.map);
-                if (datagrid.column.handle.map[serverData.dataLib.mainTable.tableInfo.tableDefault.sort.field]) {
-                    datagrid.column.handle.map[serverData.dataLib.mainTable.tableInfo.tableDefault.sort.field].sortButton.setSort(serverData.dataLib.mainTable.tableInfo.tableDefault.sort.type);
-                }
 
-            }
-            datagrid.ele.topDiv.addNodes([add_row_btn]);
+            toggle_table_with_btn.addEventListener('click', () => {
+                datagrid.api.toggleTableWidth();
+            });
+            dowload_raw_data_btn.addEventListener('click', () => {
+                datagrid.api.downloadRawData();
+            });
+            download_table_data_btn.addEventListener('click', () => {
+                datagrid.api.downloadTableData();
+            });
+
+            //   datagrid.ele.topDiv.addNodes([add_row_btn]);
             datagrid.api.requestData('init');
 
 
@@ -606,6 +659,14 @@
     .cell_img {
         max-width: 200px;
         max-height: 100px;
+    }
+
+    .cell_content {
+        position: relative;
+        line-height: 1.4em;
+        /* 3 times the line-height to show 3 lines */
+        max-height: 5em;
+        overflow: hidden;
     }
 
 </style>
