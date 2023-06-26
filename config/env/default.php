@@ -1,45 +1,23 @@
 <?php
-defined('ENV_NAME') or define('ENV_NAME', 'bee_invasion_dev');
-//徐亚洲
+defined('ENV_NAME') or define('ENV_NAME', 'default');
+
 $dev_cfg = [
-    'connectionString' => 'mysql:host=mysql8_server;port=3306;dbname=dev_bg',
-    'username'         => 'root',
-    'password'         => 'Mysql!',
-    'charset'          => 'utf8',
-    'readOnly'         => true,
-    'attributes'       => [
-        \PDO::ATTR_TIMEOUT => 1
-    ]
-];
-
-$fast_bg_cfg = [
-    'connectionString' => 'mysql:host=mysql8_server;port=3306;dbname=fast_bg',
-    'username'         => 'root',
-    'password'         => 'Mysql!',
-    'charset'          => 'utf8',
-    'readOnly'         => true,
-    'attributes'       => [
-        \PDO::ATTR_TIMEOUT => 1
-    ]
-];
-
-$tmp = [
-    'connectionString' => 'mysql:host=127.0.0.1;port=3306;dbname=tmp',
-    'username'         => 'root',
-    'password'         => 'Password@Mysql8',
-    'charset'          => 'utf8',
-    'readOnly'         => true,
-    'attributes'       => [
+    'host'       => '127.0.0.1',
+    'port'       => 3306,
+    'dbname'     => 'test2',
+    'username'   => 'root',
+    'password'   => 'Password@Mysql8',
+    'charset'    => 'utf8mb4',
+    'readOnly'   => false,
+    'attributes' => [
         \PDO::ATTR_TIMEOUT => 1
     ]
 ];
 
 
-return array_merge_recursive(include __ROOT_DIR__ . '/config/env/common_param.php', [
+return merge_conf_with_cover(include __ROOT_DIR__ . '/config/env/common_param.php', [
     'db'    => [
-        '_sys_' => $fast_bg_cfg,
-        'dp'    => $dev_cfg,
-        'tmp'   => $tmp
+        '_sys_' => $dev_cfg,
     ],
     'redis' => [
         'default' => ['host' => 'redis_server', 'port' => 6379, 'password' => '', 'db' => 0],
@@ -47,6 +25,7 @@ return array_merge_recursive(include __ROOT_DIR__ . '/config/env/common_param.ph
     ],
 
     'params' => [
+        'logDir'               => __ROOT_DIR__ . '/log',//日志路径，可以根据需求指定到其他位置
         'debugSign'            => 'debug',
         'errorHttpCode'        => 200,
         'is_debug'             => true,
@@ -54,15 +33,11 @@ return array_merge_recursive(include __ROOT_DIR__ . '/config/env/common_param.ph
         'secret_key'           => [
             'note_md5' => 'jUjRPjcllhk7jpoQsKtfhryO5td0UwPA',
         ],
-        'com_project_api'      => [
-            'duck_time' => 'https://duck-time.dev.aiqingyinghang.com:2023',
-        ],
         //后台 系统设置
         'sys_setting'          => [
             'db' => [
                 '$sys_dbname'       => 'fast_bg',
                 'tableNameFakeCode' => [
-
                     //user|admin
                     '$user_admin_tableName'      => 'bg_admin',
                     //rbac
@@ -85,14 +60,34 @@ return array_merge_recursive(include __ROOT_DIR__ . '/config/env/common_param.ph
 
         'console' => [
             'phpPath'        => '/usr/local/bin/php',
-            'hammerPath'     => '/data/codes/fastadmin/hammer.php',
-            'logDir'         => '/data/codes/fastadmin/log/cmd',
+            'hammerPath'     => '/data/codes/fast_dev/hammer.php',
+            'logDir'         => '/data/codes/fast_dev/log/cmd',
             'webFileDir'     => '/data/upload/cli_out',
             'root_cmd_queue' => 'root_cmd_queue',
             'tasks'          => [
 
             ]
         ],
+
+    ],
+    'routes' => [
+        'docker_route_test'    => 'docker/test',
+        'duplicate_route_test' => 'docker/test',
+        '^(.*)\/(\w+).html$'   => '$1/render_$2',
+        ''                     => '_dp/v1/index/render_index',
+        'login'                => '_dp/v1/user/render_login',
+        'dp/login'             => '_dp/v1/user/render_login',
+        'dp/resetPsw'          => '_dp/v1/user/render_resetPassword',
+        'dp/index'             => '_dp/v1/index/render_index',
+
+        'dp/rbac/config' => '_dp/v1/rbac/render_config',
+        'dp/menu/tree'   => '_dp/v1/rbac/render_menuTree',
+
+        'dp/dbdata/dbconfs'   => '_dp/v1/dbdata/render_dbconfs',
+        'dp/dbdata/tables'    => '_dp/v1/dbdata/render_tables',
+        'dp/dbdata/columns'   => '_dp/v1/dbdata/render_columns',
+        'dp/dbdata/tableRows' => '_dp/v1/dbdata/render_tableRows',
+        'dp/dbdata/rbac'      => '_dp/v1/dbdata/render_rbac',
 
     ],
 ]);

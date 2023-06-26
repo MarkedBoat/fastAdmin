@@ -53,8 +53,8 @@ class ActionImportDbconfTables extends AdminBaseAction
         if ($db_code === '_sys_')
         {
             $dbconf_name = '_sys_';
-            $db_name     = 'kl_dev_bg';
             $db_cnn      = Sys::app()->db('_sys_');
+            $db_name     = $db_cnn->dbname;
         }
         else
         {

@@ -40,12 +40,14 @@ class DbDbConf extends DbDbConfDao
         if (!isset(self::$connecetions[$this->db_code]))
         {
             $dev_cfg = [
-                'connectionString' => "mysql:host={$this->conf_host};port={$this->conf_port};dbname={$this->conf_dbname}",
-                'username'         => $this->conf_username,
-                'password'         => $this->conf_password,
-                'charset'          => $this->conf_charset,
-                'readOnly'         => true,
-                'attributes'       => [
+                'host'       => $this->conf_host,
+                'port'       => $this->conf_port,
+                'dbname'     => $this->conf_dbname,
+                'username'   => $this->conf_username,
+                'password'   => $this->conf_password,
+                'charset'    => $this->conf_charset,
+                'readOnly'   => true,
+                'attributes' => [
                     \PDO::ATTR_TIMEOUT => 1
                 ]
             ];

@@ -102,9 +102,9 @@ class Console
             echo "\nDEBUG INFO\n";
             if (Sys::app()->interruption()->isThrower())
             {
-                $str=var_export(Sys::app()->interruption()->getDebugData(),true);
+                $str = var_export(Sys::app()->interruption()->getDebugData(), true);
                 echo $str;
-                $str = "\n" .$str . "\n";
+                $str = "\n" . $str . "\n";
                 echo "\n";
             }
             file_put_contents(self::getErrorLogFile(), date('Y-m-d H:i:s', time()) . "\t" . self::$cmd . "\n{$str}{$str2}\n", FILE_APPEND);
@@ -221,7 +221,12 @@ class Console
         if (self::$__logFile === '')
         {
             $date            = date('Ymd');
-            self::$__logFile = Sys::app()->params['console']['logDir'] . '/hammer.history_' . $date . '.log';
+            self::$__logFile = Sys::app()->params['logDir'] . '/cli/hammer.history_' . $date . '.log';
+            $pathinfo        = pathinfo(self::$__logFile);
+            if (!file_exists($pathinfo['dirname']))
+            {
+                mkdir($pathinfo['dirname'], 0777, true);
+            }
             if (!file_exists(self::$__logFile))
             {
                 file_put_contents(self::$__logFile, "\n", FILE_APPEND);

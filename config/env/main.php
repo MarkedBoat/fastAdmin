@@ -4,29 +4,18 @@
  */
 $host        = __HOST__;
 $configFiles = [
-    'dev.aiqingyinghang.com:2051' => 'dp_dev',
-    'devbg.kl.com'                => 'kl_dev',
-    'default'                     => 'docker_lnmp'
-
+    'xx.com' => 'xxx',//域名 => 配置文件名,匹配不上，默认找default
 ];
 
 if (isset($configFiles[$host]))
 {
-    $config_filename = $configFiles[$host];
+    $file = __ROOT_DIR__ . "/config/env/{$configFiles[$host]}.php";
 }
 else
 {
-    if (isset($configFiles['default']))
-    {
-        $config_filename = $configFiles['default'];
-    }
-    else
-    {
-        die("host [{$host}] not matched");
-    }
+    $file = __ROOT_DIR__ . "/config/env/default.php";
 }
 
-$file = __ROOT_DIR__ . "/config/env/{$config_filename}.php";
 
 if (is_file($file) && is_readable($file))
 {
@@ -35,5 +24,5 @@ if (is_file($file) && is_readable($file))
 }
 else
 {
-    die("host [{$host}] config file [{$config_filename}] not exist");
+    die("host [{$host}] config file not exist: [{$file}] ");
 }

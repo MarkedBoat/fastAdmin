@@ -317,7 +317,7 @@ class Sys
             }
             list($ym, $d, $h) = explode('/', date('Ym/d/H'));
 
-            $root     = Sys::app()->params['logPath'];
+            $root     = Sys::app()->params['logDir'];
             $filename = "{$root}/{$type}/{$ym}/{$d}/{$h}.log";
 
             $d_dir = "{$root}/{$type}/{$ym}/{$d}";
@@ -354,7 +354,7 @@ class Sys
         $log_dir = $this->getOptValue($log_dir_flag);
         if (!$log_dir)
         {
-            $root    = Sys::app()->params['logPath'];
+            $root    = Sys::app()->params['logDir'];
             $log_dir = $dir ? "{$root}/{$log_dir_flag}/{$dir}" : "{$root}/{$log_dir_flag}";
             if (!is_dir($log_dir))
             {

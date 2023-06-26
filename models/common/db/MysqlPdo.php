@@ -16,6 +16,7 @@ class MysqlPdo extends \PDO
     private $readOnly    = false;
     public  $cts         = '';
     private $cfg         = [];
+    private $dbname      = '';
 
     /**
      * @param $config
@@ -36,7 +37,8 @@ class MysqlPdo extends \PDO
         {
             //if(strstr($config['connectionString'],'www'))throw new \Exception('xxx');
             //var_dump($config['connectionString']);
-            $model = new MysqlPdo($config['connectionString'] . ";charset={$config['charset']}", $config['username'], $config['password'], array_merge($config['attributes'], $opt));
+            $dsn   = "mysql:host={$config['host']};port={$config['port']};dbname={$config['dbname']};charset={$config['charset']}";
+            $model = new MysqlPdo($dsn, $config['username'], $config['password'], array_merge($config['attributes'], $opt));
         } catch (\Exception $e)
         {
             Sys::app()->addLog([$config, $opt], '数据库配置');
@@ -47,6 +49,7 @@ class MysqlPdo extends \PDO
         $model->readOnly = isset($config['readOnly']) ? $config['readOnly'] : false;
         $model->cts      = date('Y-m-d H:i:s', time());
         $model->cfg      = $config;
+        $model->dbname   = $config['dbname'];
         return $model;
     }
 
