@@ -13,6 +13,7 @@ namespace console\system;
 use models\common\CmdBase;
 use models\common\db\Db;
 use models\common\sys\Sys;
+use modules\_dp\v1\model\Admin;
 
 ini_set('memory_limit', '2024M');
 
@@ -32,7 +33,8 @@ class CmdInit extends CmdBase
     }
 
     /**
-     * 0  配置 /path_to_code/config/env/default.php
+     * 先确认有没有  /usr/local/bin/php  如果没有  sudo ln -s path_to_php /usr/local/bin/php
+     * 0  配置mysql  /path_to_code/config/env/default.php
      * 1. chmod +x  /path_to_code/hammer
      * 2. /path_to_code/hammer system/init run --env=default
      * @throws \Exception
@@ -100,27 +102,90 @@ class CmdInit extends CmdBase
         {
             die("\nERROR:数据库初始文件找不到了或者不可读：{$init_db_sql} \n");
         }
-        $sql  = file_get_contents($init_db_sql);
         $rand = strval(rand(10000, 100000));
         fwrite(STDOUT, "----------------------------------\n下面操作会覆盖数据，请输入中括号内数字 以继续[{$rand}]:");
         $code = trim(fgets(STDIN));
         echo "\n----------------------------------\n";
         if ($rand !== $code)
         {
-            die("\n验证码不正确，已经停止\n");
+            //   die("\n验证码不正确，已经停止\n");
+
+            echo "\n10秒后，验证码不正确，进入设置账号密码\n";
+            for ($i = 11; $i > 0; $i--)
+            {
+                echo "{$i}s后,验证码不正确，进入设置账号密码\n";
+                sleep(1);
+            }
         }
         else
         {
-            echo "\n准备覆盖数据\n";
-            sleep(5);
+            echo "\n5秒后 覆盖数据\n";
+            //sleep(5);
+            for ($i = 1; $i < 6; $i++)
+            {
+                echo "{$i}s\n";
+                sleep(1);
+            }
+
+            echo "\n数据开始初始化:\n";
+            $cnn = Sys::app()->db('_sys_');
+            $cfg = $cnn->cfg;
+
+            // $sql  = file_get_contents($init_db_sql);
+            //$mysqli = new \mysqli($cfg['host'], $cfg['username'], $cfg['password'], $cfg['dbname'], $cfg['port']);
+            //$mysqli->multi_query($sql);
+
+            $file = fopen($init_db_sql, "r");
+
+            $queryCount = 0;
+            $query      = '';
+            while (!feof($file))
+            {
+                $line = fgets($file);
+                if (substr($line, 0, 2) == '--' OR trim($line) == '')
+                {
+                    continue;
+                }
+
+                $query .= $line;
+                $query = str_replace('utf8mb4_0900_ai_ci', 'utf8mb4_general_ci', $query);
+                if (substr(trim($query), -1) == ';')
+                {
+                    $igweze_prep = $cnn->prepare($query);
+                    if (!($igweze_prep->execute()))
+                    {
+                        var_dump($query);
+                        print_r($cnn->errorInfo());
+                        die;
+                    }
+                    echo "{$queryCount}:{$query}\n";
+                    $query = '';
+                    $queryCount++;
+                }
+            }
+
+            fclose($file);
+
+
+            echo "\nEND\n";
         }
 
-        echo "\n数据开始初始化:\n";
-        $cnn    = Sys::app()->db('_sys_');
-        $cfg    = $cnn->cfg;
-        $mysqli = new \mysqli($cfg['host'], $cfg['username'], $cfg['password'], $cfg['dbname'], $cfg['port']);
-        $mysqli->multi_query($sql);
-        echo "\nEND\n";
+        $account = 'superadmin';
+        fwrite(STDOUT, "----------------------------------\n设置 [ {$account} ] 密码:");
+        $psw = trim(fgets(STDIN));
+        if (empty($psw))
+        {
+            echo "\n空密码，不设置\n";
+        }
+        else
+        {
+            $md5            = md5($psw);
+            $user           = Admin::model()->findOneByWhere(['real_name' => $account]);
+            $compute_str    = substr(md5($md5 . $user->salt . $user->create_time), 2);
+            $user->password = $compute_str;
+            $user->update();
+            echo "\naccount:{$account}\npassword:{$psw}\n\n";
+        }
 
     }
 
