@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>【数据query】</title>
+    <link href="/static/_dp/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/_dp/css/site.css" rel="stylesheet">
+    <link href="/static/_dp/css/bg.css" rel="stylesheet">
+    <script src="/static/_dp/js/jquery.js"></script>
+    <script src="/static/_dp/js/bootstrap.js"></script>
+
+    <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
+    <script src="/static/_dp/js/string/string.js"></script>
+    <script src="/static/_dp/js/hammer-yii2/bootstrap.min.2022.10.07.0.js?t=<?php echo rand(1,10000);?>"></script>
+    <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2023.06.13.js?t=<?php echo rand(1,10000);?>"></script>
+    <script src="/static/_dp/js/hammer/hammer-object-check.js"></script>
+
+    <script src="/static/_dp/js/bg.js"></script>
+    <script src="/static/_dp/js/hammer-bg-dbdata.js"></script>
+
+</head>
+<body>
+<div class="wrap">
+    <nav id="w0" class="navbar-inverse navbar-fixed-top navbar">
+        <div class="container">
+            <div id="page_title" class="navbar-brand page_title">【数据query】</div>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="site-index">
+
+
+            <div class="body-content" id="content_div">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    domLoaded(function () {
+            let utk = '';
+
+
+            bg_init(function () {
+                utk = window.utk;
+                window.serverData.dataLib = {
+                    admin: {items: [], list: [], map: {}},
+                    role: {items: [], list: [], map: {}},
+                    mainTable: {},
+                    dbdataTablesTable: {}
+
+                };
+
+
+                window.serverData.dataLib.bgDataApi = hammerBgDataApi();
+                window.serverData.dataLib.bgDataApi.setUserToken(utk);
+
+                (async function () {
+
+                    await window.serverData.dataLib.bgDataApi.init_DbConnectConf_ConfigInfo(function () {
+                        console.log('数据库配置初始化 1');
+                    });
+                    console.log('数据库配置初始化');
+
+                    await window.serverData.dataLib.bgDataApi.initDbConfs(function () {
+                        console.log('数据库配置初始化 initDbConfs 1');
+                    });
+                    console.log('数据库配置初始化 initDbConfs');
+
+                    await window.serverData.dataLib.bgDataApi.initRoles(() => {
+                        console.log('角色初始化 1');
+                    });
+                    console.log('角色初始化');
+
+                    content();
+                })();
+
+            });
+            let content = function () {
+
+                let raw_root = kl.id('content_div');
+                let root = new Emt('div').setPros({className: 'row'});
+                raw_root.append(root);
+
+
+                let info_div = new Emt('div');
+
+                let msg_div = new Emt('div');
+                let datagrid_div = new Emt('div');
+                let fixed_tools_div = new Emt('div', 'class="fixed_tools_div"');
+
+                //window.serverData.dataLib.dbconf.codeItems
+                let hammerYii2Bootstarp1 = hammerYii2Bootstarp();
+                let quereForm = hammerYii2Bootstarp1.createForm({dataNameTpl: 'attr[$var]'});
+                let dataconfSelectElement = quereForm.apiHandle.addGroupPreCreate().setIndexKey('dbconf').setLabelText('数据库选择').setItems(window.serverData.dataLib.dbconf.codeItems).create('select');
+                let sqlTextareaElement = quereForm.apiHandle.addGroupPreCreate().setIndexKey('sql').setLabelText('sql:').create('textarea');
+                let binDataJsonTextareaElement = quereForm.apiHandle.addGroupPreCreate().setIndexKey('bindJson').setLabelText('bind data json:').create('textarea');
+                let submitButton = quereForm.apiHandle.addGroupPreCreate().setIndexKey('summitBtn').setLabelText('#:').setType('button').setContentText('执行sql').setKeepClass().create('button');
+                console.log('xxx', dataconfSelectElement, sqlTextareaElement, binDataJsonTextareaElement, submitButton);
+
+
+                let toggle_table_with_btn = new Emt('button', 'class="btn btn-md btn-info"', '').addNodes([
+                    new Emt('span', 'class="glyphicon glyphicon-transfer"'),
+                    new Emt('span', '', '展开/折叠表格')
+                ]);
+
+                let download_table_data_btn = new Emt('button', 'class="btn btn-md btn-info"', '').addNodes([
+                    new Emt('span', 'class="glyphicon glyphicon-download-alt"'),
+                    new Emt('span', '', '下载表格数据')
+                ]);
+
+                root.addNodes([
+                    info_div.addNodes([quereForm]),
+                    msg_div.addNodes([]),
+                    datagrid_div,
+                    fixed_tools_div.addNodes([
+                        toggle_table_with_btn,
+                        download_table_data_btn,
+                    ])
+                ]);
+
+                msg_div.succcessMsg = (msg) => {
+                    msg_div.addNodes([
+                        new Emt('DIV').setAttrsByStr('class="alert alert-success alert-dismissable"', '').addNodes([
+                            new Emt('BUTTON').setAttrsByStr('type="button" class="close" data-dismiss="alert" aria-hidden="true"', '×'),
+                            new Emt('span', '', msg)
+                        ])
+                    ]);
+                };
+                msg_div.dangerMsg = (msg) => {
+                    msg_div.addNodes([
+                        new Emt('DIV').setAttrsByStr('class="alert alert-danger alert-dismissable"', '').addNodes([
+                            new Emt('BUTTON').setAttrsByStr('type="button" class="close" data-dismiss="alert" aria-hidden="true"', '×'),
+                            new Emt('span', '', msg)
+                        ])
+                    ]);
+                };
+
+                submitButton.addEventListener('click', () => {
+                    let sql = sqlTextareaElement.value.trim();
+                    let bind_json = binDataJsonTextareaElement.value.trim();
+                    let bind = bind_json.length === 0 ? {} : JSON.parse(bind_json);
+                    kl.ajax({
+                        url: '/_dp/v1/dbdata/query',
+                        data: {
+                            sql: sql,
+                            bind: bind,
+                            dbcode: dataconfSelectElement.value,
+                        },
+                        type: 'json',
+                        success: function (res) {
+                            console.log(res);
+                            if (datagrid_div.datagrid) {
+                                datagrid_div.firstElementChild ? datagrid_div.firstElementChild.remove() : '';
+                                delete datagrid_div.datagrid;
+                            }
+                            if (kl.isUndefined(res, 'data.data.rowsTotal')) {
+                                msg_div.dangerMsg(res.msg || '报错了');
+                                return false;
+                            }
+                            msg_div.succcessMsg('查询完毕 影响行数' + res.data.effect);
+                            if (res.data.data.rowsTotal > 0) {
+                                let config = {
+                                    container: datagrid_div,
+                                    components: {
+                                        totalInformation: true,
+                                        pageInfomation: true,
+                                        requestInformation: false,
+                                    },
+                                    dataSource: false,
+                                    paramPreset: false,
+                                    columns: [],
+                                };
+                                Object.keys(res.data.data.dataRows[0]).forEach((key) => {
+                                    config.columns.push(
+                                        {
+                                            handleKey: key,
+                                            attrKey: key,
+                                            headerText: key,
+                                            sortable: false,
+                                            filter: {
+                                                inputs: [false],
+                                                config: {valueItems: []}
+                                            },
+                                            info: {},
+                                            fun: (cell, row_data) => {
+                                                cell.textContent = row_data[key];
+                                            },
+                                        }
+                                    );
+                                });
+
+                                let datagrid = hammerBootstarpAsyncDatagrid(config);
+                                console.log('datagrid', datagrid);
+                                datagrid.api.init();
+                                datagrid.api.reloadDataRows(res.data.data);
+                            }
+                        },
+                        error: function () {
+                            console.log(arguments);
+                        }
+                    });
+                });
+
+
+                toggle_table_with_btn.addEventListener('click', () => {
+                    datagrid_div.datagrid ? datagrid_div.datagrid.api.toggleTableWidth() : '';
+                });
+
+                download_table_data_btn.addEventListener('click', () => {
+                    datagrid_div.datagrid ? datagrid_div.datagrid.api.downloadTableData() : '';
+                });
+            }
+        }
+    );
+</script>
+<style>
+    .container {
+        width: 100% !important;
+    }
+
+    .hide_btn_sort_asc > .btn_sort_asc {
+        display: none;
+    }
+
+    .hide_btn_sort_desc > .btn_sort_desc {
+        display: none;
+    }
+
+    .hide_btn_sort > .btn_sort_asc, .hide_btn_sort > .btn_sort_desc {
+        display: none;
+    }
+
+    .table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
+        padding: 3px !important;
+
+    }
+
+    td > input[type="text"], td > input[type="number"], td > select {
+        min-width: 45px !important;
+        padding: 0 !important;
+    }
+
+
+    .fixed_tools_div {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+    }
+
+    .fixed_tools_div > .btn, .datagrid-top-div > .btn {
+        margin-left: 1em;
+    }
+
+    .container {
+
+    }
+
+    .cell_img {
+        max-width: 200px;
+        max-height: 100px;
+    }
+
+    .cell_content {
+        position: relative;
+        line-height: 1.4em;
+        /* 3 times the line-height to show 3 lines */
+        max-height: 5em;
+        overflow: hidden;
+    }
+</style>
+<script></script>
+
+
+<footer class="footer">
+
+</footer>
+
+
+</body>
+</html>

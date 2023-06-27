@@ -115,6 +115,8 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
     }
     if (input_param.dataSource === undefined) {
         throw 'dataSource 必须设置!';
+    } else if (input_param.dataSource === false) {
+        console.warn("config.dataSource 自定义");
     } else {
         if (typeof input_param.dataSource.url !== "string") {
             throw 'config.dataSource.url 必须是有效的string';
@@ -183,6 +185,8 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
 
     if (input_param.paramPreset === undefined) {
         //  throw 'dataSource 必须设置!';
+    } else if (input_param.paramPreset === false) {
+        console.warn("config.paramPreset 自定义");
     } else {
         if (input_param.paramPreset.attr === undefined) {
             console.warn(" config.paramPreset.attr 没有设置");
@@ -513,6 +517,7 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
                 dataGrid.ele.pagination,
             ])
         );
+        config.container.datagrid = dataGrid;
         return dataGrid;
     }
 
@@ -584,7 +589,11 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
         dataGrid.processData.tableDataJsonStrs = [];
 
     }
-    dataGrid.flushPager = function (pageTotal, pageIndex) {
+    dataGrid.flushPager = function (resData) {
+        //onsole.log(resData);
+        dataGrid.ele.pagination.infoDataSpan.textContent = '当前页码' + resData.pageIndex + '/' + resData.pageTotal + '.        .' + ' 共' + resData.rowsTotal + '条';
+        let pageTotal = resData.pageTotal;
+        let pageIndex = resData.pageIndex;
         dataGrid.ele.pagination.gotoEnd.goto = pageTotal;
         // console.log(pageTotal, pageIndex);
         for (let tmp_i = 0; tmp_i < 5; tmp_i++) {
@@ -614,7 +623,7 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
      */
     dataGrid.api.reloadDataRows = function (data) {
         dataGrid.clearDataRows();
-        if (config.dataSource.downloadable) {
+        if (config.dataSource.downloadable || config.dataSource === false) {
             dataGrid.processData.sourceData = data.dataRows;
             let attrKeys = [];
             let headerMap = {};
@@ -644,7 +653,9 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
 
         // dataGrid.topTr.apiHandle.td.map.goto_submit.setAttribute('colspan', dataGrid.column.keys.length);
         //  dataGrid.footTr.apiHandle.td.map.page.setAttribute('colspan', dataGrid.column.keys.length);
-        dataGrid.flushPager(data.pageTotal, data.pageIndex);
+        if (config.components.pageInfomation === true) {
+            dataGrid.flushPager(data);
+        }
     }
 
 
@@ -699,7 +710,7 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
 
                         let check_res = kl.dataBasicCheck(resData, adaptedXhrDataCheckConfig);
                         if (check_res === true) {
-                            dataGrid.ele.pagination.infoDataSpan.textContent = '当前页码' + resData.pageIndex + '/' + resData.pageTotal + '.        .' + ' 共' + resData.rowsTotal + '条';
+
                             dataGrid.api.reloadDataRows(resData);
 
                             // console.log('请求成功，调用config.dataSource.afterRequest(request_res, dataGrid) ，在获取参数渲染之后，再处理其他事情');

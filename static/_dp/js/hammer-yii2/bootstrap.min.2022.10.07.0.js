@@ -250,7 +250,7 @@ let hammerYii2Bootstarp = function () {
 
         inputEle.apiHandle.setInitVal = inputEle.apiHandle.setInitVal || function (val) {
             inputEle.apiHandle.__setVal(val);
-            inputEle.apiHandle.val.init = val;
+            inputEle.apiHandle.val.init = inputEle.apiHandle.getVal();//因为会出现设置失败的情况，比如select 指定了一个不存在的 option val,
             return inputEle;
         };
         inputEle.apiHandle.getInitVal = inputEle.apiHandle.getInitVal || function (val) {
@@ -750,7 +750,7 @@ let hammerYii2Bootstarp = function () {
 
 
     bootstrap_hanndle.preCreate = function () {
-        let tmp = {param: {}, onCreate: false};
+        let tmp = {param: {}, onCreate: false, ele: false};
         tmp.setLabelText = function (labelText) {
             tmp.param.labelText = labelText;
             return tmp;
@@ -767,7 +767,10 @@ let hammerYii2Bootstarp = function () {
 
             return tmp;
         }
-
+        tmp.setKeepClass = () => {
+            tmp.param.keepClass = true;
+            return tmp;
+        }
         tmp.setPlaceHolder = function (placeHolder) {
             tmp.param.placeHolder = placeHolder;
             return tmp;
@@ -824,12 +827,13 @@ let hammerYii2Bootstarp = function () {
                 tmp_ele = bootstrap_hanndle.createTextInput(tmp.param);
             } else if (type === 'search_tags') {
                 tmp_ele = bootstrap_hanndle.createSearchTags(tmp.param);
-            }
-            if (tmp.onCreate === false) {
-                return tmp_ele;
             } else {
-                return tmp.onCreate(tmp_ele, tmp.param);
+                tmp_ele = bootstrap_hanndle.createTextInput(tmp.param);
             }
+            if (tmp.onCreate !== false) {
+                tmp.onCreate(tmp_ele, tmp.param);
+            }
+            return tmp_ele;
         }
 
         return tmp;
@@ -899,6 +903,10 @@ let hammerYii2Bootstarp = function () {
         }
 
 
+        /**
+         * 别被名字迷惑了，本质上还是 bootstrap_hanndle.preCreate(),只不过在最后包裹了 group div
+         * @returns {{onCreate: boolean, param: {}}}
+         */
         form_ele.apiHandle.addGroupPreCreate = function () {
             //let text_input = bootstrap_hanndle.createTextInput();
             let pre_create = bootstrap_hanndle.preCreate();

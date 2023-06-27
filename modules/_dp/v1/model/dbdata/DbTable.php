@@ -310,8 +310,8 @@ class DbTable extends DbTableDao
         {
             $where = $where . ($where ? (" and ") : (" where ")) . join(' and ', $ext_wheres);
         }
-        $sql     = "select {$column_names_str} from {$this->table_name} {$left_join_str} {$ext_from} {$where} {$str_sort} {$str_limit}";
-        $sql_cnt = "select count({$this->table_name}.`{$this->main_table_model->pk_key}`) from {$this->table_name}  {$left_join_str} {$ext_from} {$where} ";
+        $sql     = "select {$column_names_str} from {$this->table_name} {$left_join_str} {$ext_from} {$where} group by {$this->table_name}.`{$this->main_table_model->pk_key}`  {$str_sort} {$str_limit}";
+        $sql_cnt = "select count(distinct {$this->table_name}.`{$this->main_table_model->pk_key}`) from {$this->table_name}  {$left_join_str} {$ext_from} {$where} ";
         //  var_dump(['sqls' => [$sql, $sql_cnt], 'bind' => $bind]);
         // die;
         Sys::app()->addLog(['sqls' => [$sql, $sql_cnt], 'bind' => $bind], 'dbtable->query');

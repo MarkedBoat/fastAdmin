@@ -162,7 +162,7 @@ class Api implements IDispatcher
                 }
                 self::$hasOutput = true;
 
-                echo json_encode($res, JSON_UNESCAPED_SLASHES);
+                echo json_encode($res, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             }
             else
             {
@@ -184,7 +184,7 @@ class Api implements IDispatcher
                         ];
                     }
                     self::$hasOutput = true;
-                    echo json_encode($data, JSON_UNESCAPED_SLASHES);;
+                    echo json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);;
                 }
                 else if ($this->_outType === self::outTypeHtml)
                 {
@@ -281,7 +281,7 @@ class Api implements IDispatcher
                     'error' => $lastError
                 ];
             }
-            $json = json_encode($data, JSON_UNESCAPED_SLASHES);
+            $json = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             if ($lastError)
                 self::lastError('', '', $lastError);
             self::$hasOutput = true;
@@ -356,7 +356,7 @@ class Api implements IDispatcher
                     'error' => $lastError
                 ];
             }
-            $json = json_encode($data, JSON_UNESCAPED_SLASHES);
+            $json = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
             if ($lastError)
                 self::lastError('', '', $lastError);
             self::$hasOutput = true;
