@@ -804,6 +804,10 @@ let hammerYii2Bootstarp = function () {
             tmp.param.clickCall = fun;
             return tmp;
         }
+        /**         *
+         * @param type
+         * @returns {__ElementExt}
+         */
         tmp.create = function (type) {
             let tmp_ele = false;
             if (type === 'text') {
@@ -827,6 +831,8 @@ let hammerYii2Bootstarp = function () {
                 tmp_ele = bootstrap_hanndle.createTextInput(tmp.param);
             } else if (type === 'search_tags') {
                 tmp_ele = bootstrap_hanndle.createSearchTags(tmp.param);
+            } else if (type === 'div') {
+                tmp_ele = new Emt('div');
             } else {
                 tmp_ele = bootstrap_hanndle.createTextInput(tmp.param);
             }
