@@ -3,6 +3,7 @@
 namespace models\common\sys;
 
 use models\common\db\MCD;
+use models\common\db\MysqlCnn;
 use models\common\db\MysqlPdo;
 use models\common\error\Interruption;
 use models\common\param\DataBox;
@@ -164,7 +165,7 @@ class Sys
 
     /**
      * @param $dbKey
-     * @return MysqlPdo
+     * @return MysqlCnn
      * @throws \Exception
      */
     public function db($dbKey)
@@ -175,7 +176,7 @@ class Sys
                 $this->__cases['db'] = [];
             if (!isset($this->__cases['db'][$dbKey]))
             {
-                $this->__cases['db'][$dbKey] = MysqlPdo::configDb($this->__configs['db'][$dbKey]);
+                $this->__cases['db'][$dbKey] = MysqlCnn::configDb($this->__configs['db'][$dbKey]);
             }
         }
         else

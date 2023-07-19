@@ -76,7 +76,7 @@ class ORM
     }
 
     /**
-     * @return MysqlPdo
+     * @return MysqlCnn
      * @throws \Exception
      */
     public function getDbConnect()

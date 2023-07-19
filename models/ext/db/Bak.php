@@ -2,6 +2,7 @@
 
 namespace models\ext\db;
 
+use models\common\db\MysqlCnn;
 use models\common\db\MysqlPdo;
 use models\common\sys\Sys;
 
@@ -16,14 +17,14 @@ class Bak
     private $curr_table_pk_val = 0;
 
 
-    public function __construct(MysqlPdo $db, $table)
+    public function __construct(MysqlCnn $db, $table)
     {
         $this->db               = $db;
         $this->store_table_name = $table;
     }
 
     /**
-     * @return MysqlPdo
+     * @return MysqlCnn
      */
     public function getDbConnent()
     {

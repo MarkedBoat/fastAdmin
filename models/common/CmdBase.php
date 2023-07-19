@@ -142,4 +142,25 @@ class CmdBase
         return $this->deadLineTs - time();
     }
 
+    /**
+     * 是否继续
+     * @param string $question 问题
+     * @param array $yes_answers 肯定答案 [yes,ok,Y]
+     * @param string $pass_msg 通过信息
+     * @param string $reject_msg 拒绝信息
+     * @return bool
+     */
+    protected function yesOrNoConfirm($question, $yes_answers, $pass_msg, $reject_msg)
+    {
+        $strs = join(',', $yes_answers);
+        fwrite(STDOUT, "----------------------------------\n{$question} \n [{$strs}]:");
+        $answer     = trim(fgets(STDIN));
+        $is_ok      = in_array($answer, $yes_answers);
+        $pass_msg   = $pass_msg ? "\n{$pass_msg}" : '';
+        $reject_msg = $reject_msg ? "\n{$reject_msg}" : '';
+        echo $is_ok ? $pass_msg : $reject_msg;
+        echo "\n----------------------------------\n";
+        return $is_ok;
+    }
+
 }

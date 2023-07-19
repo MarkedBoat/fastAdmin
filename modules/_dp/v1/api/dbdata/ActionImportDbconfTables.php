@@ -4,6 +4,7 @@ namespace modules\_dp\v1\api\dbdata;
 
 use Cassandra\Column;
 use models\Api;
+use models\common\db\MysqlCnn;
 use models\common\db\MysqlPdo;
 use models\common\opt\Opt;
 use models\common\sys\Sys;
@@ -27,7 +28,7 @@ class ActionImportDbconfTables extends AdminBaseAction
 
         if (0)
         {
-            $db = new MysqlPdo("mysql:host=www.markedboat.com;port=3306;dbname=test;charset=utf8mb4", "u20230411", "@Bc123", array_merge([], [
+            $db = new MysqlCnn("mysql:host=www.markedboat.com;port=3306;dbname=test;charset=utf8mb4", "u20230411", "@Bc123", array_merge([], [
                 //  \PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4",
                 \PDO::ATTR_TIMEOUT          => 10,
                 \PDO::ATTR_ERRMODE          => \PDO::ERRMODE_EXCEPTION,

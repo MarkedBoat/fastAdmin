@@ -5,7 +5,9 @@
 // Object.prototype.isStdArray = function () {
 //     return typeof this.forEach === 'function';
 // };
-let KL = function () {
+
+
+function KL() {
     let self = this;
     self.opt = {log: true};
     self.isset = function (arg) {
@@ -14,6 +16,25 @@ let KL = function () {
     self.id = function (id) {
         return document.getElementById(id);
     };
+
+    self.getValByPath = function (object, keysPath) {
+        let keys = keysPath.split('.');
+        let last = keys.splice(-1);
+        return [object].concat(keys).reduce(function (a, b) {
+            if (a[b] === undefined) a[b] = {};
+            return a[b];
+        })[last] || undefined;
+    };
+    self.setValByPath = function (object, keysPath, value) {
+        let keys = keysPath.split('.');
+        let last = keys.splice(-1);
+        [object].concat(keys).reduce(function (a, b) {
+            if (a[b] === undefined) a[b] = {};
+            return a[b];
+        })[last] = value;
+        return self;
+    };
+
     self.isUndefined = function (baseVar, attr_path) {
         let tmp_ar = attr_path.split('.');
         return tmp_ar.reduce(function (base_var, attr) {
@@ -251,26 +272,9 @@ let KL = function () {
     };
 
     return self;
-};
-let kl = new KL();
-try {
-    top.window.kl = kl;
-} catch (e) {
-
 }
-let Emt = function (tagName, attrsStr, textContent, prototypeMap) {
-    let ele = document.createElement(tagName);
-    __ElementExt.call(ele);
-    //t.prototype=new __ElementExt();
-    if (typeof attrsStr === 'string') {
-        ele.setAttrsByStr(attrsStr, textContent || '');
-    }
-    if (typeof prototypeMap === 'object') {
-        ele.setPros(prototypeMap)
-    }
-    return ele;
-};
-let __ElementExt = function (tag) {
+
+function __ElementExt(tag) {
     // Elmt.prototype=new Emt(tag);
     let self = this;
     self.setStyle = function (configs) {
@@ -432,8 +436,20 @@ let __ElementExt = function (tag) {
 
 
     return self;
-};
+}
 
+function Emt(tagName, attrsStr, textContent, prototypeMap) {
+    let ele = document.createElement(tagName);
+    __ElementExt.call(ele);
+    //t.prototype=new __ElementExt();
+    if (typeof attrsStr === 'string') {
+        ele.setAttrsByStr(attrsStr, textContent || '');
+    }
+    if (typeof prototypeMap === 'object') {
+        ele.setPros(prototypeMap);
+    }
+    return ele;
+}
 
 function domLoaded(fn) {
     document.addEventListener('DOMContentLoaded', function () {
@@ -441,5 +457,10 @@ function domLoaded(fn) {
         fn();
     });
 }
+
+if (window.kl === undefined) {
+    window.kl = new KL();
+}
+
 
 console.log('loaded hammer.js');

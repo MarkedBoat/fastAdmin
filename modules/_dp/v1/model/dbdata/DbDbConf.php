@@ -4,6 +4,7 @@ namespace modules\_dp\v1\model\dbdata;
 
 
 use http\Client\Curl\User;
+use models\common\db\MysqlCnn;
 use models\common\db\MysqlPdo;
 use models\common\error\AdvError;
 use models\common\opt\Opt;
@@ -52,7 +53,7 @@ class DbDbConf extends DbDbConfDao
                 ]
             ];
             //Sys::app()->addLog($dev_cfg);
-            self::$connecetions[$this->db_code] = MysqlPdo::configDb($dev_cfg);
+            self::$connecetions[$this->db_code] = MysqlCnn::configDb($dev_cfg);
         }
 
         return self::$connecetions[$this->db_code];

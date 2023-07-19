@@ -23,14 +23,14 @@
 
         /**
          * @param $dbKey
-         * @return MysqlPdo
+         * @return MysqlCnn
          * @throws \Exception
          */
         function __get($dbKey) {
             $dbConfigList = Sys::$configs['db'];
             if (!isset(Hammer::$dbs[$dbKey])) {
                 if (isset($dbConfigList[$dbKey])) {
-                    Hammer::$dbs[$dbKey] = MysqlPdo::configDb($dbConfigList[$dbKey]);
+                    Hammer::$dbs[$dbKey] = MysqlCnn::configDb($dbConfigList[$dbKey]);
                 } else {
                     throw new \Exception('could not find config ' . $dbKey . "\n" . var_export($dbConfigList, true) . "\n");
                 }
