@@ -275,7 +275,7 @@ function KL() {
 }
 
 function __ElementExt(tag) {
-    // Elmt.prototype=new Emt(tag);
+    // __ElementExt.prototype=new Emt(tag);
     let self = this;
     self.setStyle = function (configs) {
         for (let attr in configs)
@@ -291,7 +291,7 @@ function __ElementExt(tag) {
      * 设置句柄及索引
      * @param index_handler
      * @param index_name
-     * @returns {Elmt}
+     * @returns {__ElementExt}
      */
     self.setIndexHandler = function (index_handler, index_name) {
         index_handler[index_name] = self;
@@ -334,7 +334,7 @@ function __ElementExt(tag) {
             path: 'premit.startTime',
             domData: domData
          }
-     * @returns {Elmt}
+     * @returns {__ElementExt}
      */
     self.bindData = function (opts) {
         opts.ele = self;
@@ -360,6 +360,8 @@ function __ElementExt(tag) {
             let node = nodes[i];
             if (typeof node === 'string') {
                 self.innerHTML += node;
+            } else if (node === false) {
+                //
             } else {
                 nodes.boss = self;
                 self.appendChild(node);
@@ -405,7 +407,7 @@ function __ElementExt(tag) {
     /**
      *
      * @param list [ {val:xx,text:xx,is_default:true/false} ]
-     * @returns {Elmt}
+     * @returns {__ElementExt}
      */
     self.addSelectItemList = function (list) {
         if (typeof list.forEach === 'function') {
@@ -438,6 +440,15 @@ function __ElementExt(tag) {
     return self;
 }
 
+/**
+ *
+ * @param tagName
+ * @param attrsStr
+ * @param textContent
+ * @param prototypeMap
+ * @returns {__ElementExt|HTMLElement }
+ * @constructor
+ */
 function Emt(tagName, attrsStr, textContent, prototypeMap) {
     let ele = document.createElement(tagName);
     __ElementExt.call(ele);
