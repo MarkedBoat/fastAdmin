@@ -462,6 +462,23 @@ function Emt(tagName, attrsStr, textContent, prototypeMap) {
     return ele;
 }
 
+HTMLElement.prototype.addNodes = function (nodes) {
+    for (let i in nodes) {
+        let node = nodes[i];
+        if (typeof node === 'string') {
+            self.innerHTML += node;
+        } else if (node === false) {
+            //
+        } else {
+            nodes.boss = self;
+            this.appendChild(node);
+            (node.eleParent || self)[node.eleName || i] = node;
+        }
+    }
+    return this;
+};
+
+
 function domLoaded(fn) {
     document.addEventListener('DOMContentLoaded', function () {
         console.log('ready 1');
