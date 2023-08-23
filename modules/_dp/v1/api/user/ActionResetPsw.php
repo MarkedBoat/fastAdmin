@@ -24,13 +24,13 @@ class ActionResetPsw extends AdminBaseAction
         $md5_1   = RSA::de($pri_key, $psw1);
         if (empty($md5_1))
         {
-            return $this->dispatcher->createInterruption(AdvError::request_param_verify_fail['detail'], '密码异常', $md5_1);
+            return $this->dispatcher->createInterruptionInfo(AdvError::request_param_verify_fail['detail'], '密码异常', $md5_1);
         }
 
         $md5_2 = RSA::de($pri_key, $psw2);
         if (empty($md5_2))
         {
-            return $this->dispatcher->createInterruption(AdvError::request_param_verify_fail['detail'], '密码异常', $md5_2);
+            return $this->dispatcher->createInterruptionInfo(AdvError::request_param_verify_fail['detail'], '密码异常', $md5_2);
         }
 
 

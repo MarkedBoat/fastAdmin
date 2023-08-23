@@ -11,6 +11,8 @@ class AdvError extends \Exception
     protected $detail_code = '';
     private   $debug_data;
 
+    const dispatcher_interruption = ['code' => 1, 'detail' => 'dispatcher_interruption', 'msg' => '中断'];
+
     const data_not_exist       = ['code' => 10001, 'detail' => 'data_not_exist', 'msg' => '数据不存在'];
     const data_error           = ['code' => 10002, 'detail' => 'data_error', 'msg' => '数据错误'];
     const format_param_error   = ['code' => 10003, 'detail' => 'format_param_error', 'msg' => '处理参数错误'];
@@ -70,9 +72,9 @@ class AdvError extends \Exception
     {
         $this->detail_code = $info['detail'];
         $this->debug_data  = $debug_data;
-
-
-        parent::__construct($msg ? $msg : $info['msg'], $info['code']);
+        $msg               = $msg ? $msg : $info['msg'];
+        Sys::app()->getDispatcher()->createInterruptionInfo($info['detail'], $msg, false, $debug_data);
+        parent::__construct($msg, 400);
     }
 
     public static function logError($msg, $data = false)
@@ -85,8 +87,5 @@ class AdvError extends \Exception
         return $this->detail_code;
     }
 
-    public function getDebugInfoData()
-    {
-        return $this->debug_data;
-    }
+
 }

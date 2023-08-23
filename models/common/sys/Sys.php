@@ -88,9 +88,22 @@ class Sys
     }
 
 
+    /**
+     * @param IDispatcher $dispatcher
+     * @return $this
+     */
     public function setDispatcher(IDispatcher $dispatcher)
     {
         $this->dispatcher = $dispatcher;
+        return $this;
+    }
+
+    /**
+     * @return IDispatcher|null
+     */
+    public function getDispatcher()
+    {
+        return $this->dispatcher;
     }
 
     public function setInputDataBox(DataBox $inputDataBox)

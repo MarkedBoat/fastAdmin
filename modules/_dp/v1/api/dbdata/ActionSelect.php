@@ -34,13 +34,13 @@ class ActionSelect extends AdminBaseAction
         $db_conf_model = DbDbConf::model()->findOneByWhere(['db_code' => $db_code, 'is_ok' => Opt::YES]);
         if ($is_super === false && $db_conf_model->checkAccess($this->user) === false)
         {
-            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权访问Db:[{$db_code}]", false);
+            return $this->dispatcher->createInterruptionInfo(AdvError::rbac_deny['detail'], "无权访问Db:[{$db_code}]", false);
         }
         $table_name       = DbTable::replaceFakeTableName($table_name);
         $table_conf_model = DbTable::model()->findOneByWhere(['dbconf_name' => $db_code, 'table_name' => $table_name, 'is_ok' => Opt::YES]);
         if ($is_super === false && $table_conf_model->checkAccess($this->user) === false )
         {
-            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权访问表:[{$db_code}.{$table_name}]", false);
+            return $this->dispatcher->createInterruptionInfo(AdvError::rbac_deny['detail'], "无权访问表:[{$db_code}.{$table_name}]", false);
         }
         $dbconf_name = $db_code;
 

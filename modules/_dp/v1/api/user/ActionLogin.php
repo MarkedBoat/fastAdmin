@@ -22,13 +22,13 @@ class ActionLogin extends ActionBase
         $md5     = RSA::de($pri_key, $psw);
         if (empty($md5))
         {
-            return $this->dispatcher->createInterruption(AdvError::request_param_verify_fail['detail'], '密码异常', $md5);
+            return $this->dispatcher->createInterruptionInfo(AdvError::request_param_verify_fail['detail'], '密码异常', $md5);
         }
         $user        = Admin::model()->findOneByWhere(['real_name' => $un]);
         $compute_str = substr(md5($md5 . $user->salt . $user->create_time), 2);
         if ($user->password !== $compute_str)
         {
-            return $this->dispatcher->createInterruption(AdvError::data_info_unexpected['detail'], "密码错误", $compute_str);
+            return $this->dispatcher->createInterruptionInfo(AdvError::data_info_unexpected['detail'], "密码错误", $compute_str);
         }
         $admin_token = AdminTokenDao::model()->findOneByWhere(['user_id' => $user->id], false);
         $is_add      = false;

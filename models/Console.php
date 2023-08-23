@@ -2,13 +2,15 @@
 
 namespace models;
 
+use models\common\error\AdvError;
 use models\common\error\CommonError;
 use models\common\error\ConsoleError;
+use models\common\sys\IDispatcher;
 use models\common\sys\Sys;
 
 //ini_set('memory_limit','2024M');
 
-class Console
+class Console implements IDispatcher
 {
     private $runner  = '';
     private $command = null;
@@ -18,6 +20,7 @@ class Console
     private static $cmd            = '';
     private static $__logFile      = '';
     private static $__errorLogFile = '';
+    private        $interrupt_info;
 
     function __construct($args)
     {
@@ -42,7 +45,7 @@ class Console
                 $config = require __INDEX_DIR__ . "/config/env/{$env}.php";
                 //var_dump(php_sapi_name());//cli//fpm-fcgi
                 Sys::init($config);
-                Sys::app()->addOpt('cli', true);
+                Sys::app()->setDispatcher($this)->addOpt('cli', true);
             }
         } catch (\Exception $e)
         {
@@ -238,5 +241,23 @@ class Console
     }
 
 
+    public function outLastErrorAndExit()
+    {
+        // TODO: Implement outLastErrorAndExit() method.
+    }
+
+
+    public function createInterruptionInfo($detail_code, $outer_msg, $outer_data, $debug_data = [])
+    {
+        $this->interrupt_info = [
+            '__isInterruption' => true,
+            'detail_code'      => $detail_code,
+            'outer_msg'        => $outer_msg,
+            'outer_data'       => $outer_data,
+            'debug_data'       => $debug_data
+        ];
+        return $this->interrupt_info;
+
+    }
 }
 

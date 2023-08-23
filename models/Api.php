@@ -27,13 +27,14 @@ class Api implements IDispatcher
     private       $_outType  = 'text';
 
     private $actionStatus = '';
+    private $interrupt_info;
 
     public function run()
     {
         ob_start();
         $uri = trim(preg_replace('/\?(.*)?$/', '', $_SERVER['REQUEST_URI']), '/');
 
-        $routes = Sys::app()->getConfig()['routes'];
+        $routes = Sys::app()->setDispatcher($this)->addOpt('api', true)->getConfig()['routes'];
         foreach ($routes as $fake_router => $true_route)
         {
             // var_dump('*', $uri, $fake_router, $fake_router === $uri);
@@ -81,13 +82,9 @@ class Api implements IDispatcher
             $this->__action->setAction($uri);
             $this->__action->setDispatcher($this);
             $this->__action->initInputParam();
-        } catch (AdvError $advError)
-        {
-            $this->outAdvError($advError, 'init');
-            return false;
         } catch (\Exception $e)
         {
-            $this->outBaseException($e, 'init');
+            $this->outException($e, 'init');
             return false;
         }
 
@@ -98,13 +95,14 @@ class Api implements IDispatcher
             $this->output();
         } catch (AdvError $advError)
         {
+            //交由action 进行控制 进行处理
             if ($this->__action->handleAdvError($advError) === false)
             {
-                $this->outAdvError($advError, 'run');
+                $this->outException($advError, 'run');
             }
         } catch (\Exception $e)
         {
-            $this->outBaseException($e, 'run');
+            $this->outException($e, 'run');
         }
     }
 
@@ -128,51 +126,27 @@ class Api implements IDispatcher
         try
         {
             $data = $this->__action->exec();
-            $echo = '';
-            if (Sys::app()->isDebug())
-            {
-                $echo = ob_get_contents();
-            }
-
-            ob_end_clean();
 
             if (isset($data['__isInterruption']) && $data['__isInterruption'] === true)
             {
-                if (Sys::app()->params['errorHttpCode'] === 400)
-                {
-                    @header('HTTP/1.1 400 Not Found');
-                    @header("status: 400 Not Found");
-                }
-
-                @header('content-Type:application/json;charset=utf8');
-                $res = [
-                    'status' => 400,
-                    'code'   => $data['detail_code'],
-                    'msg'    => $data['outer_msg'],
-                    'data'   => $data['outer_data'],
-                ];
-                if (Sys::app()->isDebug())
-                {
-                    $res['__debugs'] = [
-                        'echo'  => $echo,
-                        'data'  => $data['debug_data'],
-                        'log'   => Sys::app()->getLogs(),
-                        'error' => error_get_last()
-                    ];
-                }
-                self::$hasOutput = true;
-
-                echo json_encode($res, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                $this->outResult($this->getErrorInfo('action.output'));
             }
             else
             {
+                $echo = '';
+                if (Sys::app()->isDebug())
+                {
+                    $echo = ob_get_contents();
+                }
+                ob_end_clean();
+
                 if ($this->_outType === self::outTypeJson)
                 {
                     @header('content-Type:application/json;charset=utf8');
 
                     $data = [
                         'status' => 200,
-                        'code'   => Sys::app()->interruption()->getCode(),
+                        'code'   => Sys::app()->interruption()->getCode(),//准备改造掉，没有时间，暂时不理会
                         'data'   => $data,
                     ];
                     if (Sys::app()->isDebug())
@@ -207,23 +181,67 @@ class Api implements IDispatcher
 
             }
 
-
-        } catch (AdvError $advError)
-        {
-            $this->outAdvError($advError, 'try output');
         } catch (\Exception $exception)
         {
-            $this->outBaseException($exception, 'try output');
+            $this->outException($exception, 'try output');
         }
     }
 
-    public function outBaseException(\Exception $exception, $flag, $ext = [])
+
+    public function getErrorInfo($flag, $ext = [])
     {
-        $echo = '';
+        if (isset($this->interrupt_info['__isInterruption']))
+        {
+            $res = [
+                'status' => 400,
+                'code'   => $this->interrupt_info['detail_code'],
+                'msg'    => $this->interrupt_info['outer_msg'],
+                'data'   => $this->interrupt_info['outer_data'],
+            ];
+        }
+        else
+        {
+            $res = [
+                'status' => 400,
+                'code'   => 'error',
+                'msg'    => '',
+                'data'   => false,
+            ];
+        }
+        $res = array_merge($res, $ext);
         if (Sys::app()->isDebug())
         {
-            $echo = ob_get_contents();
+            $res['__debugs'] = [
+                'echo'  => ob_get_contents(),
+                'flag'  => "{$flag} outException ",
+                'file'  => false,
+                'data'  => isset($this->interrupt_info['debug_data']) ? $this->interrupt_info['debug_data'] : false,
+                'log'   => Sys::app()->getLogs(),
+                'trace' => false,
+                'error' => error_get_last()
+            ];
         }
+        return $res;
+    }
+
+
+    public function getBaseExceptionInfo(\Exception $exception, $flag, $ext = [])
+    {
+        $res = $this->getErrorInfo($flag, $ext);
+        if (!isset($this->interrupt_info['__isInterruption']))
+        {
+            $res['msg'] = $exception->getMessage();
+            if (Sys::app()->isDebug())
+            {
+                $res['__debugs']['file']  = $exception->getFile() . '#' . $exception->getLine();
+                $res['__debugs']['trace'] = explode("\n", $exception->getTraceAsString());
+            }
+        }
+        return $res;
+    }
+
+    public function outResult($res)
+    {
         ob_end_clean();
         if (Sys::app()->params['errorHttpCode'] === 400)
         {
@@ -234,182 +252,52 @@ class Api implements IDispatcher
         if ($this->_outType === self::outTypeText)
         {
             @header('content-Type:text/plain;charset=utf8');
-            echo "\n outBaseException plain {$flag}\n";
-            echo "\nCODE:\n";
-            echo Sys::app()->interruption()->getCode();
-            echo "\ngetMessage:\n";
-            echo $exception->getMessage();
-
-            $lastError = error_get_last();
-
-            if (Sys::app()->isDebug())
+            echo "\nCODE:\n{$res['code']}\n";
+            echo "\ngetMessage:\n{$res['msg']}\n";
+            if (isset($res['__debugs']))
             {
-                echo "\nECHO:\n";
-                echo $echo;
-                echo "\nFLAG:\n";
-                echo "{$flag} outBaseException ";
-                echo "\nFILE:\n";
-                echo $exception->getFile() . '#' . $exception->getLine();
+                echo "\nECHO:\n{$res['__debugs']['echo']}\n";
+                echo "\nFLAG:\n{$res['__debugs']['flag']}\n";
+                echo "\nFILE:\n{$res['__debugs']['file']}\n";
                 echo "\nLOG:\n";
-                var_dump(Sys::app()->getLogs());
-                echo "\nTRACE:\n";
-                echo $exception->getTraceAsString();
+                var_dump($res['__debugs']['log']);
+                echo "\nTRACE:\n{$res['__debugs']['trace']}\n";
                 echo "\nERROR:\n";
-                var_dump($lastError);
+                var_dump($res['__debugs']['error']);
             }
-
-            self::$hasOutput = true;
         }
         else
         {
             @header('content-Type:application/json;charset=utf8');
-            $data      = [
-                'status' => 400,
-                'code'   => Sys::app()->interruption()->getCode(),
-                'msg'    => $exception->getMessage(),
-            ];
-            $lastError = error_get_last();
-            $data      = array_merge($data, $ext);
-            if (Sys::app()->isDebug())
-            {
-                $data['__debugs'] = [
-                    'echo'  => $echo,
-                    'flag'  => "{$flag} outBaseException ",
-                    'file'  => $exception->getFile() . '#' . $exception->getLine(),
-                    'log'   => Sys::app()->getLogs(),
-                    'trace' => explode("\n", $exception->getTraceAsString()),
-                    'error' => $lastError
-                ];
-            }
-            $json = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-            if ($lastError)
-                self::lastError('', '', $lastError);
-            self::$hasOutput = true;
-            echo $json;
+            echo json_encode($res, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         }
+        self::$hasOutput = true;
 
     }
 
-    public function outAdvError(AdvError $exception, $flag, $ext = [])
+    public function outException(\Exception $exception, $flag, $ext = [])
     {
-        $echo = '';
-        if (Sys::app()->isDebug())
-        {
-            $echo = ob_get_contents();
-        }
-        ob_end_clean();
-        if (Sys::app()->params['errorHttpCode'] === 400)
-        {
-            @header('HTTP/1.1 400 Not Found');
-            @header("status: 400 Not Found");
-        }
-
-        if (($this->actionStatus === self::actoinStatusRunned && $this->__action->isOutputText()) || $this->_outType === self::outTypeText)
-        {
-            @header('content-Type:text/plain;charset=utf8');
-            echo "\n outAdvError plain\n";
-            echo "\nCODE:\n";
-            echo Sys::app()->interruption()->getCode();
-            echo "\ngetMessage:\n";
-            echo $exception->getMessage();
-
-            $lastError = error_get_last();
-
-            if (Sys::app()->isDebug())
-            {
-                echo "\nECHO:\n";
-                echo $echo;
-                echo "\nFLAG:\n";
-                echo "{$flag} outBaseException ";
-                echo "\nFILE:\n";
-                echo $exception->getFile() . '#' . $exception->getLine();
-
-                echo "\nTRACE:\n";
-                echo $exception->getTraceAsString();
-                echo "\nERROR:\n";
-                var_dump($lastError);
-                echo "\nLOG:\n";
-                var_dump(Sys::app()->getLogs());
-            }
-
-            self::$hasOutput = true;
-        }
-        else
-        {
-            @header('content-Type:application/json;charset=utf8');
-            $data      = [
-                'status' => 400,
-                'code'   => $exception->getDetailCode(),
-                'msg'    => $exception->getMessage(),
-            ];
-            $lastError = error_get_last();
-            $data      = array_merge($data, $ext);
-            if (Sys::app()->isDebug())
-            {
-                $data['__debugs'] = [
-                    'echo'  => $echo,
-                    'flag'  => "{$flag} outAdvError ",
-                    'file'  => $exception->getFile() . '#' . $exception->getLine(),
-                    'info'  => $exception->getDebugInfoData(),
-                    'log'   => Sys::app()->getLogs(),
-                    'trace' => explode("\n", $exception->getTraceAsString()),
-                    'error' => $lastError
-                ];
-            }
-            $json = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-            if ($lastError)
-                self::lastError('', '', $lastError);
-            self::$hasOutput = true;
-            echo $json;
-        }
+        $this->outResult($this->getBaseExceptionInfo($exception, $flag, $ext));
     }
 
-
-    public static function lastError($msg, $code, $lastError)
-    {
-        $keys = ['Allowed memory size', 'Invalid UTF-8 sequence in argument'];
-        $log  = false;
-        foreach ($keys as $kw)
-            if (strstr($lastError['message'], $kw))
-            {
-                $log = true;
-                break;
-            }
-        if ($log)
-        {
-            try
-            {
-                $data['__debugs'][] = ['title' => '记录错误', 'data' => 'ok'];
-            } catch (\Exception $e)
-            {
-                if (isset($data['__debugs']))
-                    $data['__debugs'][] = ['title' => '记录错误失败', 'data' => $e->getMessage()];
-            }
-        }
-
-    }
 
     public function outLastErrorAndExit()
     {
 
     }
 
-    /**
-     * @param $detail_code
-     * @param $outer_msg
-     * @param $outer_data
-     * @param array $debug_data
-     * @return array
-     */
-    public function createInterruption($detail_code, $outer_msg, $outer_data, $debug_data = [])
+
+    public function createInterruptionInfo($detail_code, $outer_msg, $outer_data, $debug_data = [])
     {
-        return [
+        $this->interrupt_info = [
             '__isInterruption' => true,
             'detail_code'      => $detail_code,
             'outer_msg'        => $outer_msg,
             'outer_data'       => $outer_data,
             'debug_data'       => $debug_data
         ];
+        return $this->interrupt_info;
+
     }
 
     public function setOutType($type)

@@ -47,7 +47,7 @@ class DbDbConf extends DbDbConfDao
                 'username'   => $this->conf_username,
                 'password'   => $this->conf_password,
                 'charset'    => $this->conf_charset,
-                'readOnly'   => true,
+                'readOnly'   => false,
                 'attributes' => [
                     \PDO::ATTR_TIMEOUT => 1
                 ]

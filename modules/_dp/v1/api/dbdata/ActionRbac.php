@@ -163,7 +163,7 @@ class ActionRbac extends AdminBaseAction
         }
         else
         {
-            return $this->dispatcher->createInterruption(AdvError::request_param_error['detail'], "不删除，也不增加，要干啥? [{$type}]", false);
+            return $this->dispatcher->createInterruptionInfo(AdvError::request_param_error['detail'], "不删除，也不增加，要干啥? [{$type}]", false);
         }
 
         return [

@@ -101,7 +101,9 @@ class Interruption
         if ($this->__code === 'ok')
             $this->__code = 'error';
         $this->__isThrower = true;
-        throw  new AdvError(['code' => 400, 'detail' => '', 'msg' => $this->getMsg()]);
+        Sys::app()->getDispatcher()->createInterruptionInfo($this->__code, $this->__msg, false, [$this->__debugMsg, $this->__debugData]);
+        //throw  new AdvError(['code' => $this->__code, 'detail' => '', 'msg' => ''], $this->__msg, [$this->__debugMsg, $this->__debugData]);
+        throw new \Exception($this->__msg, 1);
     }
 
     public function isThrower()

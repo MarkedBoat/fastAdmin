@@ -106,7 +106,7 @@ class ActionInit extends AdminBaseAction
         }
         if (count($errors))
         {
-            return $this->dispatcher->createInterruption(AdvError::db_save_error['detail'], AdvError::db_save_error['msg'], $errors);
+            return $this->dispatcher->createInterruptionInfo(AdvError::db_save_error['detail'], AdvError::db_save_error['msg'], $errors);
         }
         else
         {
@@ -126,7 +126,7 @@ class ActionInit extends AdminBaseAction
 
             if (empty($res))
             {
-                return $this->dispatcher->createInterruption(AdvError::db_save_error['detail'], AdvError::db_save_error['msg'], [
+                return $this->dispatcher->createInterruptionInfo(AdvError::db_save_error['detail'], AdvError::db_save_error['msg'], [
                     'sql'  => $insert_sql,
                     'bind' => $bind,
                 ]);

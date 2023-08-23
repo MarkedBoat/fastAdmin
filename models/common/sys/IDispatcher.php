@@ -2,6 +2,8 @@
 
 namespace models\common\sys;
 
+use models\common\error\AdvError;
+
 interface IDispatcher
 {
     public function outLastErrorAndExit();
@@ -14,6 +16,6 @@ interface IDispatcher
      * @param array $debug_data 调试信息，只在debug的时候限时
      * @return array
      */
-    public function createInterruption($detail_code, $outer_msg, $outer_data, $debug_data = []);
+    public function createInterruptionInfo($detail_code, $outer_msg, $outer_data, $debug_data = []);
 }
 

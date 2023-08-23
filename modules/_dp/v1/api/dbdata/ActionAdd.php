@@ -34,13 +34,13 @@ class ActionAdd extends AdminBaseAction
         $db_conf_model = DbDbConf::model()->findOneByWhere(['db_code' => $db_code, 'is_ok' => Opt::YES]);
         if ($is_super === false && $db_conf_model->checkAccess($this->user) === false)
         {
-            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权访问Db:[{$db_code}]", false);
+            return $this->dispatcher->createInterruptionInfo(AdvError::rbac_deny['detail'], "无权访问Db:[{$db_code}]", false);
         }
         $table_name       = DbTable::replaceFakeTableName($table_name);
         $table_conf_model = DbTable::model()->findOneByWhere(['dbconf_name' => $db_code, 'table_name' => $table_name, 'is_ok' => Opt::YES]);
         if ($is_super === false && $table_conf_model->checkInsertAccess($this->user) === false)
         {
-            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权对表新增:[{$db_code}.{$table_name}]", false);
+            return $this->dispatcher->createInterruptionInfo(AdvError::rbac_deny['detail'], "无权对表新增:[{$db_code}.{$table_name}]", false);
         }
 
         $dbconf_name  = $db_code;
@@ -113,7 +113,7 @@ class ActionAdd extends AdminBaseAction
         }
         if (count($errors))
         {
-            return $this->dispatcher->createInterruption(AdvError::db_save_error['detail'], AdvError::db_save_error['msg'] . ':[' . join(',', $errors) . ']', $errors);
+            return $this->dispatcher->createInterruptionInfo(AdvError::db_save_error['detail'], AdvError::db_save_error['msg'] . ':[' . join(',', $errors) . ']', $errors);
         }
         else
         {
@@ -133,7 +133,7 @@ class ActionAdd extends AdminBaseAction
 
             if (empty($res))
             {
-                return $this->dispatcher->createInterruption(AdvError::db_save_error['detail'], AdvError::db_save_error['msg'], [
+                return $this->dispatcher->createInterruptionInfo(AdvError::db_save_error['detail'], AdvError::db_save_error['msg'], [
                     'sql'  => $insert_sql,
                     'bind' => $bind,
                 ]);

@@ -36,14 +36,14 @@ class ActionInfo extends AdminBaseAction
         $conf_model = DbDbConf::model()->findOneByWhere(['db_code' => $db_code]);
         if ($is_super === false && $conf_model->checkAccess($this->user) === false)
         {
-            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权访问Db:[{$db_code}]", false);
+            return $this->dispatcher->createInterruptionInfo(AdvError::rbac_deny['detail'], "无权访问Db:[{$db_code}]", false);
         }
         $dbconf_name = $db_code;
 
         $table_model = DbTable::model()->setTable($dbconf_name, $table_name);
         if ($is_super === false && $table_model->checkAccess($this->user) === false)
         {
-            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "无权访问表:[{$db_code}.{$table_name}]", false);
+            return $this->dispatcher->createInterruptionInfo(AdvError::rbac_deny['detail'], "无权访问表:[{$db_code}.{$table_name}]", false);
         }
 
         $is_table_add_able = true;

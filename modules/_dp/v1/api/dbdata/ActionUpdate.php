@@ -33,13 +33,13 @@ class ActionUpdate extends AdminBaseAction
         $db_conf_model = DbDbConf::model()->findOneByWhere(['db_code' => $db_code, 'is_ok' => Opt::YES]);
         if ($is_super === false && $db_conf_model->checkAccess($this->user) === false)
         {
-            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "需要数据库授权:[{$db_code}]", false);
+            return $this->dispatcher->createInterruptionInfo(AdvError::rbac_deny['detail'], "需要数据库授权:[{$db_code}]", false);
         }
         $table_name       = DbTable::replaceFakeTableName($table_name);
         $table_conf_model = DbTable::model()->findOneByWhere(['dbconf_name' => $db_code, 'table_name' => $table_name, 'is_ok' => Opt::YES]);
         if ($is_super === false && $table_conf_model->checkAccess($this->user) === false)
         {
-            return $this->dispatcher->createInterruption(AdvError::rbac_deny['detail'], "需要表授权:[{$db_code}.{$table_name}]", false);
+            return $this->dispatcher->createInterruptionInfo(AdvError::rbac_deny['detail'], "需要表授权:[{$db_code}.{$table_name}]", false);
         }
 
         $user_roles   = $this->user->role_codes;
@@ -124,7 +124,7 @@ class ActionUpdate extends AdminBaseAction
 
         if (count($errors))
         {
-            return $this->dispatcher->createInterruption(AdvError::db_save_error['detail'], AdvError::db_save_error['msg'] . ':[' . join(',', $errors) . ']', $errors);
+            return $this->dispatcher->createInterruptionInfo(AdvError::db_save_error['detail'], AdvError::db_save_error['msg'] . ':[' . join(',', $errors) . ']', $errors);
         }
         else
         {

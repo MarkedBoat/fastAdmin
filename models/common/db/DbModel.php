@@ -294,7 +294,7 @@ class DbModel
         $result = $this->findByPk($pk);
         if ($result === false)
         {
-            Interruption::model($msg, $code)->setDebugData([$this->getTableName(), $pk])->run();
+            Interruption::model($msg, $code)->setDebugData([$this->getTableName(), $pk])->outError();
         }
         return $result;
     }
