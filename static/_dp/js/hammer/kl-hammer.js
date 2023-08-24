@@ -225,15 +225,16 @@ function KL() {
                 request.setRequestHeader(header_ar[0], header_ar[1]);
             });
         }
+
+        opts.form = opts.form || new FormData();
+
+        if (opts.data) {
+            self.data2form(opts.form, opts.data, 0, '');
+        }
+
         if (opts.async === true) {
             return new Promise(function (resolve, reject) {
-                if (opts.form) {
-                    request.send(opts.form);
-                } else {
-                    let fromData = new FormData();
-                    self.data2form(fromData, opts.data, 0, '');
-                    request.send(fromData);
-                }
+                request.send(opts.form);
                 request.onload = function () {
                     if (request.status === 200 || opts.httpOkCodes.indexOf(request.status) !== -1) {
                         let result = request.responseText;
@@ -253,13 +254,7 @@ function KL() {
                 }
             });
         } else {
-            if (opts.form) {
-                request.send(opts.form);
-            } else {
-                let fromData = new FormData();
-                self.data2form(fromData, opts.data, 0, '');
-                request.send(fromData);
-            }
+            request.send(opts.form);
         }
         return request;
     };
@@ -274,171 +269,6 @@ function KL() {
     return self;
 }
 
-function __ElementExt(tag) {
-    // __ElementExt.prototype=new Emt(tag);
-    let self = this;
-    self.setStyle = function (configs) {
-        for (let attr in configs)
-            self.style[attr] = configs[attr];
-        return self;
-    };
-    self.setPros = function (configs) {
-        for (let attr in configs)
-            self[attr] = configs[attr];
-        return self;
-    };
-    /**
-     * 设置句柄及索引
-     * @param index_handler
-     * @param index_name
-     * @returns {__ElementExt}
-     */
-    self.setIndexHandler = function (index_handler, index_name) {
-        index_handler[index_name] = self;
-        self.indexHandler = index_handler;
-        return self;
-    };
-    self.setAttrs = function (configs, isAddPrototype) {
-        for (let attr in configs)
-            self.setAttribute(attr, configs[attr]);
-        if (isAddPrototype) for (let attr in configs)
-            self[attr] = configs[attr];
-        return self;
-    };
-    //必须是双引号的
-    self.setAttrsByStr = function (raw_attrs_str, textContent) {
-        let tmp_ar = raw_attrs_str.replace(/=\s?\"\s?/g, '=').replace(/\"\s+/g, '" ').replace(/\s?\:\s?/g, ':').split('" ');
-        tmp_ar.forEach(function (tmp_str) {
-            let tmp_ar2 = tmp_str.split('=');
-            if (tmp_ar2.length === 2) {
-                self.setAttribute(tmp_ar2[0].replace(/\s/g, ''), tmp_ar2[1].replace(/(^\s)|(\s$)|"/g, ''));
-            }
-        });
-        if (typeof textContent === 'string') {
-            self.textContent = textContent;
-        }
-        return self;
-    };
-    self.setEventListener = function (event, fn) {
-        self.addEventListener(event, fn);
-        return self;
-    };
-    self.bindEvent = function (event, fn) {
-        self.addEventListener(event, fn);
-        return self;
-    };
-    /**
-     *
-     * @param opts
-     let opts = {
-            path: 'premit.startTime',
-            domData: domData
-         }
-     * @returns {__ElementExt}
-     */
-    self.bindData = function (opts) {
-        opts.ele = self;
-        opts.domData.bindData(opts);
-        return self;
-    };
-
-    self.addNode = function () {
-        for (let i = 0; i < arguments.length; i++) {
-            if (typeof arguments[i] !== 'string') {
-                self.appendChild(arguments[i]);
-                arguments[i].boss = self;
-                arguments[i].parent = self;
-                if (typeof arguments[i + 1] === 'string') {
-                    if (arguments[i + 1]) self[arguments[i + 1]] = arguments[i];
-                }
-            }
-        }
-        return self;
-    };
-    self.addNodes = function (nodes) {
-        for (let i in nodes) {
-            let node = nodes[i];
-            if (typeof node === 'string') {
-                self.innerHTML += node;
-            } else if (node === false) {
-                //
-            } else {
-                nodes.boss = self;
-                self.appendChild(node);
-                (node.eleParent || self)[node.eleName || i] = node;
-            }
-
-        }
-        return self;
-    };
-    self.toggleClassList = function (class_name, is_add) {
-        if (typeof is_add === 'undefined') {
-            self.classList.toggle(class_name);
-        } else if (is_add) {
-            self.classList.add(class_name);
-        } else {
-            self.classList.remove(class_name);
-        }
-        return self;
-    };
-
-
-    self.select_item_vals = [];
-    self.select_item_eles = [];
-
-    self.addSelectItem = function (val, text, is_default) {
-        if (self.tagName === 'SELECT') {
-            if (self.select_item_vals.indexOf(val) === -1) {
-                self.select_item_vals.push(val);
-                let opt = new Option(text, val);
-                opt.is_default = is_default;
-                opt.val = val;
-                self.select_item_eles.push();
-                self.add(opt);
-                if (is_default) {
-                    self.value = val;
-                }
-            }
-        } else {
-            console.log('调用错误，非select 不能使用 addSelectItem 方法');
-        }
-    };
-
-    /**
-     *
-     * @param list [ {val:xx,text:xx,is_default:true/false} ]
-     * @returns {__ElementExt}
-     */
-    self.addSelectItemList = function (list) {
-        if (typeof list.forEach === 'function') {
-            list.forEach(function (info) {
-                self.addSelectItem(info.val || '', info.text || '', info.is_default || '')
-            });
-        }
-        return self;
-    };
-    self.clearSelectItems = function (keep_dafault) {
-        let index0 = 0;
-        for (let i in self.select_item_eles) {
-            if (keep_dafault === true && self.select_item_eles[index0].is_default === true) {
-                console.log('保留', index0, self.select_item_eles[index0]);
-                index0 = index0 + 1;
-            }
-            self.select_item_eles[index0].remove();
-        }
-        if (self.select_item_eles.length > 0) {
-            if (keep_dafault === true) {
-                self.select_item_vals = [self.select_item_eles[0].val];
-            } else {
-                self.select_item_vals = [];
-            }
-        }
-
-    };
-
-
-    return self;
-}
 
 /**
  *
@@ -446,13 +276,11 @@ function __ElementExt(tag) {
  * @param attrsStr
  * @param textContent
  * @param prototypeMap
- * @returns {__ElementExt|HTMLElement }
+ * @returns {HTMLElement }
  * @constructor
  */
 function Emt(tagName, attrsStr, textContent, prototypeMap) {
     let ele = document.createElement(tagName);
-    __ElementExt.call(ele);
-    //t.prototype=new __ElementExt();
     if (typeof attrsStr === 'string') {
         ele.setAttrsByStr(attrsStr, textContent || '');
     }
@@ -462,20 +290,175 @@ function Emt(tagName, attrsStr, textContent, prototypeMap) {
     return ele;
 }
 
+HTMLElement.prototype.addNode = function () {
+    for (let i = 0; i < arguments.length; i++) {
+        if (typeof arguments[i] !== 'string') {
+            this.appendChild(arguments[i]);
+            arguments[i].boss = this;
+            arguments[i].parent = this;
+            if (typeof arguments[i + 1] === 'string') {
+                if (arguments[i + 1]) this[arguments[i + 1]] = arguments[i];
+            }
+        }
+    }
+    return this;
+};
+
 HTMLElement.prototype.addNodes = function (nodes) {
     for (let i in nodes) {
         let node = nodes[i];
         if (typeof node === 'string') {
-            self.innerHTML += node;
+            this.innerHTML += node;
         } else if (node === false) {
             //
         } else {
-            nodes.boss = self;
+            nodes.boss = this;
             this.appendChild(node);
-            (node.eleParent || self)[node.eleName || i] = node;
+            (node.eleParent || this)[node.eleName || i] = node;
         }
     }
     return this;
+};
+
+HTMLElement.prototype.setStyle = function (configs) {
+    for (let attr in configs) {
+        this.style[attr] = configs[attr];
+    }
+    return this;
+};
+HTMLElement.prototype.setPros = function (configs) {
+    for (let attr in configs) {
+        this[attr] = configs[attr];
+    }
+    return this;
+};
+/**
+ * 设置句柄及索引
+ * @param {Object} index_handler
+ * @param index_name
+ * @returns {HTMLElement}
+ */
+HTMLElement.prototype.setIndexHandler = function (index_handler, index_name) {
+    index_handler[index_name] = this;
+    this.indexHandler = index_handler;
+    return this;
+};
+HTMLElement.prototype.setAttrs = function (configs, isAddPrototype) {
+    for (let attr in configs) {
+        this.setAttribute(attr, configs[attr]);
+    }
+    if (isAddPrototype) {
+        for (let attr in configs) {
+            this[attr] = configs[attr];
+        }
+    }
+    return this;
+};
+//必须是双引号的
+HTMLElement.prototype.setAttrsByStr = function (raw_attrs_str, textContent) {
+    let tmp_ar = raw_attrs_str.replace(/=\s?\"\s?/g, '=').replace(/\"\s+/g, '" ').replace(/\s?\:\s?/g, ':').split('" ');
+    for (let ar_i = 0; ar_i < tmp_ar.length; ar_i++) {
+        let tmp_str = tmp_ar[ar_i];
+        let tmp_ar2 = tmp_str.split('=');
+        if (tmp_ar2.length === 2) {
+            this.setAttribute(tmp_ar2[0].replace(/\s/g, ''), tmp_ar2[1].replace(/(^\s)|(\s$)|"/g, ''));
+        }
+    }
+    if (typeof textContent === 'string') {
+        this.textContent = textContent;
+    }
+    return this;
+};
+
+HTMLElement.prototype.setEventListener = function (event, fn) {
+    this.addEventListener(event, fn);
+    return this;
+};
+HTMLElement.prototype.bindEvent = function (event, fn) {
+    this.addEventListener(event, fn);
+    return this;
+};
+
+/**
+ *
+ * @param opts
+ let opts = {
+            path: 'premit.startTime',
+            domData: domData
+         }
+ * @returns {HTMLElement}
+ */
+HTMLElement.prototype.bindData = function (opts) {
+    opts.ele = this;
+    opts.domData.bindData(opts);
+    return this;
+};
+
+
+HTMLElement.prototype.toggleClassList = function (class_name, is_add) {
+    if (typeof is_add === 'undefined') {
+        this.classList.toggle(class_name);
+    } else if (is_add) {
+        this.classList.add(class_name);
+    } else {
+        this.classList.remove(class_name);
+    }
+    return this;
+};
+
+HTMLElement.prototype.select_item_vals = [];
+HTMLElement.prototype.select_item_eles = [];
+
+HTMLElement.prototype.addSelectItem = function (val, text, is_default) {
+    let self = this;
+    if (self.tagName === 'SELECT') {
+        if (self.select_item_vals.indexOf(val) === -1) {
+            self.select_item_vals.push(val);
+            let opt = new Option(text, val);
+            opt.is_default = is_default;
+            opt.val = val;
+            self.select_item_eles.push();
+            self.add(opt);
+            if (is_default) {
+                self.value = val;
+            }
+        }
+    } else {
+        console.log('调用错误，非select 不能使用 addSelectItem 方法');
+    }
+    return self;
+};
+/**
+ *
+ * @param list [ {val:xx,text:xx,is_default:true/false} ]
+ * @returns {HTMLElement}
+ */
+HTMLElement.prototype.addSelectItemList = function (list) {
+    let self = this;
+    if (typeof list.forEach === 'function') {
+        list.forEach(function (info) {
+            self.addSelectItem(info.val || '', info.text || '', info.is_default || '')
+        });
+    }
+    return this;
+};
+HTMLElement.prototype.clearSelectItems = function (keep_dafault) {
+    let index0 = 0;
+    for (let i in self.select_item_eles) {
+        if (keep_dafault === true && self.select_item_eles[index0].is_default === true) {
+            console.log('保留', index0, self.select_item_eles[index0]);
+            index0 = index0 + 1;
+        }
+        self.select_item_eles[index0].remove();
+    }
+    if (self.select_item_eles.length > 0) {
+        if (keep_dafault === true) {
+            self.select_item_vals = [self.select_item_eles[0].val];
+        } else {
+            self.select_item_vals = [];
+        }
+    }
+
 };
 
 
