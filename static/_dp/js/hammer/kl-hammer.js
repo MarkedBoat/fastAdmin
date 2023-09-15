@@ -1,6 +1,11 @@
 /**
  * Created by markedboat on 2019/12/19.
  */
+"use strict";
+/*jshint esversion: 6 */
+/*globals document,console,window,XPathResult,XMLHttpRequest,FormData,HTMLElement,Option */
+/* exported Emt,domLoaded */
+
 
 // Object.prototype.isStdArray = function () {
 //     return typeof this.forEach === 'function';
@@ -11,7 +16,7 @@ function KL() {
     let self = this;
     self.opt = {log: true};
     self.isset = function (arg) {
-        return typeof arg === 'undefined' ? false : true;
+        return typeof arg !== 'undefined';
     };
     self.id = function (id) {
         return document.getElementById(id);
@@ -48,8 +53,16 @@ function KL() {
             let doc = (context && context.ownerDocument) || window.document;
             let results = doc.evaluate(xpath, context || doc, null, XPathResult.ANY_TYPE, null);
             let node;
-            while (node = results.iterateNext()) {
-                nodes.push(node);
+// while (node = results.iterateNext()) {
+//                 nodes.push(node);
+//             }
+            while (true) {
+                node = results.iterateNext();
+                if (node) {
+                    nodes.push(node);
+                } else {
+                    break;
+                }
             }
         } catch (e) {
             throw e;
@@ -162,7 +175,10 @@ function KL() {
      */
     self.ajax = function (opts) {
         let request = new XMLHttpRequest();
-        opts.httpOkCodes = opts.httpOkCodes || [];
+        opts.httpOkCodes = opts.httpOkCodes || [200];
+        if (opts.httpOkCodes.indexOf(200) === -1) {
+            opts.httpOkCodes.push(200);
+        }
         request.timeout = (opts.timeout || 30) * 1000;
         request.responseType = opts.responseType || request.responseType;
         if (opts.async !== true) {
@@ -170,7 +186,7 @@ function KL() {
                 if (typeof opts.onload === 'function') {
                     opts.onload(request);
                 } else {
-                    if (request.status == 200 || opts.httpOkCodes.indexOf(request.status) !== -1) {
+                    if (opts.httpOkCodes.indexOf(request.status) !== -1) {
                         let result = request.responseText;
                         if (opts.type === 'json') {
                             try {
@@ -233,7 +249,7 @@ function KL() {
         }
 
         if (opts.async === true) {
-            return new Promise(function (resolve, reject) {
+            return new Promise(function (resolve) {
                 request.send(opts.form);
                 request.onload = function () {
                     if (request.status === 200 || opts.httpOkCodes.indexOf(request.status) !== -1) {
@@ -251,7 +267,7 @@ function KL() {
                         return resolve({isOk: false, msg: '请求异常', request: {status: request.status, statusText: request.statusText, responseText: request.responseText}});
                         //return reject(request.status + ':' + request.statusText);
                     }
-                }
+                };
             });
         } else {
             request.send(opts.form);
@@ -279,7 +295,7 @@ function KL() {
  * @returns {HTMLElement }
  * @constructor
  */
-function Emt(tagName, attrsStr, textContent, prototypeMap) {
+function Emt(tagName, attrsStr = '', textContent = '', prototypeMap = {}) {
     let ele = document.createElement(tagName);
     if (typeof attrsStr === 'string') {
         ele.setAttrsByStr(attrsStr, textContent || '');
@@ -305,6 +321,7 @@ HTMLElement.prototype.addNode = function () {
 };
 
 HTMLElement.prototype.addNodes = function (nodes) {
+    let self = this;
     for (let i in nodes) {
         let node = nodes[i];
         if (typeof node === 'string') {
@@ -314,7 +331,12 @@ HTMLElement.prototype.addNodes = function (nodes) {
         } else {
             nodes.boss = this;
             this.appendChild(node);
-            (node.eleParent || this)[node.eleName || i] = node;
+            if (node.eleName) {
+                self[node.eleName] = node;
+                if (node.eleParent) {
+                    node.eleParent [node.eleName] = node;
+                }
+            }
         }
     }
     return this;
@@ -343,7 +365,7 @@ HTMLElement.prototype.setIndexHandler = function (index_handler, index_name) {
     this.indexHandler = index_handler;
     return this;
 };
-HTMLElement.prototype.setAttrs = function (configs, isAddPrototype) {
+HTMLElement.prototype.setAttrs = function (configs, isAddPrototype = false) {
     for (let attr in configs) {
         this.setAttribute(attr, configs[attr]);
     }
@@ -356,7 +378,7 @@ HTMLElement.prototype.setAttrs = function (configs, isAddPrototype) {
 };
 //必须是双引号的
 HTMLElement.prototype.setAttrsByStr = function (raw_attrs_str, textContent) {
-    let tmp_ar = raw_attrs_str.replace(/=\s?\"\s?/g, '=').replace(/\"\s+/g, '" ').replace(/\s?\:\s?/g, ':').split('" ');
+    let tmp_ar = raw_attrs_str.replace(/=\s?"\s?/g, '=').replace(/"\s+/g, '" ').replace(/\s?:\s?/g, ':').split('" ');
     for (let ar_i = 0; ar_i < tmp_ar.length; ar_i++) {
         let tmp_str = tmp_ar[ar_i];
         let tmp_ar2 = tmp_str.split('=');
@@ -437,22 +459,23 @@ HTMLElement.prototype.addSelectItemList = function (list) {
     let self = this;
     if (typeof list.forEach === 'function') {
         list.forEach(function (info) {
-            self.addSelectItem(info.val || '', info.text || '', info.is_default || '')
+            self.addSelectItem(info.val || '', info.text || '', info.is_default || '');
         });
     }
     return this;
 };
-HTMLElement.prototype.clearSelectItems = function (keep_dafault) {
+HTMLElement.prototype.clearSelectItems = function (keep_default) {
+    let self = this;
     let index0 = 0;
     for (let i in self.select_item_eles) {
-        if (keep_dafault === true && self.select_item_eles[index0].is_default === true) {
-            console.log('保留', index0, self.select_item_eles[index0]);
+        if (keep_default === true && self.select_item_eles[index0].is_default === true) {
+            console.log('保留', i, index0, self.select_item_eles[index0]);
             index0 = index0 + 1;
         }
         self.select_item_eles[index0].remove();
     }
     if (self.select_item_eles.length > 0) {
-        if (keep_dafault === true) {
+        if (keep_default === true) {
             self.select_item_vals = [self.select_item_eles[0].val];
         } else {
             self.select_item_vals = [];
@@ -460,6 +483,39 @@ HTMLElement.prototype.clearSelectItems = function (keep_dafault) {
     }
 
 };
+
+/**
+
+ var hero = {
+  fit: function() {
+      console.log('普通攻击');
+  }
+}
+
+ var fit2 = function () {
+  console.log('fit2')
+}
+ var hero1 = Object.create(hero);
+
+ hero1.fit = hero1.fit.appendAfterFunction(fit2)
+ hero1.fit()
+
+ 结果:
+ init.js:1 普通攻击
+ init.js:1 fit2
+
+
+ * @param afterfn
+ * @returns {function(): *}
+ */
+Function.prototype.appendAfterFunction = function (afterfn) {
+    let _self = this;
+    return function () {
+        let ret = _self.apply(this, arguments);
+        afterfn.apply(this, arguments);
+        return ret;
+    }
+}
 
 
 function domLoaded(fn) {

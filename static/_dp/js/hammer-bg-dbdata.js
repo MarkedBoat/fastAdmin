@@ -9,6 +9,7 @@ let hammerBgDataApi = function () {
             dbdata_dbconf_tableName: '$dbdata_dbconf_tableName',
             dbdata_column_tableName: '$dbdata_column_tableName',
             dbdata_table_tableName: '$dbdata_table_tableName',
+            dbdata_relation_tableName: '$dbdata_relation_tableName',
             dbdata_struct_tableName: '$dbdata_struct_tableName',
             mainTable_tableName: false,
             mainTable_dbConfCode: false,

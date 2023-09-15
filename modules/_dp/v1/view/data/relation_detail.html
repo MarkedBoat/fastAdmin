@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>【管理 关系数据】</title>
+    <link href="/static/_dp/css/bootstrap.css" rel="stylesheet">
+    <link href="/static/_dp/css/site.css" rel="stylesheet">
+    <link href="/static/_dp/css/bg.css" rel="stylesheet">
+
+
+    <script src="/static/_dp/js/jquery.js"></script>
+    <script src="/static/_dp/js/bootstrap.js"></script>
+
+    <script src="/static/_dp/js/hammer/kl-hammer.js"></script>
+    <script src="/static/_dp/js/hammer/hammer-bootstrap-creater.js"></script>
+    <script src="/static/_dp/js/string/string.js"></script>
+    <script src="/static/_dp/js/hammer-yii2/datagrid/datagrid.min.2023.06.13.js"></script>
+    <script src="/static/_dp/js/hammer/hammer-object-check.js"></script>
+    <script src="/static/_dp/js/bg.js"></script>
+    <script src="/static/_dp/js/hammer-bg-dbdata.js"></script>
+
+
+</head>
+<body>
+<div class="wrap">
+    <nav id="w0" class="navbar-inverse navbar-fixed-top navbar">
+        <div class="container">
+            <div id="page_title" class="navbar-brand page_title">【管理 关系数据】</div>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="site-index">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="page-header" id="user_nickname">【管理 关系数据】</h3>
+                </div>
+                <div class="panel-body">
+                    <p id="subject_detail"></p>
+                </div>
+            </div>
+            <div class="body-content" id="content_div">
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    domLoaded(function () {
+            let utk = '';
+
+            bg_init(function () {
+                utk = window.utk;
+
+                window.serverData.dataLib = {
+                    relationInfo: {},//关联关系
+                    common: {
+                        isOK: {
+                            items: [
+                                {val: 1, text: '✔️'},
+                                {val: 2, text: '❌'}
+                            ],
+                            map: {
+                                1: '✔️',
+                                2: '❌'
+                            }
+                        }
+                    }
+                };
+                window.serverData.dataLib.bgDataApi = hammerBgDataApi();
+
+
+                (async function () {
+
+                    let attr = {};
+                    if (serverData.id) {
+                        attr.id = serverData.id;
+                    } else if (serverData.dbconf_name && serverData.left_table_name && serverData.res_as_key) {
+                        attr = {
+                            dbconf_name: serverData.dbconf_name,
+                            left_table_name: serverData.left_table_name,
+                            res_as_key: serverData.res_as_key,
+                        };
+                    } else {
+                        throw '数据关系标识丢失';
+                    }
+                    await kl.ajax({
+                        url: '/_dp/v1/dbdata/select',
+                        data: {
+                            dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name,
+                            table_name: window.serverData.dataLib.bgDataApi.config.dbdata_relation_tableName,
+                            attr: attr,
+                            page_index: 1,
+                            page_size: 1,
+                        },
+                        type: 'json',
+                        async: true,
+                    }).then(res => {
+                        if (kl.isUndefined(res, 'result.data.dataRows') || typeof res.result.data.dataRows.forEach !== "function") {
+                            alert('init role 失败:' + (kl.isUndefined(res, 'result.msg') ? '未知' : res.result.msg));
+                        } else {
+                            console.log('查询 tables ok');
+                            console.log(res.result.data.dataRows);
+                            if (res.result.data.dataRows.length === 1) {
+                                window.serverData.dataLib.relationInfo = res.result.data.dataRows[0];
+                            } else {
+                                throw '查不到数据关系';
+                            }
+                        }
+                    });
+
+                    content();
+                })();
+
+            });
+            let content = function () {
+
+                let raw_root = kl.id('content_div');
+                let root = new Emt('div').setPros({className: 'row'});
+                raw_root.append(root);
+
+                let addRelationRowBtn = new Emt('button', 'class="btn btn-md btn-info"', '').addNodes([
+                    new Emt('span', 'class=" glyphicon glyphicon-plus"'),
+                    new Emt('span', '', '新增')
+                ]);
+                let queryRelationBtn = new Emt('button', 'class="btn btn-md btn-info"', '').addNodes([
+                    //  new Emt('span','class="glyphicon glyphicon-play"'),
+                    new Emt('span', 'class="glyphicon glyphicon-ok"'),
+                    new Emt('span', '', '查询')
+                ]);
+
+                let relationDatagridDiv = new Emt('div');
+                let relationFixedToolsDiv = new Emt('div', 'class="fixed_tools_div"');
+
+
+                root.addNodes([
+                    relationDatagridDiv,
+                    relationFixedToolsDiv.addNodes([
+                        addRelationRowBtn,
+                        queryRelationBtn
+                    ])
+                ]);
+
+
+                let rowIndexCount = 0;
+                let hammerBootstarpCreator1 = hammerBootstarpCreator();
+
+
+                let addOrEditRelation_Modal = hammerBootstarpCreator1.createModal({title: '修改表配置信息'});
+                let relationCommonConfig_Form = hammerBootstarpCreator1.createForm({dataNameTpl: 'attr[$var]'});
+                let leftTableConfig_Form = hammerBootstarpCreator1.createForm({dataNameTpl: 'attr[$var]', rowStyle: 'no_class'});
+                let MiddleTableConfig_Form = hammerBootstarpCreator1.createForm({dataNameTpl: 'attr[$var]', rowStyle: 'no_class'});
+                let RightTableConfig_Form = hammerBootstarpCreator1.createForm({dataNameTpl: 'attr[$var]', rowStyle: 'no_class'});
+
+                let relationRecords_Modal = hammerBootstarpCreator1.createModal({title: '关系数据'});
+                let relationRecordsHandle = {
+                    detailDiv: new Emt('div'),
+                    datagridContainerDiv: new Emt('div'),
+                    datagridsMap: {},
+
+                };
+
+                relationRecords_Modal.addBodyChildElements([
+                    relationRecordsHandle.detailDiv,
+                    relationRecordsHandle.datagridContainerDiv,
+                ]);
+
+
+                addOrEditRelation_Modal.addBodyChildElements([
+                    new Emt('div', 'class="col-sm-12  col-md-12 col-lg-12"').addNodes([
+                        relationCommonConfig_Form
+                    ]),
+                    new Emt('div', 'class="col-sm-4  col-md-4 col-lg-4"').addNodes([
+                        leftTableConfig_Form
+                    ]),
+                    new Emt('div', 'class="col-sm-4  col-md-4 col-lg-4"').addNodes([
+                        MiddleTableConfig_Form
+                    ]),
+                    new Emt('div', 'class="col-sm-4  col-md-4 col-lg-4"').addNodes([
+                        RightTableConfig_Form
+                    ]),
+
+                ]);
+
+
+                let fromDataHandle = {
+                    idInput: relationCommonConfig_Form.presetGroupElement().setLabelText('ID').createTextInput().setPros({dataKey: 'id'}),
+                    dbConfInput: relationCommonConfig_Form.presetGroupElement().setLabelText('数据库').setItems(window.serverData.dataLib.allDbconf.items).createSelect().setPros({dataKey: 'dbconf_name'}),
+
+
+                    leftTablenameInput: leftTableConfig_Form.presetGroupElement().setLabelText('L左表-表名/索引表').setPlaceHolder('L左表-表名').setItems(serverData.dataLib.allTable.items).setHelpblockDetail('L左表，发起关联表').createWithDroplistTextInput().setPros({dataKey: 'left_table_name'}),
+
+                    leftTableIndexFiledInput: leftTableConfig_Form.presetGroupElement().setLabelText('用来查询的字段--->').setPlaceHolder('#').setItems([]).setHelpblockDetail('#').create('select').setPros({dataKey: 'left_table_index_field'}),
+
+
+                    middleTablenameInput: MiddleTableConfig_Form.presetGroupElement().setLabelText('关联表/中间表/M').setPlaceHolder('关联表').setHelpblockDetail('关联关系表').setItems(serverData.dataLib.allTable.items).create('droplist_text').setPros({dataKey: 'relation_table_name'}),
+                    middleTableLeftFiledInput: MiddleTableConfig_Form.presetGroupElement().setLabelText('<----对应左表的字段').setPlaceHolder('#').setItems([]).setHelpblockDetail('#').create('select').setPros({dataKey: 'relation_left_field'}),
+                    middleTableRightFiledInput: MiddleTableConfig_Form.presetGroupElement().setLabelText('对应右表的字段--->').setPlaceHolder('#').setItems([]).setHelpblockDetail('#').create('select').setPros({dataKey: 'relation_right_field'}),
+
+
+                    middleTableExtFiledInput: MiddleTableConfig_Form.presetGroupElement().setLabelText('额外条件字段').setPlaceHolder('#').setItems([]).setHelpblockDetail('#').create('select').setPros({dataKey: 'relation_ext_field'}),
+                    middleTableExtFiledValInput: MiddleTableConfig_Form.presetGroupElement().setLabelText('额外条件字段-值').setPlaceHolder('#').setHelpblockDetail('#').create('text').setPros({dataKey: 'relation_ext_field_val'}),
+
+
+                    resultAsKeyInput: MiddleTableConfig_Form.presetGroupElement().setLabelText('<--扩展key').setPlaceHolder('').setHelpblockDetail('右表的label 结果，附加到左表,$left_row[$relation_res_key]').create('text').setPros({dataKey: 'relation_res_key'}),
+                    resultAsTitleInput: MiddleTableConfig_Form.presetGroupElement().setLabelText('<--扩展key title').setPlaceHolder('').setHelpblockDetail('在左表datagrid中标题').create('text').setPros({dataKey: 'relation_res_title'}),
+
+                    MiddlePlaceholder1: MiddleTableConfig_Form.presetGroupElement().setLabelText('#').setPlaceHolder('#').setItems([]).setHelpblockDetail('#').create('div'),
+                    MiddlePlaceholder2: MiddleTableConfig_Form.presetGroupElement().setLabelText('#').setPlaceHolder('#').setItems([]).setHelpblockDetail('#').create('div'),
+                    MiddlePlaceholder3: MiddleTableConfig_Form.presetGroupElement().setLabelText('#').setPlaceHolder('#').setItems([]).setHelpblockDetail('#').create('div'),
+                    RelationTypeInput: MiddleTableConfig_Form.presetGroupElement().setLabelText('对应关系').setPlaceHolder('#').setItems([
+                        {val: 'has_many', text: '一对多'},
+                        {val: 'many_many', text: '多对多'},
+                        {val: 'has_one', text: '一对一'},
+                    ]).setHelpblockDetail('#').create('select').setPros({dataKey: 'relation_type'}),
+                    isOKInput: MiddleTableConfig_Form.presetGroupElement().setLabelText('启用?').setPlaceHolder('#').setHelpblockDetail('#').setKeepClass().createEmojiSpanCheckboxInput().setPros({dataKey: 'is_ok'}).setStateMap({
+                        true: "1",
+                        false: "2"
+                    }),
+                    updateBtn: MiddleTableConfig_Form.presetGroupElement().setType('button').setLabelText('').setContentText('保存').createButton().setColor('danger'),
+                    addBtn: MiddleTableConfig_Form.presetGroupElement().setType('button').setLabelText('').setContentText('保存').createButton().setColor('danger'),
+
+
+                    rightTablenameInput: RightTableConfig_Form.presetGroupElement().setLabelText('R右表-表名/被关联表/被索引表').setPlaceHolder('R右表-表名').setItems(serverData.dataLib.allTable.items).setHelpblockDetail('R右表，被关联表').create('droplist_text').setPros({dataKey: 'right_table_name'}),
+
+
+                    RigthPlaceholder1: RightTableConfig_Form.presetGroupElement().setLabelText('#').setPlaceHolder('#').setItems([]).setHelpblockDetail('#').create('div'),
+
+                    rightTableIndexFiledInput: RightTableConfig_Form.presetGroupElement().setLabelText('<--用来查询的字段').setPlaceHolder('#').setItems([]).setHelpblockDetail('#').create('select').setPros({dataKey: 'right_table_index_field'}),
+
+                    RigthPlaceholder2: RightTableConfig_Form.presetGroupElement().setLabelText('#').setPlaceHolder('#').setItems([]).setHelpblockDetail('#').create('div').setAttrsByStr('style="-webkit-box-shadow:none;box-shadow:none;border:none;"'),
+                    RigthPlaceholder3: RightTableConfig_Form.presetGroupElement().setLabelText('#').setPlaceHolder('#').setItems([]).setHelpblockDetail('#').create('div').setAttrsByStr('style="-webkit-box-shadow:none;box-shadow:none;border:none;"'),
+
+
+                    rightTableLabelFiledInput: RightTableConfig_Form.presetGroupElement().setLabelText('作为label的字段').setPlaceHolder('#').setItems([]).setHelpblockDetail('#').create('select').setPros({dataKey: 'right_table_label_field'}),
+                    RigthPlaceholder4: RightTableConfig_Form.presetGroupElement().setLabelText('#').setPlaceHolder('#').setItems([]).setHelpblockDetail('#').create('div'),
+
+                    rightTableInfoFiledsInput: RightTableConfig_Form.presetGroupElement().setLabelText('作为info的字段s').setPlaceHolder('#').setItems([]).setHelpblockDetail('附加到 $left_row[__relat][$relation_res_key]').createCheckBoxs().setPros({dataKey: 'right_table_info_fields'}),
+
+                    isRightAsFilterInput: RightTableConfig_Form.presetGroupElement().setLabelText('右表是否作为过滤条件').setPlaceHolder('#').setHelpblockDetail('#').setKeepClass().appendNotExistedParams({
+                        stateMap: {
+                            true: "1",
+                            false: "2"
+                        }
+                    }).createEmojiSpanCheckboxInput().setPros({dataKey: 'is_right_as_filter'}),
+                    filterValsItemMaxlengthInput: RightTableConfig_Form.presetGroupElement().setLabelText('right表作为选项的最大个数').setPlaceHolder('#').setHelpblockDetail('比如right是标签时，作为选项有几十万个,必须设置上限').create('number').setPros({dataKey: 'filter_val_items_length'}),
+
+
+                };
+                // let x= relationCommonConfig_Form.presetGroupElement().setLabelText('数据库').setItems(window.serverData.dataLib.allDbconf.items).createSelect().setItems();
+
+                fromDataHandle.addBtn.classList.add('hide');
+
+                [fromDataHandle.RigthPlaceholder1, fromDataHandle.RigthPlaceholder2, fromDataHandle.RigthPlaceholder3, fromDataHandle.RigthPlaceholder4, fromDataHandle.MiddlePlaceholder1, fromDataHandle.MiddlePlaceholder2, fromDataHandle.MiddlePlaceholder3].forEach((placeholderDiv) => {
+                    placeholderDiv.setAttrsByStr('style="-webkit-box-shadow:none;box-shadow:none;border:none;"');
+                    placeholderDiv.groupDiv.libData.helpBlock.setStyle({background: '#FFF', color: '#FFF'});
+                    placeholderDiv.groupDiv.libData.inputLabel.setStyle({background: '#FFF', color: '#FFF'});
+                });
+
+
+                [fromDataHandle.leftTableIndexFiledInput, fromDataHandle.middleTableLeftFiledInput, fromDataHandle.rightTableIndexFiledInput, fromDataHandle.middleTableRightFiledInput,].forEach((placeholderDiv) => {
+                    // placeholderDiv.groupDiv.setAttrsByStr('style="background:#AAA;"');
+                });
+
+
+                [
+                    {
+                        tableNameInput: fromDataHandle.middleTablenameInput,
+                        fieldInputs: [fromDataHandle.middleTableLeftFiledInput, fromDataHandle.middleTableRightFiledInput, fromDataHandle.middleTableExtFiledInput]
+                    },
+                    {
+                        tableNameInput: fromDataHandle.leftTablenameInput,
+                        fieldInputs: [fromDataHandle.leftTableIndexFiledInput],
+                    },
+                    {
+                        tableNameInput: fromDataHandle.rightTablenameInput,
+                        fieldInputs: [
+                            fromDataHandle.rightTableIndexFiledInput, fromDataHandle.rightTableLabelFiledInput, fromDataHandle.rightTableInfoFiledsInput,],
+                    }
+                ].forEach((groupInfo) => {
+                    groupInfo.fieldInputs.forEach((fieldInput) => {
+                        fieldInput.reloadColumnItems = () => {
+                            let newItems = [];
+                            serverData.dataLib.allColumn.list.forEach((data_row) => {
+                                if (data_row.dbconf_name === fromDataHandle.dbConfInput.value && data_row.table_name === groupInfo.tableNameInput.value) {
+                                    newItems.push({val: data_row.column_name, text: `${data_row.column_name} `});
+                                }
+                            });
+                            fieldInput.setItems(newItems);
+                        };
+                    });
+
+                    groupInfo.tableNameInput.reloadTableItems = () => {
+                        let newItems = [];
+                        serverData.dataLib.allTable.list.forEach((data_row) => {
+                            if (data_row.dbconf_name === fromDataHandle.dbConfInput.value) {
+                                newItems.push({val: data_row.table_name, text: `${data_row.dbconf_name}.${data_row.table_name} ${data_row.title} ${data_row.remark}`});
+                            }
+                        });
+                        groupInfo.tableNameInput.setItems(newItems);
+                        groupInfo.fieldInputs.forEach((fieldInput) => {
+                            fieldInput.reloadColumnItems();
+                        });
+                    };
+                    groupInfo.tableNameInput.addEventListener('change', () => {
+                        groupInfo.fieldInputs.forEach((fieldInput) => {
+                            fieldInput.reloadColumnItems();
+                        });
+                    });
+
+                });
+                fromDataHandle.initTableAndColumnItems = () => {
+                    console.log('initTableAndColumnItems');
+                    [fromDataHandle.leftTablenameInput, fromDataHandle.middleTablenameInput, fromDataHandle.rightTablenameInput].forEach((tableNameInput) => {
+                        tableNameInput.reloadTableItems();
+                    });
+                };
+                fromDataHandle.dbConfInput.addEventListener('change', () => {
+                    fromDataHandle.initTableAndColumnItems();
+                });
+
+
+                fromDataHandle.idInput.readOnly = true;
+                let dataKeyElementMap = {};
+                Object.values(fromDataHandle).forEach((inputElement) => {
+                    if (inputElement.dataKey !== undefined) {
+                        dataKeyElementMap[inputElement.dataKey] = inputElement;
+                    }
+                });
+
+
+                let initRelationData = (relationDataRowInfo) => {
+                    let uniqueKey = `${relationDataRowInfo.dbconf_name}.${relationDataRowInfo.left_table_name}.${relationDataRowInfo.res_as_key}`;
+                    if (relationRecordsHandle.datagridsMap[uniqueKey] === undefined) {
+
+
+                        let r_fileds = relationDataRowInfo.right_table_info_fields.split(',');
+                        let ext_left_join_str = '';
+                        if (relationDataRowInfo.relation_ext_field) {
+                            ext_left_join_str = ` and m.${row_data.relation_ext_field}='${row_data.relation_ext_field_val}'`;
+                        }
+
+                        let sql = `select m.$pk,
+                                   from ${relationDataRowInfo.relation_table_name} as m
+                                            left join ${relationDataRowInfo.left_table_name} as l on m.${relationDataRowInfo.relation_left_field} = l.{relationDataRowInfo.left_table_index_field} ${ext_left_join_str} left join ${relationDataRowInfo.right_table_name} as r
+                                   on m.${relationDataRowInfo.relation_right_field}=l.{relationDataRowInfo.right_table_index_field} `;
+                        let config = {
+                            container: relationRecordsHandle.datagridContainerDiv,
+                            components: {//部件，datagrid 默认的部件
+                                totalInformation: true,//是否展示 数据多少行 多少页信息，自定义的话，可以在request.after定义
+                                pageInfomation: true,//分页操作
+                                requestInformation: true,//请求信息，条件 排序 分期
+                            },
+                            dataSource: {//请求设置
+                                url: '/_dp/v1/dbdata/sql',
+                                downloadable: false,//可下载数据
+                                beforeRequest: (event_type, dataGrid) => {
+                                    console.log(event_type, dataGrid);
+                                    if (event_type === 'filter') {
+                                        return false;
+                                    }
+                                    return true;
+                                },
+                                param: {
+                                    append: {
+                                        //附加额外的请求参数
+                                        dbconf_name: relationDataRowInfo.dbconf_name,
+                                        table_name: relationDataRowInfo.right_table_name,
+                                        sql: sql,
+                                    },
+                                    fun: (post_data) => {
+                                        for (let attr_key in post_data.attr) {
+                                            if (post_data.attr[attr_key][0] === ':') {
+                                                post_data.attr[attr_key] = 'like:%' + post_data.attr[attr_key].substring(1) + '%';
+                                            }
+                                        }
+                                        return post_data;
+                                    },
+                                },
+                                resultAdapter: (request_res) => {
+                                    rowIndexCount = 0;
+                                    if (request_res.status) {
+                                        if (request_res.status === 200) {
+                                            return request_res.data;
+                                        } else {
+                                            alert('错误:' + (request_res.msg || '未知'))
+                                        }
+                                    } else {
+                                        console.log(request_res.status);
+                                        alert('请求结果异常')
+                                    }
+                                    return request_res;
+                                },
+                                afterRequest: (request_res, dataGrid) => {
+
+                                },
+                                requestButtons: [
+                                    true,//发请求事件的按钮，第一个代表是否自动生成
+                                ],
+                            },
+                            paramPreset: {
+                                attr: serverData.presetAttr || {//过滤器
+                                    // id: 1,
+                                },
+                                page: serverData.presetPage || {//分页
+                                    index: 1,
+                                    size: 20,
+                                    sizes: [5, 10, 20, 50, 100],
+                                },
+                                sort: serverData.presetSort || {//排序
+                                    id: 'desc'
+                                }
+                            },
+
+                            columns: [
+
+                                {
+                                    handleKey: 'id',
+                                    attrKey: 'id',
+                                    headerText: 'ID',
+                                    sortable: true,
+                                    filter: {//过滤器
+                                        key: 'm.$pk',
+                                        inputs: [true],
+                                        config: {valueItems: []}
+                                    },
+                                    info: {},
+                                    fun: (cell, row_data) => {
+                                        cell.textContent = row_data.id;
+                                    },
+                                },
+
+                                {
+                                    handleKey: 'is_ok',
+                                    attrKey: 'is_ok',
+                                    headerText: '禁用',
+                                    sortable: true,
+                                    filter: {
+                                        inputs: [true],
+                                        config: {valueItems: window.serverData.dataLib.common.isOK.items}
+                                    },
+                                    info: {},
+                                    fun: (cell, row_data) => {
+                                        cell.addNodes([
+                                            new Emt('p').setAttrsByStr('', (window.serverData.dataLib.common.isOK.map[row_data.is_ok] || '错误信息')),
+                                        ]);
+                                    },
+                                },
+
+                                {
+                                    handleKey: 'op',
+                                    attrKey: false,
+                                    headerText: '操作',
+                                    sortable: true,
+                                    filter: {
+                                        inputs: [true],
+                                        config: {valueItems: []}
+                                    },
+                                    info: {},
+                                    fun: (cell, row_data) => {
+                                        let cellEditBtn = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '修改'});
+                                        let cellShowDataBtn = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '查看数据'});
+
+                                        cellEditBtn.addEventListener('click', function () {
+                                            console.log('修改', cell, row_data);
+
+                                            fromDataHandle.updateBtn.classList.remove('hide');
+                                            fromDataHandle.addBtn.classList.add('hide');
+
+                                            Object.keys(row_data).forEach((dataKey) => {
+                                                if (dataKeyElementMap[dataKey]) {
+                                                    dataKeyElementMap[dataKey].setVal(row_data[dataKey]);
+                                                }
+                                            });
+                                            fromDataHandle.initTableAndColumnItems();
+                                            addOrEditRelation_Modal.setTitleText('修改关系配置');
+                                            addOrEditRelation_Modal.showModal();
+                                        });
+
+
+                                        cell.addNodes([cellEditBtn, cellShowDataBtn]);
+                                    },
+                                },
+                            ],
+                        };
+                        let datagrid = hammerBootstarpAsyncDatagrid(config);
+                        console.log('datagrid', datagrid);
+
+
+                        queryRelationBtn.addEventListener('click', function () {
+                            datagrid.api.requestData('queryRelationBtn');
+                        });
+                        datagrid.api.init();
+                    } else {
+
+                    }
+                };
+
+
+                fromDataHandle.updateBtn.addEventListener('click', function (btn) {
+                    let attr = {};
+                    Object.keys(dataKeyElementMap).forEach((dataKey) => {
+                        attr[dataKey] = dataKeyElementMap[dataKey].getVal();
+                    });
+                    console.log(attr);
+                    kl.ajax({
+                        url: '/_dp/v1/dbdata/update',
+                        data: {
+                            attr: attr,
+                            dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name,
+                            table_name: window.serverData.dataLib.bgDataApi.config.dbdata_relation_tableName,
+                        },
+                        type: 'json',
+                        success: function (update_tableConfig_res) {
+                            if (update_tableConfig_res.status) {
+                                if (update_tableConfig_res.status === 200) {
+                                    datagrid.api.requestData('init');
+                                    addOrEditRelation_Modal.hideModal();
+                                } else {
+                                    alert('修改table config错误:' + (update_tableConfig_res.msg || '未知'))
+                                }
+                            } else {
+                                console.log(update_tableConfig_res);
+                                alert('修改table config 结果异常')
+                            }
+                        },
+                        error: function (update_tableConfig_res) {
+                            console.log(update_tableConfig_res);
+                            alert('修改table config 网络异常');
+                        }
+                    })
+                });
+                addRelationRowBtn.addEventListener('click', () => {
+                    Object.keys(dataKeyElementMap).forEach((dataKey) => {
+                        dataKeyElementMap[dataKey].resetByDefaultVal();
+                    });
+
+                    fromDataHandle.updateBtn.classList.add('hide');
+                    fromDataHandle.addBtn.classList.remove('hide');
+                    addOrEditRelation_Modal.setTitleText('新增关系配置');
+                    addOrEditRelation_Modal.showModal();
+                });
+
+                fromDataHandle.addBtn.addEventListener('click', () => {
+                    let attr = {};
+                    Object.keys(dataKeyElementMap).forEach((dataKey) => {
+                        attr[dataKey] = dataKeyElementMap[dataKey].getVal();
+                    });
+                    delete attr.id;
+                    kl.ajax({
+                        url: '/_dp/v1/dbdata/add',
+                        data: {
+                            attr: attr,
+                            dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name,
+                            table_name: window.serverData.dataLib.bgDataApi.config.dbdata_relation_tableName,
+                        },
+                        type: 'json',
+                        success: function (update_tableConfig_res) {
+                            if (update_tableConfig_res.status) {
+                                if (update_tableConfig_res.status === 200) {
+                                    datagrid.api.requestData('init');
+                                    //update_tableConfig_res(update_tableConfig_res.data);
+                                    addOrEditRelation_Modal.hideModal();
+                                } else {
+                                    alert('添加关系 失败:' + (update_tableConfig_res.msg || '未知'))
+                                }
+                            } else {
+                                console.log(update_tableConfig_res);
+                                alert('添加关系  结果异常')
+                            }
+                        },
+                        error: function (update_tableConfig_res) {
+                            console.log(update_tableConfig_res);
+                            alert('添加关系  网络异常');
+                        }
+                    })
+                });
+
+                let config = {
+                    container: relationDatagridDiv,
+                    components: {//部件，datagrid 默认的部件
+                        totalInformation: true,//是否展示 数据多少行 多少页信息，自定义的话，可以在request.after定义
+                        pageInfomation: true,//分页操作
+                        requestInformation: true,//请求信息，条件 排序 分期
+                    },
+                    dataSource: {//请求设置
+                        url: '/_dp/v1/dbdata/select',
+                        downloadable: false,//可下载数据
+                        beforeRequest: (event_type, dataGrid) => {
+                            console.log(event_type, dataGrid);
+                            // let page_data = dataGrid.api.getRequestParam();
+                            if (event_type === 'filter') {
+                                console.log('这个不做理会，不然请求太频繁了');
+                                return false;
+                            }
+                            return true;
+                        },
+                        param: {
+                            append: {
+                                //附加额外的请求参数
+                                dbconf_name: window.serverData.dataLib.bgDataApi.config.dbconf_name,
+                                table_name: window.serverData.dataLib.bgDataApi.config.dbdata_relation_tableName,
+                            },
+                            fun: (post_data) => {
+                                if (post_data.attr.dbconf_name === undefined && serverData.dbconf_name !== undefined) {
+                                    post_data.attr.dbconf_name = serverData.dbconf_name;
+                                }
+                                for (let attr_key in post_data.attr) {
+                                    if (post_data.attr[attr_key][0] === ':') {
+                                        post_data.attr[attr_key] = 'like:%' + post_data.attr[attr_key].substring(1) + '%';
+                                    }
+                                }
+                                return post_data;
+                            },
+                        },
+                        resultAdapter: (request_res) => {
+                            rowIndexCount = 0;
+                            if (request_res.status) {
+                                if (request_res.status === 200) {
+                                    return request_res.data;
+                                } else {
+                                    alert('错误:' + (request_res.msg || '未知'))
+                                }
+                            } else {
+                                console.log(request_res.status);
+                                alert('请求结果异常')
+                            }
+                            return request_res;
+                        },
+                        afterRequest: (request_res, dataGrid) => {
+
+                        },
+                        requestButtons: [
+                            true,//发请求事件的按钮，第一个代表是否自动生成
+                        ],
+                    },
+                    paramPreset: {
+                        attr: serverData.presetAttr || {//过滤器
+                            // id: 1,
+                        },
+                        page: serverData.presetPage || {//分页
+                            index: 1,
+                            size: 20,
+                            sizes: [5, 10, 20, 50, 100],
+                        },
+                        sort: serverData.presetSort || {//排序
+                            id: 'desc'
+                        }
+                    },
+
+                    columns: [
+
+                        {
+                            handleKey: 'id',
+                            attrKey: 'id',
+                            headerText: 'ID',
+                            sortable: true,
+                            filter: {//过滤器
+                                inputs: [true],
+                                config: {valueItems: []}
+                            },
+                            info: {},
+                            fun: (cell, row_data) => {
+                                cell.textContent = row_data.id;
+                            },
+                        },
+
+                        {
+                            handleKey: 'dbconf_name',
+                            attrKey: 'dbconf_name',
+                            headerText: '数据库',
+                            sortable: true,
+                            filter: {
+                                inputs: [true],
+                                config: {valueItems: window.serverData.dataLib.allDbconf.items}
+                            },
+                            info: {},
+                            fun: (cell, row_data) => {
+                                cell.textContent = row_data.dbconf_name;
+                            },
+                        },
+
+                        {
+                            handleKey: 'left_table_name',
+                            attrKey: 'left_table_name',
+                            headerText: '左表',
+                            sortable: true,
+                            filter: {
+                                inputs: [true],
+                                config: {valueItems: []}
+                            },
+                            info: {},
+                            fun: (cell, row_data) => {
+                                cell.textContent = row_data.left_table_name;
+                            },
+                        },
+
+                        {
+                            handleKey: 'relation_res_key',
+                            attrKey: 'relation_res_key',
+                            headerText: '扩展key',
+                            sortable: true,
+                            filter: {
+                                inputs: [true],
+                                config: {valueItems: []}
+                            },
+                            info: {},
+                            fun: (cell, row_data) => {
+                                cell.textContent = row_data.relation_res_key;
+                                cell.addNodes([
+                                    new Emt('pre', '', `
+select
+${row_data.right_table_name}.${row_data.right_table_label_field} as ${row_data.left_table_name}.${row_data.relation_res_key}[]
+
+                                    `),
+                                ])
+                            },
+                        },
+
+                        {
+                            handleKey: 'relation_table_name',
+                            attrKey: 'relation_table_name',
+                            headerText: 'Relat表',
+                            sortable: true,
+                            filter: {
+                                inputs: [true],
+                                config: {valueItems: []}
+                            },
+                            info: {},
+                            fun: (cell, row_data) => {
+                                cell.textContent = row_data.relation_table_name;
+                                let ext_left_join_str = '';
+                                if (row_data.relation_ext_field.length) {
+                                    ext_left_join_str = ` and ${row_data.relation_table_name}.${row_data.relation_ext_field}='${row_data.relation_ext_field_val}'`
+                                }
+                                cell.addNodes([
+                                    new Emt('pre', '', `
+left join
+${row_data.relation_table_name}.${row_data.relation_left_field}=${row_data.left_table_name}.${row_data.left_table_index_field}
+${ext_left_join_str}
+where
+${row_data.relation_table_name}.${row_data.relation_right_field}=${row_data.right_table_name}.${row_data.right_table_index_field}
+
+                                    `),
+                                ])
+                            },
+                        },
+
+                        {
+                            handleKey: 'relation_left_field',
+                            attrKey: 'relation_left_field',
+                            headerText: 'R-左表key',
+                            sortable: true,
+                            filter: {
+                                inputs: [true],
+                                config: {valueItems: []}
+                            },
+                            info: {},
+                            fun: (cell, row_data) => {
+                                cell.textContent = row_data.relation_left_field;
+                            },
+                        },
+
+                        {
+                            handleKey: 'left_table_index_field',
+                            attrKey: 'left_table_index_field',
+                            headerText: '左表key',
+                            sortable: true,
+                            filter: {
+                                inputs: [true],
+                                config: {valueItems: []}
+                            },
+                            info: {},
+                            fun: (cell, row_data) => {
+                                cell.textContent = row_data.left_table_index_field;
+                            },
+                        },
+
+                        {
+                            handleKey: 'relation_right_field',
+                            attrKey: 'relation_right_field',
+                            headerText: 'R-右表key',
+                            sortable: true,
+                            filter: {
+                                inputs: [true],
+                                config: {valueItems: []}
+                            },
+                            info: {},
+                            fun: (cell, row_data) => {
+                                cell.textContent = row_data.relation_right_field;
+                            },
+                        },
+
+                        {
+                            handleKey: 'relation_ext_field',
+                            attrKey: 'relation_ext_field',
+                            headerText: '补充条件key',
+                            sortable: true,
+                            filter: {
+                                inputs: [true],
+                                config: {valueItems: []}
+                            },
+                            info: {},
+                            fun: (cell, row_data) => {
+                                cell.textContent = row_data.relation_ext_field;
+                            },
+                        },
+
+                        {
+                            handleKey: 'relation_ext_field_val',
+                            attrKey: 'relation_ext_field_val',
+                            headerText: '补充条件val',
+                            sortable: true,
+                            filter: {
+                                inputs: [true],
+                                config: {valueItems: []}
+                            },
+                            info: {},
+                            fun: (cell, row_data) => {
+                                cell.textContent = row_data.relation_ext_field_val;
+                            },
+                        },
+
+
+                        {
+                            handleKey: 'right_table_name',
+                            attrKey: 'right_table_name',
+                            headerText: '右表-表名',
+                            sortable: true,
+                            filter: {
+                                inputs: [true],
+                                config: {valueItems: []}
+                            },
+                            info: {},
+                            fun: (cell, row_data) => {
+                                cell.textContent = row_data.right_table_name;
+                            },
+                        },
+
+                        {
+                            handleKey: 'right_table_index_field',
+                            attrKey: 'right_table_index_field',
+                            headerText: '右表-key',
+                            sortable: true,
+                            filter: {
+                                inputs: [true],
+                                config: {valueItems: []}
+                            },
+                            info: {},
+                            fun: (cell, row_data) => {
+                                cell.textContent = row_data.right_table_index_field;
+                            },
+                        },
+
+
+                        {
+                            handleKey: 'is_ok',
+                            attrKey: 'is_ok',
+                            headerText: '禁用',
+                            sortable: true,
+                            filter: {
+                                inputs: [true],
+                                config: {valueItems: window.serverData.dataLib.common.isOK.items}
+                            },
+                            info: {},
+                            fun: (cell, row_data) => {
+                                cell.addNodes([
+                                    new Emt('p').setAttrsByStr('', (window.serverData.dataLib.common.isOK.map[row_data.is_ok] || '错误信息')),
+                                ]);
+                            },
+                        },
+                        {
+                            handleKey: 'create_time',
+                            attrKey: 'create_time',
+                            headerText: '创建时间',
+                            sortable: true,
+                            filter: {
+                                inputs: [true],
+                                config: {valueItems: []}
+                            },
+                            info: {},
+                            fun: (cell, row_data) => {
+                                cell.textContent = row_data.create_time;
+                            },
+                        },
+                        {
+                            handleKey: 'op',
+                            attrKey: false,
+                            headerText: '操作',
+                            sortable: true,
+                            filter: {
+                                inputs: [true],
+                                config: {valueItems: []}
+                            },
+                            info: {},
+                            fun: (cell, row_data) => {
+                                let cellEditBtn = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '修改'});
+                                let cellShowDataBtn = new Emt('button', 'class="btn btn-warning btn-sm"').setPros({textContent: '查看数据'});
+
+
+                                // let params_str = 'dbconf_name=' + row_data.dbconf_name + '&table_name=' + row_data.table_name;
+                                //  let a_select = new Emt('a').setPros({className: 'btn btn-info btn-sm', href: '/dp/dbdata/tableRows?' + params_str, target: '_blank', textContent: 'go查询数据-表'});
+
+
+                                cellEditBtn.addEventListener('click', function () {
+                                    console.log('修改', cell, row_data);
+
+                                    fromDataHandle.updateBtn.classList.remove('hide');
+                                    fromDataHandle.addBtn.classList.add('hide');
+
+                                    Object.keys(row_data).forEach((dataKey) => {
+                                        if (dataKeyElementMap[dataKey]) {
+                                            dataKeyElementMap[dataKey].setVal(row_data[dataKey]);
+                                        }
+                                    });
+                                    fromDataHandle.initTableAndColumnItems();
+                                    addOrEditRelation_Modal.setTitleText('修改关系配置');
+                                    addOrEditRelation_Modal.showModal();
+                                });
+
+
+                                cell.addNodes([cellEditBtn, cellShowDataBtn]);
+                            },
+                        },
+                    ],
+                };
+                let datagrid = hammerBootstarpAsyncDatagrid(config);
+                console.log('datagrid', datagrid);
+
+
+                queryRelationBtn.addEventListener('click', function () {
+                    datagrid.api.requestData('queryRelationBtn');
+                });
+                datagrid.api.init();
+                //  datagrid.api.requestData('init');
+
+
+            }
+        }
+    );
+</script>
+<style>
+    .container {
+        width: 100% !important;
+    }
+
+    .hide_btn_sort_asc > .btn_sort_asc {
+        display: none;
+    }
+
+    .hide_btn_sort_desc > .btn_sort_desc {
+        display: none;
+    }
+
+    .hide_btn_sort > .btn_sort_asc, .hide_btn_sort > .btn_sort_desc {
+        display: none;
+    }
+
+    .table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
+        padding: 3px !important;
+
+    }
+
+    td > input[type="text"], td > input[type="number"], td > select {
+        min-width: 45px !important;
+        padding: 0 !important;
+    }
+
+
+    .fixed_tools_div {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+    }
+
+    .fixed_tools_div > .btn, .datagrid-top-div > .btn {
+        margin-left: 1em;
+    }
+
+    .container {
+
+    }
+
+    .cell_img {
+        max-width: 200px;
+        max-height: 100px;
+    }
+
+    .cell_content {
+        position: relative;
+        line-height: 1.4em;
+        /* 3 times the line-height to show 3 lines */
+        max-height: 5em;
+        overflow: hidden;
+    }
+</style>
+
+
+<footer class="footer">
+    <div class="container">
+
+    </div>
+</footer>
+
+
+</body>
+</html>

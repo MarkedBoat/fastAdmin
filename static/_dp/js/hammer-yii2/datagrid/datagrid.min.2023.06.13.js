@@ -809,9 +809,9 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
         ([descSortBtn, noSortBtn, ascSortBtn]).forEach((sortBtn) => {
             sortBtn.addEventListener('click', () => {
                 if (sortBtn.sortType === false) {
-                    delete dataGrid.param.sort[columnConfig.attrKey];
+                    delete dataGrid.param.sort[columnConfig.filter.key || columnConfig.attrKey];
                 } else {
-                    dataGrid.param.sort[columnConfig.attrKey] = sortBtn.sortType;
+                    dataGrid.param.sort[columnConfig.filter.key || columnConfig.attrKey] = sortBtn.sortType;
                 }
                 spans.forEach((span) => {
                     if (span.sortType !== undefined) {
@@ -895,9 +895,9 @@ let hammerBootstarpAsyncDatagrid = function (input_param) {
                 console.log(initedInput, val);
 
                 if (val === '#') {
-                    delete dataGrid.param.attr[columnConfig.attrKey];
+                    delete dataGrid.param.attr[columnConfig.filter.key || columnConfig.attrKey];
                 } else {
-                    dataGrid.param.attr[columnConfig.attrKey] = val;
+                    dataGrid.param.attr[columnConfig.filter.key || columnConfig.attrKey] = val;
                 }
                 columnConfig.initedInputs.forEach((initedInput2) => {
                     if (initedInput !== initedInput2) {

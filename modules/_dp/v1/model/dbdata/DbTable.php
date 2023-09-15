@@ -480,10 +480,14 @@ class DbTable extends DbTableDao
                 $sql_join_parts[] = " and  {$relation->relation_table_name}.`{$relation->relation_ext_field}`='{$relation->relation_ext_field_val}' ";// 没错，这种扩展值，只接受string
             }
             $sql_select_str    = join(',', array_unique($sql_selcet_parts));
-            $sql_left_join_str = join(' ', $sql_join_parts);
+            $sql_left_join_ext_str = join(' ', $sql_join_parts);
 
 
-            $query_sql = "select {$sql_select_str} from {$relation->relation_table_name} left join {$relation->right_table_name} on {$relation->relation_table_name}.{$relation->relation_right_field}={$relation->right_table_name}.{$relation->right_table_index_field} {$sql_left_join_str} where {$relation->relation_table_name}.{$relation->relation_left_field} in ({$left_table_index_field_vals_str})";
+            $query_sql = "
+select {$sql_select_str} from {$relation->relation_table_name}     
+    left join {$relation->right_table_name} on {$relation->relation_table_name}.{$relation->relation_right_field}={$relation->right_table_name}.{$relation->right_table_index_field}
+         {$sql_left_join_ext_str}             
+ where {$relation->relation_table_name}.{$relation->relation_left_field} in ({$left_table_index_field_vals_str})";
 
 
             $relation_rows = DbDbConf::model()->findOneByWhere(['db_code' => $this->dbconf_name])->getConfDbConnect()->setText($query_sql)->queryAll();
