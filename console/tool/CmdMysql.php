@@ -516,31 +516,40 @@ class CmdMysql extends CmdBase
     }
 
 
-    // /mnt/d/kingloneDoc/fastAdmin/hammer  tool/mysql backAndDelete --env=self --configfile=/mnt/d/kingloneDoc/fastAdmin/config/tmp/prod-shenhaixunbao.json --flag=20231027
-    //{
-    //  "ssh_cmds": [
-    //    "ssh -fN -L33061:localhost:3306 -p22 root@xx.xx.xx.xx",
-    //    "ssh -fN -L30001:localhost:30018 -p22 root@xx.xx.xx.xx"
-    //  ],
-    //  "ssh_password": "",
-    //  "host": "127.0.0.1",
-    //  "port": 33061,
-    //  "username": "root",
-    //  "password": "",
-    //  "dbname": "game_analysis",
-    //  "charset": "utf8mb4",
-    //  "bakupdbs": {
-    //    "db-admin": [
-    //      "orders"
-    //    ],
-    //    "game_analysis": [
-    //      "daily_budget_analysis",
-    //      "user_lottery_records_(\\d{4})_(\\d{2})",
-    //      "user_room_records_(\\d{4})_(\\d{2})"
-    //    ]
-    //  },
-    //  "bakupdir": "/mnt/d/kingloneDoc/bak_sqls/prod_wanhaobuyu"
-    //}
+    /**
+     *
+     * cmd 示例:
+     * /mnt/d/kingloneDoc/fastAdmin/hammer  tool/mysql backAndDelete --env=self --configfile=/mnt/d/tmp/prod-shenhaixunbao.json --flag=20231027
+     * json内容:
+     * {
+     * "ssh_cmds": [
+     * "ssh -fN -L33061:localhost:3306 -p22 root@xx.xx.xx.xx",
+     * "ssh -fN -L30001:localhost:30018 -p22 root@xx.xx.xx.xx",
+     * "ssh -fN -L{本地端口}:{数据库host}:{数据库port} -p{跳板机port} {跳板机用户}@{跳板机host}"
+     *
+     * ],
+     * "ssh_password": "",
+     * "host": "127.0.0.1",
+     * "port": 33061,
+     * "username": "root",
+     * "password": "",
+     * "dbname": "game_analysis",
+     * "charset": "utf8mb4",
+     * "bakupdbs": {
+     * "db-admin": [
+     * "orders"
+     * ],
+     * "game_analysis": [
+     * "daily_budget_analysis",
+     * "user_lottery_records_(\\d{4})_(\\d{2})",
+     * "user_room_records_(\\d{4})_(\\d{2})"
+     * ]
+     * },
+     * "bakupdir": "/mnt/d/bak_sqls/prod_wanhaobuyu"
+     * }
+     * kill命令示例，防止误伤 要提前观察
+     * ps aux|grep ssh|grep -v grep|tr -s " "|cut -d" " -f2|xargs kill -9
+     */
     public function backAndDelete()
     {
         //ssh -fN -L33061:localhost:3306 -p22 root@47.96.173.58
