@@ -152,8 +152,8 @@ class CmdBase
      */
     protected function yesOrNoConfirm($question, $yes_answers, $pass_msg, $reject_msg)
     {
-        $strs = join(',', $yes_answers);
-        fwrite(STDOUT, "----------------------------------\n{$question} \n [{$strs}]:");
+        $strs = join('|', array_map(function ($str) { return "[{$str}]"; }, $yes_answers));
+        fwrite(STDOUT, "----------------------------------\n{$question} \n continue options: < {$strs} >:");
         $answer     = trim(fgets(STDIN));
         $is_ok      = in_array($answer, $yes_answers);
         $pass_msg   = $pass_msg ? "\n{$pass_msg}" : '';
