@@ -556,7 +556,8 @@ class CmdMysql extends CmdBase
         // mysql -h127.0.0.1 --port=33061 -uroot -p'1qaz2wsx.mj'
         $config     = null;
         $configfile = $this->inputDataBox->getStringNotNull('configfile');
-        $uq_flag    = $this->inputDataBox->getStringNotNull('flag');
+        $uq_flag    = date('Y-m-d H i s', time());
+        $auto       = $this->inputDataBox->tryGetString('auto') === 'yes';
         if (file_exists($configfile) && is_readable($configfile))
         {
             $config = json_decode(file_get_contents($configfile), true);
@@ -695,7 +696,7 @@ class CmdMysql extends CmdBase
         $file_rows_cnt      = 0;
 
 
-        if ($this->yesOrNoConfirm("是否统计行数", ['yes', 'y', ''], "开始导出", "跳过导出"))
+        if ($auto || $this->yesOrNoConfirm("是否统计行数", ['yes', 'y', ''], "开始导出", "跳过导出"))
         {
             $this->printer->newTabEcho('start_count_tables', '开始-统计被匹配表信息');
 
@@ -712,9 +713,9 @@ class CmdMysql extends CmdBase
 
 
         $this->printer->newTabEcho('start_export_tables', '准备导出');
-        if ($this->yesOrNoConfirm("是否导出数据，注意选择，\n!!!!!!!!!!小心覆盖已有文件!!!!!", ['export'], "开始导出", "跳过导出"))
+        if ($auto || $this->yesOrNoConfirm("是否导出数据，注意选择，\n!!!!!!!!!!小心覆盖已有文件!!!!!", ['export'], "开始导出", "跳过导出"))
         {
-            $is_cover = $this->yesOrNoConfirm("\n!!!!!!!!!!默认是断点续传，输入[recover]覆盖文件!!!!!!!!\n", ['cover'], "开始覆盖", "断点续传");
+            $is_cover = $auto || $this->yesOrNoConfirm("\n!!!!!!!!!!默认是断点续传，输入[recover]覆盖文件!!!!!!!!\n", ['cover'], "开始覆盖", "断点续传");
             $tables_i = 0;
             $size     = 10000;
             foreach ($matched_fullnames as $matched_fullname)
@@ -837,7 +838,7 @@ class CmdMysql extends CmdBase
         //set global max_allowed_packet =31457280
         $this->printer->newTabEcho('delete_db_with_exported_files', '开始-删除数据库老数据');
         // $matched_fullnames = ['`game_analysis`.`user_present_records`'];
-        if ($this->yesOrNoConfirm("准备从导出文件中删除 [{$end_date}]以前的数据？", ['Yes', 'yes', 'delete'], "继续删除", "停止"))
+        if ($auto || $this->yesOrNoConfirm("准备从导出文件中删除 [{$end_date}]以前的数据？", ['Yes', 'yes', 'delete'], "继续删除", "停止"))
         {
             $tables_i              = 0;
             $delete_total_rows_cnt = 0;
